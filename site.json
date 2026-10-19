@@ -5,7 +5,7 @@
     "boutonJeux": "Voir les jeux",
     "boutonHistoire": "Mon histoire",
     "logo": "",
-    "banniere": "images/banniere-wo9q8.jpg",
+    "banniere": "",
     "piedDePage": "© 2026 BS arcade center · Tous les jeux sont faits maison"
   },
   "apparence": {
@@ -23,9 +23,18 @@
     "vide": "Les premiers jeux arrivent bientôt. Reviens vite !"
   },
   "histoire": {
-    "titre": "L'histoire de BS",
+    "titre": "L'histoire de BS Arcade Center",
     "image": "",
     "texte": "On raconte que tout a commencé devant un écran noir, avec un curseur qui clignotait et une idée qui refusait de partir.\n\nAvant d'être un nom sur cette page, BS était un joueur. Le genre à refaire dix fois le même niveau, pas seulement pour gagner, mais pour comprendre comment il avait été construit. Pourquoi ce saut tombe pile au bon moment. Pourquoi ce petit son donne envie de recommencer.\n\nUn soir, la question a changé : et si c'était moi qui le construisais ? Quelques lignes de HTML, un carré qui bouge, un score qui grimpe. Rien de spectaculaire, mais c'était le sien. Puis un deuxième jeu. Puis un troisième.\n\nBS arcade center est né de cette envie : réunir tous ces jeux au même endroit, comme une salle d'arcade ouverte jour et nuit, où personne n'a besoin de jetons.\n\nChaque jeu ici cache sa petite histoire : un bug qui a résisté trois soirs, une idée griffonnée au mauvais moment, une partie test qui a duré bien trop longtemps. Choisis-en un, lance la partie, et essaie de battre le score de BS."
   },
-  "jeux": []
+  "jeux": [
+    {
+      "id": "jmvfcbdla",
+      "titre": "Golf with TEC3H",
+      "genre": "jeux de sport",
+      "description": "",
+      "fichier": "jeux/golf-with-tec3h-eujqr.html",
+      "image": "images/golf-with-tec3h-jaquette-wfd42.png"
+    }
+  ]
 }
