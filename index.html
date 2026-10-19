@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>BS arcade center</title>
+  <meta name="description" content="Des jeux faits maison, à lancer en un clic.">
+  <meta name="theme-color" content="#050505">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link id="polices" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;700&family=Silkscreen&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- ===== Barre du haut ===== -->
+  <header class="barre">
+    <a class="marque relief" href="#accueil">
+      <img id="logoBarre" class="logo" alt="" hidden>
+      <span id="nomBarre">BS arcade center</span>
+    </a>
+    <button class="burger" id="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">
+      <span></span><span></span><span></span>
+    </button>
+  </header>
+
+  <!-- ===== Menu burger (s'ouvre à droite) ===== -->
+  <div class="voile" id="voile" hidden></div>
+  <nav class="menu" id="menu" aria-label="Menu principal" inert>
+    <p class="menu-etiquette">Menu</p>
+    <ul class="menu-liens">
+      <li><a class="relief" href="#accueil" data-ferme>Accueil</a></li>
+      <li>
+        <button class="relief menu-jeux" id="menuJeuxBtn" type="button" aria-expanded="false" aria-controls="menuListeJeux">
+          Jeux <span class="fleche" aria-hidden="true">▾</span>
+        </button>
+        <ul class="menu-sous" id="menuListeJeux" hidden></ul>
+      </li>
+      <li><a class="relief" href="#histoire" data-ferme>Histoire</a></li>
+    </ul>
+  </nav>
+
+  <main>
+    <!-- ===== Accueil ===== -->
+    <section class="hero" id="accueil">
+      <img class="hero-fond" id="heroFond" alt="" hidden>
+      <div class="hero-contenu">
+        <p class="surtitre">Salle d'arcade · ouverte 24 h / 24</p>
+        <h1 class="relief" id="titreSite">BS arcade center</h1>
+        <p class="accroche" id="accroche"></p>
+        <div class="hero-boutons">
+          <a class="bouton plein" href="#jeux" id="boutonJeux">Voir les jeux</a>
+          <a class="bouton" href="#histoire" id="boutonHistoire">Mon histoire</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===== Jeux ===== -->
+    <section class="section" id="jeux">
+      <div class="section-tete">
+        <h2 class="relief" id="titreJeux">Jeux</h2>
+        <span class="compteur" id="compteurJeux"></span>
+      </div>
+      <p class="intro" id="introJeux"></p>
+      <div class="grille" id="grilleJeux"></div>
+      <p class="vide" id="videJeux" hidden></p>
+    </section>
+
+    <!-- ===== Histoire ===== -->
+    <section class="section histoire" id="histoire">
+      <div class="histoire-image" id="histoireImage" hidden><img id="imageHistoire" alt=""></div>
+      <div class="histoire-texte">
+        <p class="surtitre">Chapitre 1</p>
+        <h2 class="relief" id="titreHistoire">L'histoire de BS</h2>
+        <div id="texteHistoire"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied" id="pied"></footer>
+
+  <!-- ===== Lecteur de jeu ===== -->
+  <div class="lecteur" id="lecteur" hidden role="dialog" aria-modal="true" aria-labelledby="lecteurTitre">
+    <div class="lecteur-barre">
+      <h2 id="lecteurTitre"></h2>
+      <button class="bouton petit" type="button" id="btnRejouer">Recommencer</button>
+      <button class="bouton petit" type="button" id="btnPleinEcran">Plein écran</button>
+      <button class="bouton petit plein" type="button" id="btnFermer">Fermer</button>
+    </div>
+    <div class="lecteur-scene" id="scene"><p class="chargement" id="chargement">CHARGEMENT…</p></div>
+  </div>
+
+  <script src="script.js"></script>
+</body>
+</html>

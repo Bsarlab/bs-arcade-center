@@ -1,0 +1,480 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>Admin · BS arcade center</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;700&display=swap">
+  <style>
+    :root { --fond:#0B0B0C; --panneau:#141416; --champ:#1C1C1F; --trait:#2A2A2E; --texte:#F3F3F4; --doux:#9A9AA2; --rouge:#E3121B; --vert:#3BC47A; color-scheme: dark; }
+    * { box-sizing: border-box; }
+    body { margin: 0; background: var(--fond); color: var(--texte); font: 15px/1.5 "Barlow", system-ui, sans-serif; }
+    button, input, textarea, select { font: inherit; color: inherit; }
+    :focus-visible { outline: 2px solid var(--rouge); outline-offset: 2px; }
+    [hidden] { display: none !important; }
+    h1, h2 { font-family: "Anton", Impact, sans-serif; font-weight: 400; text-transform: uppercase; margin: 0; letter-spacing: .02em; }
+
+    .btn { display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 9px 14px; border: 1px solid var(--trait); background: var(--champ); border-radius: 8px; cursor: pointer; font-weight: 700; text-decoration: none; }
+    .btn:hover { border-color: var(--doux); }
+    .btn.rouge { background: var(--rouge); border-color: var(--rouge); color: #fff; }
+    .btn.rouge:hover { filter: brightness(1.1); }
+    .btn.danger { color: #FF6B70; }
+    .btn.petit { padding: 6px 10px; font-size: 13px; }
+    .btn[disabled] { opacity: .5; cursor: progress; }
+
+    input[type=text], input[type=password], textarea, select { width: 100%; padding: 9px 11px; background: var(--champ); border: 1px solid var(--trait); border-radius: 8px; }
+    textarea { min-height: 90px; resize: vertical; }
+    .champ { display: grid; gap: 5px; }
+    .champ > label, .champ > .lbl { font-weight: 700; font-size: 13px; }
+    .aide { color: var(--doux); font-size: 13px; }
+    .erreur { color: #FF6B70; }
+
+    /* Connexion */
+    .connexion { min-height: 100vh; display: grid; place-items: center; padding: 24px 16px; }
+    .carte { width: min(460px, 100%); background: var(--panneau); border: 1px solid var(--trait); border-radius: 14px; padding: 28px; display: grid; gap: 16px; }
+    .carte h1 { font-size: 34px; }
+    .carte h1 span { color: var(--rouge); }
+
+    /* Interface */
+    .app { display: grid; grid-template-columns: minmax(340px, 440px) minmax(0, 1fr); height: 100vh; }
+    @media (max-width: 900px) { .app { grid-template-columns: minmax(0, 1fr); height: auto; } .vue { height: 70vh; border-left: 0; border-top: 1px solid var(--trait); } }
+    .cote { display: grid; grid-template-rows: auto auto 1fr auto; min-height: 0; border-right: 1px solid var(--trait); background: var(--panneau); }
+    .tete { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 14px 16px; border-bottom: 1px solid var(--trait); }
+    .tete h1 { font-size: 22px; }
+    .tete h1 span { color: var(--rouge); }
+    .onglets { display: flex; gap: 2px; padding: 0 10px; border-bottom: 1px solid var(--trait); overflow-x: auto; }
+    .onglet { background: none; border: 0; border-bottom: 2px solid transparent; padding: 11px 12px; cursor: pointer; color: var(--doux); font-weight: 700; white-space: nowrap; }
+    .onglet[aria-selected="true"] { color: var(--texte); border-bottom-color: var(--rouge); }
+    .corps { overflow-y: auto; padding: 18px 16px 28px; display: grid; gap: 22px; align-content: start; min-height: 0; }
+    .bloc { display: grid; gap: 12px; }
+    .bloc > h2 { font-family: "Barlow", sans-serif; font-weight: 700; font-size: 12px; letter-spacing: .1em; color: var(--doux); }
+    .pied { padding: 12px 16px; border-top: 1px solid var(--trait); display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+    .statut { margin-right: auto; font-size: 13px; color: var(--doux); }
+    .statut.ok { color: var(--vert); }
+    .statut.ko { color: #FF6B70; }
+    .statut a { color: inherit; }
+    .vue { position: relative; background: #000; border-left: 1px solid var(--trait); min-height: 0; }
+    .vue iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+    .vue .etiquette { position: absolute; top: 10px; right: 10px; z-index: 2; background: rgba(0,0,0,.7); border: 1px solid var(--trait); padding: 3px 8px; border-radius: 6px; font-size: 12px; color: var(--doux); }
+
+    .couleurs { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; }
+    .couleur { display: flex; align-items: center; gap: 8px; padding: 6px 8px; background: var(--champ); border: 1px solid var(--trait); border-radius: 8px; }
+    .couleur input { width: 34px; height: 28px; border: 0; padding: 0; background: none; cursor: pointer; }
+    .couleur span { font-weight: 700; font-size: 13px; }
+    .palettes { display: flex; gap: 8px; flex-wrap: wrap; }
+    .palette { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--champ); border: 1px solid var(--trait); border-radius: 99px; cursor: pointer; font-size: 13px; font-weight: 700; }
+    .palette i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.25); }
+
+    .image { display: flex; gap: 10px; align-items: center; padding: 8px; border: 1px dashed var(--trait); border-radius: 10px; background: var(--champ); }
+    .image .vignette { width: 72px; height: 54px; border-radius: 6px; object-fit: cover; background: var(--trait); flex: none; }
+    .image .actions { display: flex; gap: 6px; flex-wrap: wrap; }
+    .image input[type=file], .fichier input[type=file] { position: absolute; width: 1px; height: 1px; opacity: 0; }
+    label.btn { position: relative; }
+
+    .jeux { display: grid; gap: 8px; }
+    .ligne { border: 1px solid var(--trait); border-radius: 10px; background: var(--fond); }
+    .ligne-tete { display: flex; align-items: center; gap: 6px; padding: 8px 8px 8px 12px; }
+    .ligne-tete .nom { flex: 1; min-width: 0; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+    .ligne-tete .nom small { display: block; color: var(--doux); font-weight: 400; font-size: 12px; }
+    .ico { width: 30px; height: 30px; display: grid; place-items: center; border: 1px solid var(--trait); border-radius: 7px; background: var(--champ); cursor: pointer; flex: none; }
+    .ico[disabled] { opacity: .3; cursor: default; }
+    .formulaire { border-top: 1px solid var(--trait); padding: 12px; display: grid; gap: 12px; }
+    .confirmer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+    .fichier { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px dashed var(--trait); border-radius: 10px; background: var(--champ); }
+    .fichier span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--doux); font-size: 13px; }
+    .modifie { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #E0A21F; margin-right: 6px; }
+  </style>
+</head>
+<body>
+
+<!-- ===== Écran de connexion ===== -->
+<section class="connexion" id="ecranConnexion" hidden>
+  <form class="carte" id="formConnexion">
+    <h1>Admin <span>BS</span></h1>
+    <p class="aide">Connecte ton dépôt GitHub. Ces infos restent dans ce navigateur, elles ne sont envoyées qu'à GitHub.</p>
+    <div class="champ"><label for="cPseudo">Ton pseudo GitHub</label><input type="text" id="cPseudo" autocomplete="username" required></div>
+    <div class="champ"><label for="cDepot">Nom du dépôt</label><input type="text" id="cDepot" required placeholder="ex. bs-arcade-center"></div>
+    <div class="champ"><label for="cCle">Clé d'accès (token)</label><input type="password" id="cCle" autocomplete="off" required placeholder="github_pat_…">
+      <span class="aide">Voir le fichier LISEZ-MOI pour créer ta clé.</span></div>
+    <p class="erreur" id="erreurConnexion" role="alert"></p>
+    <button class="btn rouge" type="submit" id="btnConnexion">Se connecter</button>
+  </form>
+</section>
+
+<!-- ===== Back-office ===== -->
+<div class="app" id="app" hidden>
+  <aside class="cote">
+    <div class="tete">
+      <h1>Admin <span>BS</span></h1>
+      <div style="display:flex;gap:6px">
+        <a class="btn petit" id="lienSite" href="./" target="_blank" rel="noopener">Voir le site</a>
+        <button class="btn petit" type="button" id="btnDeconnexion">Déconnexion</button>
+      </div>
+    </div>
+    <div class="onglets" role="tablist">
+      <button class="onglet" role="tab" data-onglet="general" aria-selected="true" type="button">Général</button>
+      <button class="onglet" role="tab" data-onglet="apparence" aria-selected="false" type="button">Apparence</button>
+      <button class="onglet" role="tab" data-onglet="jeux" aria-selected="false" type="button">Jeux</button>
+      <button class="onglet" role="tab" data-onglet="histoire" aria-selected="false" type="button">Histoire</button>
+    </div>
+    <div class="corps" id="corps"></div>
+    <div class="pied">
+      <span class="statut" id="statut" role="status">Prêt</span>
+      <button class="btn rouge" type="button" id="btnPublier">Publier</button>
+    </div>
+  </aside>
+  <section class="vue">
+    <span class="etiquette">Aperçu en direct</span>
+    <iframe id="apercu" title="Aperçu du site"></iframe>
+  </section>
+</div>
+
+<script>
+(() => {
+  const $ = (id) => document.getElementById(id);
+  const echapper = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+  const slug = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "fichier";
+  const hasard = () => Math.random().toString(36).slice(2, 7);
+  const EXT = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/svg+xml": "svg" };
+  const POLICES_TITRES = ["Anton", "Bebas Neue", "Russo One", "Black Ops One", "Bungee"];
+  const POLICES_CORPS = ["Barlow", "Rubik", "Atkinson Hyperlegible", "IBM Plex Sans"];
+  const PALETTES = [
+    { nom: "Rouge", c: { fond: "#050505", carte: "#121212", texte: "#FFFFFF", accent: "#E3121B" } },
+    { nom: "Néon", c: { fond: "#05040C", carte: "#110F1F", texte: "#F2F0FF", accent: "#20E3B2" } },
+    { nom: "Or", c: { fond: "#0A0907", carte: "#16130E", texte: "#FFF8EA", accent: "#F2B705" } },
+    { nom: "Violet", c: { fond: "#07050C", carte: "#14101E", texte: "#FFFFFF", accent: "#9B4DFF" } },
+  ];
+
+  let config = null;          // { pseudo, depot, cle, branche }
+  let donnees = null;         // contenu de site.json en cours d'édition
+  let refsPubliees = new Set(); // fichiers utilisés par la dernière version publiée
+  let enAttente = {};         // chemin -> { fichier, url } : fichiers pas encore publiés
+  let onglet = "general", jeuOuvert = null, jeuASupprimer = null, modifie = false;
+
+  // ---------- GitHub ----------
+  async function gh(methode, chemin, corps, brut) {
+    const r = await fetch("https://api.github.com" + chemin, {
+      method: methode,
+      headers: {
+        Authorization: "Bearer " + config.cle,
+        Accept: brut ? "application/vnd.github.raw+json" : "application/vnd.github+json",
+        "X-GitHub-Api-Version": "2022-11-28",
+        ...(corps ? { "Content-Type": "application/json" } : {}),
+      },
+      body: corps ? JSON.stringify(corps) : undefined,
+      cache: "no-store",
+    });
+    if (!r.ok) { const e = new Error("github"); e.statut = r.status; throw e; }
+    if (brut) return r.text();
+    return r.status === 204 ? null : r.json();
+  }
+  const depot = () => `/repos/${encodeURIComponent(config.pseudo)}/${encodeURIComponent(config.depot)}`;
+  function messageErreur(e) {
+    switch (e && e.statut) {
+      case 401: return "Clé refusée : elle est fausse ou a expiré. Crée-en une nouvelle sur GitHub.";
+      case 403: return "Cette clé n'a pas le droit d'écrire. Donne-lui l'accès « Contents : Read and write » sur ce dépôt.";
+      case 404: return "Dépôt introuvable. Vérifie ton pseudo et le nom du dépôt, et que la clé y a accès.";
+      case 409: return "Le dépôt est vide. Envoie d'abord les fichiers du site sur GitHub (voir LISEZ-MOI).";
+      case 422: return "GitHub a refusé l'envoi. Un fichier est peut-être trop lourd (25 Mo maximum).";
+      default: return "Impossible de joindre GitHub. Vérifie ta connexion et réessaie.";
+    }
+  }
+  function enBase64(octets) {
+    let s = "";
+    for (let i = 0; i < octets.length; i += 0x8000) s += String.fromCharCode.apply(null, octets.subarray(i, i + 0x8000));
+    return btoa(s);
+  }
+
+  // ---------- Connexion ----------
+  function lireConfig() { try { return JSON.parse(localStorage.getItem("bs-admin") || "null"); } catch { return null; } }
+  function ecrireConfig(c) { try { c ? localStorage.setItem("bs-admin", JSON.stringify(c)) : localStorage.removeItem("bs-admin"); } catch {} }
+
+  async function connecter(c) {
+    config = c;
+    const infos = await gh("GET", depot());
+    config.branche = infos.default_branch;
+    let texte = null;
+    try { texte = await gh("GET", depot() + "/contents/site.json?ref=" + encodeURIComponent(config.branche), null, true); }
+    catch (e) { if (e.statut !== 404) throw e; }
+    if (!texte) { const r = await fetch("site.json"); texte = await r.text(); }
+    donnees = JSON.parse(texte);
+    donnees.jeux = donnees.jeux || [];
+    refsPubliees = new Set(references(donnees));
+    ecrireConfig(config);
+    $("ecranConnexion").hidden = true;
+    $("app").hidden = false;
+    const site = config.depot.toLowerCase() === config.pseudo.toLowerCase() + ".github.io"
+      ? `https://${config.pseudo}.github.io/` : `https://${config.pseudo}.github.io/${config.depot}/`;
+    $("lienSite").href = site;
+    $("apercu").src = "index.html?apercu=1";
+    afficherOnglet();
+  }
+
+  $("formConnexion").addEventListener("submit", async (e) => {
+    e.preventDefault();
+    $("btnConnexion").disabled = true; $("erreurConnexion").textContent = "";
+    try {
+      await connecter({ pseudo: $("cPseudo").value.trim(), depot: $("cDepot").value.trim(), cle: $("cCle").value.trim() });
+    } catch (err) {
+      $("erreurConnexion").textContent = err instanceof SyntaxError ? "Le fichier site.json du dépôt est abîmé." : messageErreur(err);
+      config = null;
+    } finally { $("btnConnexion").disabled = false; }
+  });
+  $("btnDeconnexion").addEventListener("click", () => {
+    if (modifie && !confirmerQuitter()) return;
+    ecrireConfig(null); location.reload();
+  });
+  function confirmerQuitter() { statut("Tu as des modifications non publiées. Publie-les ou clique à nouveau sur Déconnexion.", "ko"); const r = quitterOk; quitterOk = true; return r; }
+  let quitterOk = false;
+
+  // ---------- Aperçu ----------
+  let minuterie = null;
+  function envoyerApercu() {
+    clearTimeout(minuterie);
+    minuterie = setTimeout(() => {
+      const fichiers = {};
+      for (const [chemin, f] of Object.entries(enAttente)) fichiers[chemin] = f.url;
+      $("apercu").contentWindow?.postMessage({ type: "apercu", donnees, fichiers }, "*");
+    }, 120);
+  }
+  window.addEventListener("message", (e) => { if (e.data && e.data.type === "apercu-pret") envoyerApercu(); });
+
+  function changement() {
+    modifie = true; quitterOk = false;
+    statut('<span class="modifie"></span>Modifications non publiées');
+    envoyerApercu();
+  }
+  function statut(html, classe) { $("statut").innerHTML = html; $("statut").className = "statut " + (classe || ""); }
+  window.addEventListener("beforeunload", (e) => { if (modifie) { e.preventDefault(); e.returnValue = ""; } });
+
+  // ---------- Champs ----------
+  const lire = (chemin) => chemin.split(".").reduce((o, k) => (o ? o[k] : undefined), donnees);
+  function ecrire(chemin, valeur) {
+    const cles = chemin.split("."), der = cles.pop();
+    const obj = cles.reduce((o, k) => (o[k] = o[k] || {}), donnees);
+    obj[der] = valeur;
+  }
+  const texte = (chemin, label, max = 120) => `<div class="champ"><label for="f-${chemin}">${label}</label><input type="text" id="f-${chemin}" data-champ="${chemin}" maxlength="${max}" value="${echapper(lire(chemin))}"></div>`;
+  const zone = (chemin, label, aide = "", haut = 90) => `<div class="champ"><label for="f-${chemin}">${label}</label><textarea id="f-${chemin}" data-champ="${chemin}" style="min-height:${haut}px">${echapper(lire(chemin))}</textarea>${aide ? `<span class="aide">${aide}</span>` : ""}</div>`;
+  const choix = (chemin, label, options) => `<div class="champ"><label for="f-${chemin}">${label}</label><select id="f-${chemin}" data-champ="${chemin}">${options.map((o) => `<option ${o === lire(chemin) ? "selected" : ""}>${echapper(o)}</option>`).join("")}</select></div>`;
+  const url = (chemin) => (enAttente[chemin] ? enAttente[chemin].url : chemin);
+  function image(chemin, label, aide = "") {
+    const v = lire(chemin);
+    return `<div class="champ"><span class="lbl">${label}</span><div class="image">
+      ${v ? `<img class="vignette" src="${echapper(url(v))}" alt="">` : `<span class="vignette"></span>`}
+      <div class="actions"><label class="btn petit" for="i-${chemin}">${v ? "Remplacer" : "Importer une image"}<input type="file" id="i-${chemin}" data-image="${chemin}" accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"></label>
+      ${v ? `<button class="btn petit danger" type="button" data-retirer="${chemin}">Retirer</button>` : ""}</div></div>${aide ? `<span class="aide">${aide}</span>` : ""}</div>`;
+  }
+
+  // ---------- Onglets ----------
+  document.querySelectorAll(".onglet").forEach((b) => b.addEventListener("click", () => {
+    onglet = b.dataset.onglet;
+    document.querySelectorAll(".onglet").forEach((x) => x.setAttribute("aria-selected", String(x === b)));
+    afficherOnglet();
+  }));
+
+  function afficherOnglet() {
+    let h = "";
+    if (onglet === "general") {
+      h = `<div class="bloc"><h2>ACCUEIL</h2>
+        ${texte("site.nom", "Nom du site", 60)}
+        ${zone("site.accroche", "Phrase d'accroche", "", 70)}
+        ${texte("site.boutonJeux", "Texte du bouton vers les jeux", 30)}
+        ${texte("site.boutonHistoire", "Texte du bouton vers l'histoire", 30)}
+        ${image("site.banniere", "Image de fond de l'accueil", "Une grande image horizontale. Elle est assombrie pour garder le texte lisible.")}
+      </div>
+      <div class="bloc"><h2>IDENTITÉ</h2>
+        ${image("site.logo", "Logo", "Carré de préférence, affiché à côté du nom en haut.")}
+        ${texte("site.piedDePage", "Pied de page", 160)}
+      </div>
+      <div class="bloc"><h2>SECTION JEUX</h2>
+        ${texte("sectionJeux.titre", "Titre", 40)}
+        ${zone("sectionJeux.intro", "Phrase d'introduction", "", 60)}
+        ${texte("sectionJeux.vide", "Message quand il n'y a pas encore de jeu", 140)}
+      </div>`;
+    } else if (onglet === "apparence") {
+      h = `<div class="bloc"><h2>PALETTES</h2><div class="palettes">${PALETTES.map((p, i) =>
+          `<button class="palette" type="button" data-palette="${i}"><i style="background:${p.c.accent}"></i>${p.nom}</button>`).join("")}</div></div>
+      <div class="bloc"><h2>COULEURS</h2><div class="couleurs">
+        ${[["fond", "Fond"], ["carte", "Cartes et menu"], ["texte", "Texte"], ["accent", "Survol et relief"]].map(([k, l]) =>
+          `<label class="couleur"><input type="color" id="f-apparence.${k}" data-champ="apparence.${k}" value="${echapper(donnees.apparence[k])}"><span>${l}</span></label>`).join("")}
+      </div></div>
+      <div class="bloc"><h2>POLICES</h2>
+        ${choix("apparence.titres", "Titres", POLICES_TITRES)}
+        ${choix("apparence.corps", "Texte", POLICES_CORPS)}
+      </div>
+      <div class="bloc"><h2>RELIEF</h2>
+        <div class="champ"><label for="f-apparence.relief">Profondeur du relief au survol · <span id="valRelief">${donnees.apparence.relief ?? 5}</span> px</label>
+        <input type="range" id="f-apparence.relief" data-champ="apparence.relief" data-nombre min="0" max="12" value="${donnees.apparence.relief ?? 5}"></div>
+        <span class="aide">Passe la souris sur les titres et les cartes dans l'aperçu pour voir l'effet.</span>
+      </div>`;
+    } else if (onglet === "jeux") {
+      const j = donnees.jeux;
+      h = `<div class="bloc"><h2>TES JEUX · ${j.length}</h2><div class="jeux">${j.map((x, i) => ligneJeu(x, i, j.length)).join("") || `<p class="aide">Aucun jeu pour l'instant.</p>`}</div></div>
+      <div class="bloc"><button class="btn rouge" type="button" data-action="nouveau-jeu">+ Ajouter un jeu</button>
+      <span class="aide">Un jeu = un fichier .html (25 Mo maximum).</span></div>`;
+    } else {
+      h = `<div class="bloc"><h2>HISTOIRE</h2>
+        ${texte("histoire.titre", "Titre", 80)}
+        ${image("histoire.image", "Image (photo, dessin…)", "Facultatif. Elle s'affiche à côté du texte.")}
+        ${zone("histoire.texte", "Texte", "Laisse une ligne vide entre deux paragraphes.", 340)}
+      </div>`;
+    }
+    const pos = $("corps").scrollTop;
+    $("corps").innerHTML = h;
+    $("corps").scrollTop = pos;
+  }
+
+  function ligneJeu(j, i, n) {
+    const ouvert = jeuOuvert === j.id;
+    return `<div class="ligne"><div class="ligne-tete">
+      <div class="nom">${echapper(j.titre || "Sans titre")}<small>${echapper(j.genre || "")}${j.fichier ? " · " + echapper(j.fichier.split("/").pop()) : " · aucun fichier"}</small></div>
+      <button class="ico" type="button" data-action="monter" data-id="${j.id}" ${i === 0 ? "disabled" : ""} aria-label="Monter">↑</button>
+      <button class="ico" type="button" data-action="descendre" data-id="${j.id}" ${i === n - 1 ? "disabled" : ""} aria-label="Descendre">↓</button>
+      <button class="ico" type="button" data-action="ouvrir" data-id="${j.id}" aria-expanded="${ouvert}" aria-label="Modifier">✎</button>
+    </div>${ouvert ? `<div class="formulaire">
+      <div class="champ"><span class="lbl">Fichier du jeu (.html)</span><div class="fichier">
+        <label class="btn petit" for="g-${j.id}">${j.fichier ? "Remplacer" : "Choisir le fichier"}<input type="file" id="g-${j.id}" data-fichier-jeu="${j.id}" accept=".html,.htm,text/html"></label>
+        <span>${j.fichier ? echapper(j.fichier.split("/").pop()) : "Aucun fichier choisi"}</span></div></div>
+      ${champJeu(j, "titre", "Titre", 80)}
+      ${champJeu(j, "genre", "Genre", 30)}
+      <div class="champ"><label for="j-${j.id}-description">Description</label><textarea id="j-${j.id}-description" data-jeu="${j.id}" data-cle="description" maxlength="500">${echapper(j.description)}</textarea></div>
+      <div class="champ"><span class="lbl">Jaquette</span><div class="image">
+        ${j.image ? `<img class="vignette" src="${echapper(url(j.image))}" alt="">` : `<span class="vignette"></span>`}
+        <div class="actions"><label class="btn petit" for="ji-${j.id}">${j.image ? "Remplacer" : "Importer une image"}<input type="file" id="ji-${j.id}" data-image-jeu="${j.id}" accept="image/png,image/jpeg,image/webp,image/gif"></label>
+        ${j.image ? `<button class="btn petit danger" type="button" data-action="retirer-jaquette" data-id="${j.id}">Retirer</button>` : ""}</div></div>
+        <span class="aide">Sans image, une jaquette est générée avec les initiales.</span></div>
+      ${jeuASupprimer === j.id
+        ? `<div class="confirmer"><span>Supprimer ce jeu du site ?</span><button class="btn petit danger" type="button" data-action="supprimer-oui" data-id="${j.id}">Supprimer</button><button class="btn petit" type="button" data-action="supprimer-non">Garder</button></div>`
+        : `<div><button class="btn petit danger" type="button" data-action="supprimer" data-id="${j.id}">Supprimer ce jeu</button></div>`}
+    </div>` : ""}</div>`;
+  }
+  const champJeu = (j, cle, label, max) => `<div class="champ"><label for="j-${j.id}-${cle}">${label}</label><input type="text" id="j-${j.id}-${cle}" data-jeu="${j.id}" data-cle="${cle}" maxlength="${max}" value="${echapper(j[cle])}"></div>`;
+  const trouverJeu = (id) => donnees.jeux.find((j) => j.id === id);
+
+  // ---------- Saisie ----------
+  $("corps").addEventListener("input", (e) => {
+    const el = e.target;
+    if (el.dataset.champ) {
+      ecrire(el.dataset.champ, el.dataset.nombre !== undefined ? Number(el.value) : el.value);
+      if (el.dataset.champ === "apparence.relief") $("valRelief").textContent = el.value;
+      changement();
+    } else if (el.dataset.jeu && el.dataset.cle) {
+      const j = trouverJeu(el.dataset.jeu); j[el.dataset.cle] = el.value;
+      if (el.dataset.cle === "titre") el.closest(".ligne").querySelector(".nom").firstChild.textContent = el.value || "Sans titre";
+      changement();
+    }
+  });
+
+  $("corps").addEventListener("click", (e) => {
+    const p = e.target.closest("[data-palette]");
+    if (p) { Object.assign(donnees.apparence, PALETTES[p.dataset.palette].c); changement(); afficherOnglet(); return; }
+    const r = e.target.closest("[data-retirer]");
+    if (r) { ecrire(r.dataset.retirer, ""); changement(); afficherOnglet(); return; }
+    const a = e.target.closest("[data-action]");
+    if (!a) return;
+    const liste = donnees.jeux, i = liste.findIndex((j) => j.id === a.dataset.id);
+    switch (a.dataset.action) {
+      case "nouveau-jeu": {
+        const j = { id: "j" + Date.now().toString(36), titre: "", genre: "", description: "", fichier: "", image: "" };
+        liste.push(j); jeuOuvert = j.id; break;
+      }
+      case "monter": if (i > 0) [liste[i - 1], liste[i]] = [liste[i], liste[i - 1]]; break;
+      case "descendre": if (i < liste.length - 1) [liste[i + 1], liste[i]] = [liste[i], liste[i + 1]]; break;
+      case "ouvrir": jeuOuvert = jeuOuvert === a.dataset.id ? null : a.dataset.id; jeuASupprimer = null; afficherOnglet(); return;
+      case "supprimer": jeuASupprimer = a.dataset.id; afficherOnglet(); return;
+      case "supprimer-non": jeuASupprimer = null; afficherOnglet(); return;
+      case "supprimer-oui": liste.splice(i, 1); jeuASupprimer = null; jeuOuvert = null; break;
+      case "retirer-jaquette": liste[i].image = ""; break;
+    }
+    changement(); afficherOnglet();
+  });
+
+  // ---------- Import de fichiers ----------
+  function ajouterEnAttente(fichier, dossier, base, ext) {
+    const chemin = `${dossier}/${slug(base)}-${hasard()}.${ext}`;
+    enAttente[chemin] = { fichier, url: URL.createObjectURL(fichier) };
+    return chemin;
+  }
+  $("corps").addEventListener("change", async (e) => {
+    const el = e.target, f = el.files && el.files[0];
+    if (!f) return;
+    if (f.size > 25 * 1048576) { statut("Ce fichier dépasse 25 Mo, GitHub le refusera.", "ko"); return; }
+    if (el.dataset.image || el.dataset.imageJeu) {
+      if (!EXT[f.type]) { statut("Image non prise en charge : utilise PNG, JPG, WebP, GIF ou SVG.", "ko"); return; }
+      if (el.dataset.image) ecrire(el.dataset.image, ajouterEnAttente(f, "images", el.dataset.image.split(".").pop(), EXT[f.type]));
+      else { const j = trouverJeu(el.dataset.imageJeu); j.image = ajouterEnAttente(f, "images", (j.titre || "jeu") + "-jaquette", EXT[f.type]); }
+    } else if (el.dataset.fichierJeu) {
+      if (!/\.html?$/i.test(f.name)) { statut("Choisis le fichier .html de ton jeu.", "ko"); return; }
+      const j = trouverJeu(el.dataset.fichierJeu);
+      if (!j.titre) {
+        const m = (await f.text()).match(/<title[^>]*>([\s\S]*?)<\/title>/i);
+        j.titre = ((m && m[1].trim()) || f.name.replace(/\.html?$/i, "").replace(/[-_]+/g, " ")).slice(0, 80);
+      }
+      j.fichier = ajouterEnAttente(new Blob([await f.arrayBuffer()], { type: "text/html" }), "jeux", j.titre || f.name, "html");
+    }
+    changement(); afficherOnglet();
+  });
+
+  // ---------- Publication (un seul envoi sur GitHub) ----------
+  function references(d) {
+    return [d.site?.logo, d.site?.banniere, d.histoire?.image, ...(d.jeux || []).flatMap((j) => [j.fichier, j.image])]
+      .filter((c) => c && /^(images|jeux)\//.test(c));
+  }
+
+  $("btnPublier").addEventListener("click", async () => {
+    const sansFichier = donnees.jeux.find((j) => !j.fichier);
+    if (sansFichier) { statut(`Le jeu « ${echapper(sansFichier.titre || "Sans titre")} » n'a pas de fichier. Ajoute-le ou supprime ce jeu.`, "ko"); return; }
+    $("btnPublier").disabled = true;
+    try {
+      const nouvelles = new Set(references(donnees));
+      statut("Préparation…");
+      const ref = await gh("GET", depot() + "/git/ref/heads/" + encodeURIComponent(config.branche));
+      const commit = await gh("GET", depot() + "/git/commits/" + ref.object.sha);
+      const arbre = [];
+
+      const aEnvoyer = Object.entries(enAttente).filter(([c, f]) => nouvelles.has(c) && !f.envoye);
+      let n = 0;
+      for (const [chemin, { fichier }] of aEnvoyer) {
+        statut(`Envoi des fichiers ${++n} / ${aEnvoyer.length}…`);
+        const b = await gh("POST", depot() + "/git/blobs", { content: enBase64(new Uint8Array(await fichier.arrayBuffer())), encoding: "base64" });
+        arbre.push({ path: chemin, mode: "100644", type: "blob", sha: b.sha });
+      }
+      const json = JSON.stringify(donnees, null, 2) + "\n";
+      const bj = await gh("POST", depot() + "/git/blobs", { content: enBase64(new TextEncoder().encode(json)), encoding: "base64" });
+      arbre.push({ path: "site.json", mode: "100644", type: "blob", sha: bj.sha });
+
+      // Fichiers qui ne servent plus : on les retire du dépôt
+      const existants = new Set((await gh("GET", depot() + "/git/trees/" + commit.tree.sha + "?recursive=1")).tree.map((t) => t.path));
+      for (const c of refsPubliees) if (!nouvelles.has(c) && existants.has(c)) arbre.push({ path: c, mode: "100644", type: "blob", sha: null });
+
+      statut("Publication…");
+      const t = await gh("POST", depot() + "/git/trees", { base_tree: commit.tree.sha, tree: arbre });
+      const c = await gh("POST", depot() + "/git/commits", { message: "Mise à jour depuis l'admin", tree: t.sha, parents: [ref.object.sha] });
+      await gh("PATCH", depot() + "/git/refs/heads/" + encodeURIComponent(config.branche), { sha: c.sha });
+
+      refsPubliees = nouvelles;
+      for (const [chemin, f] of Object.entries(enAttente)) if (!nouvelles.has(chemin)) URL.revokeObjectURL(f.url);
+      // Les fichiers envoyés restent affichés depuis l'ordinateur le temps que GitHub les mette en ligne
+      enAttente = Object.fromEntries(Object.entries(enAttente).filter(([chemin]) => nouvelles.has(chemin)).map(([chemin, f]) => [chemin, { ...f, envoye: true }]));
+      modifie = false;
+      statut(`Publié ! En ligne d'ici 1 à 2 minutes. <a href="${$("lienSite").href}" target="_blank" rel="noopener">Voir le site</a>`, "ok");
+    } catch (err) {
+      statut(messageErreur(err), "ko");
+    } finally { $("btnPublier").disabled = false; }
+  });
+
+  // ---------- Démarrage ----------
+  const c = lireConfig();
+  if (c && c.cle) {
+    connecter(c).catch((err) => { $("ecranConnexion").hidden = false; $("erreurConnexion").textContent = messageErreur(err); $("cPseudo").value = c.pseudo; $("cDepot").value = c.depot; });
+  } else {
+    $("ecranConnexion").hidden = false;
+  }
+})();
+</script>
+</body>
+</html>
