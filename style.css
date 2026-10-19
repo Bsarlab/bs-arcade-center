@@ -111,21 +111,90 @@ a { color: inherit; }
 .menu-sous button:hover, .menu-sous a:hover { color: var(--accent); border-left-color: var(--accent); }
 .menu-sous .tous { font-family: var(--f-pixel); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; }
 
-/* ===== Accueil ===== */
-.hero {
-  position: relative; overflow: hidden;
-  min-height: min(78vh, 720px); display: grid; align-items: end;
-  padding: 64px max(20px, env(safe-area-inset-right, 0px)) 72px max(20px, env(safe-area-inset-left, 0px));
-  border-bottom: 1px solid var(--trait);
+/* ===== Accueil : carrousel de slides ===== */
+.hero { position: relative; overflow: hidden; border-bottom: 1px solid var(--trait); --duree: 7s; }
+.slides { display: grid; } /* toutes les slides dans la même case : la plus haute donne la hauteur */
+.slide {
+  grid-area: 1 / 1; position: relative; overflow: hidden;
+  min-height: min(84vh, 760px); display: grid; align-items: end;
+  padding: 72px max(20px, env(safe-area-inset-right, 0px)) 128px max(20px, env(safe-area-inset-left, 0px));
+  opacity: 0; visibility: hidden; transition: opacity .8s ease, visibility .8s;
 }
-.hero-fond { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .45; }
-.hero::before {
-  content: ""; position: absolute; inset: 0;
+.slide.actif { opacity: 1; visibility: visible; z-index: 1; }
+.hero-fond { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; opacity: .5; transform: scale(1.08); }
+.slide.actif .hero-fond { animation: zoomLent calc(var(--duree) + 2s) ease-out forwards; }
+@keyframes zoomLent { from { transform: scale(1.1); } to { transform: scale(1); } }
+.slide::before {
+  content: ""; position: absolute; inset: 0; z-index: 1;
   background: radial-gradient(ellipse at 80% 10%, color-mix(in srgb, var(--accent) 22%, transparent), transparent 55%),
-              linear-gradient(180deg, transparent 30%, var(--fond));
-  z-index: 1;
+              linear-gradient(90deg, color-mix(in srgb, var(--fond) 85%, transparent), transparent 70%),
+              linear-gradient(180deg, transparent 35%, var(--fond));
 }
 .hero-contenu { position: relative; z-index: 2; max-width: 1120px; width: 100%; margin: 0 auto; }
+/* Entrée du texte, en cascade */
+.slide .hero-contenu > *, .slide .une-texte > * { opacity: 0; transform: translateY(22px); transition: opacity .6s ease, transform .6s cubic-bezier(.2,.8,.2,1); }
+.slide.actif .hero-contenu > *, .slide.actif .une-texte > * { opacity: 1; transform: none; }
+.slide.actif .hero-contenu > :nth-child(2), .slide.actif .une-texte > :nth-child(2) { transition-delay: .1s; }
+.slide.actif .hero-contenu > :nth-child(3), .slide.actif .une-texte > :nth-child(3) { transition-delay: .2s; }
+.slide.actif .hero-contenu > :nth-child(4), .slide.actif .une-texte > :nth-child(4) { transition-delay: .3s; }
+
+.titre-slide {
+  margin: 0; font-family: var(--f-titres); font-weight: 400; text-transform: uppercase;
+  font-size: clamp(48px, 10vw, 128px); line-height: .92; display: inline-block; overflow-wrap: break-word; max-width: 14ch;
+}
+.slide-jeu .titre-slide { font-size: clamp(44px, 7vw, 104px); max-width: none; }
+.badge { display: inline-block; background: var(--accent); color: #fff; padding: 3px 8px; margin-right: 10px; animation: clignote 1.2s steps(2, start) infinite; }
+@keyframes clignote { to { visibility: hidden; } }
+
+/* Slide « dernier jeu » : texte à gauche, cartouche à droite */
+.slide-jeu .hero-contenu { display: grid; grid-template-columns: minmax(0, 1.1fr) minmax(0, .9fr); gap: 48px; align-items: center; }
+.slide-jeu .hero-contenu > .une-texte { opacity: 1; transform: none; }
+.une-texte { min-width: 0; }
+.cartouche-une {
+  position: relative; padding: 0; border: 2px solid var(--texte); background: var(--carte); cursor: pointer;
+  aspect-ratio: 16 / 10; max-width: 100%; overflow: hidden; display: grid; place-items: center;
+  transform: rotate(3deg); box-shadow: 14px 14px 0 var(--accent);
+  transition: transform .25s ease, box-shadow .25s ease, border-color .25s;
+}
+.cartouche-une img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.cartouche-une:hover, .cartouche-une:focus-visible { transform: rotate(0) translate(-6px, -6px); box-shadow: 20px 20px 0 var(--accent-sombre); border-color: var(--accent); outline: none; }
+.cartouche-une::after {
+  content: "▶ JOUER"; position: absolute; inset: 0; display: grid; place-items: center;
+  background: color-mix(in srgb, var(--accent) 70%, transparent); color: #fff;
+  font-family: var(--f-pixel); font-size: 16px; letter-spacing: .12em; opacity: 0; transition: opacity .15s;
+}
+.cartouche-une:hover::after, .cartouche-une:focus-visible::after { opacity: 1; }
+.slide.actif .cartouche-une { animation: arrivee .8s cubic-bezier(.2,.8,.2,1) both .15s; }
+@keyframes arrivee { from { opacity: 0; transform: rotate(10deg) translate(60px, 20px); } to { opacity: 1; transform: rotate(3deg); } }
+@media (max-width: 760px) {
+  .slide-jeu .hero-contenu { grid-template-columns: minmax(0, 1fr); gap: 28px; }
+  .cartouche-une { max-width: 340px; order: -1; }
+}
+
+/* Navigation du carrousel */
+.slides-nav {
+  position: absolute; z-index: 3; left: 0; right: 0; bottom: 32px;
+  max-width: 1120px; margin: 0 auto; box-sizing: content-box;
+  padding: 0 max(20px, env(safe-area-inset-right, 0px)) 0 max(20px, env(safe-area-inset-left, 0px));
+  display: flex; align-items: center; gap: 14px;
+}
+.fleche-slide {
+  width: 46px; height: 46px; flex: none; display: grid; place-items: center; cursor: pointer;
+  background: color-mix(in srgb, var(--fond) 70%, transparent); color: var(--texte); border: 2px solid var(--texte);
+  font-family: var(--f-titres); font-size: 22px; transition: transform .15s, box-shadow .15s, color .15s, border-color .15s;
+}
+.fleche-slide:hover { color: var(--accent); border-color: var(--accent); transform: translate(-3px, -3px); box-shadow: 3px 3px 0 var(--accent-sombre); }
+.progs { flex: 1; display: flex; gap: 8px; min-width: 0; }
+.prog { flex: 1; height: 24px; padding: 10px 0; background: none; border: 0; cursor: pointer; }
+.prog span { display: block; height: 4px; background: color-mix(in srgb, var(--texte) 22%, transparent); position: relative; overflow: hidden; }
+.prog span::after { content: ""; position: absolute; inset: 0; width: 0; background: var(--accent); }
+.prog.vue span::after { width: 100%; }
+.prog.actif span::after { animation: remplir var(--duree) linear forwards; }
+.hero.pause .prog.actif span::after { animation-play-state: paused; }
+.prog:hover span { background: color-mix(in srgb, var(--texte) 45%, transparent); }
+@keyframes remplir { to { width: 100%; } }
+.numero { font-family: var(--f-pixel); font-size: 12px; letter-spacing: .1em; color: var(--doux); font-variant-numeric: tabular-nums; }
+@media (max-width: 560px) { .numero { display: none; } .fleche-slide { width: 40px; height: 40px; } }
 .surtitre { margin: 0 0 12px; font-family: var(--f-pixel); font-size: 12px; letter-spacing: .12em; text-transform: uppercase; color: var(--accent); }
 h1 {
   margin: 0; font-family: var(--f-titres); font-weight: 400; text-transform: uppercase;
@@ -258,4 +327,6 @@ h2 { margin: 0; font-family: var(--f-titres); font-weight: 400; text-transform: 
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; }
+  .slide.actif .hero-fond, .slide.actif .cartouche-une, .badge { animation: none !important; }
+  .prog.actif span::after { animation: none; width: 100%; }
 }

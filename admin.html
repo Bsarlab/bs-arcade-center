@@ -127,6 +127,7 @@
       </div>
     </div>
     <div class="onglets" role="tablist">
+      <button class="onglet" role="tab" data-onglet="slides" aria-selected="false" type="button">Slides</button>
       <button class="onglet" role="tab" data-onglet="general" aria-selected="true" type="button">Général</button>
       <button class="onglet" role="tab" data-onglet="apparence" aria-selected="false" type="button">Apparence</button>
       <button class="onglet" role="tab" data-onglet="jeux" aria-selected="false" type="button">Jeux</button>
@@ -329,6 +330,19 @@
       h = `<div class="bloc"><h2>TES JEUX · ${j.length}</h2><div class="jeux">${j.map((x, i) => ligneJeu(x, i, j.length)).join("") || `<p class="aide">Aucun jeu pour l'instant.</p>`}</div></div>
       <div class="bloc"><button class="btn rouge" type="button" data-action="nouveau-jeu">+ Ajouter un jeu</button>
       <span class="aide">Un jeu = un fichier .html (25 Mo maximum).</span></div>`;
+    } else if (onglet === "slides") {
+      const L = slides();
+      h = `<div class="bloc"><h2>SLIDES EN HAUT DU SITE · ${L.length}</h2>
+        <span class="aide">Elles défilent toutes seules et s'arrêtent quand on passe la souris dessus. Range-les avec les flèches.</span>
+        <div class="jeux">${L.map((s, i) => ligneSlide(s, i, L.length)).join("")}</div></div>
+      <div class="bloc"><h2>AJOUTER UNE SLIDE</h2><div class="ajouts">
+        <button type="button" class="ajout" data-slide-ajout="perso"><b>Slide personnalisée</b><span>Image, titre, texte et bouton</span></button>
+        ${L.some((s) => s.type === "dernier-jeu") ? "" : `<button type="button" class="ajout" data-slide-ajout="dernier-jeu"><b>Dernier jeu</b><span>Se met à jour toute seule</span></button>`}
+        ${L.some((s) => s.type === "accueil") ? "" : `<button type="button" class="ajout" data-slide-ajout="accueil"><b>Accueil du site</b><span>Nom, accroche et boutons</span></button>`}
+      </div></div>
+      <div class="bloc"><h2>DÉFILEMENT</h2>
+        <div class="champ"><label for="f-slidesDuree">Temps par slide · <span id="valDuree">${donnees.slidesDuree || 7}</span> secondes</label>
+        <input type="range" id="f-slidesDuree" data-champ="slidesDuree" data-nombre min="3" max="15" value="${donnees.slidesDuree || 7}"></div></div>`;
     } else if (onglet === "blocs") {
       const b = blocs();
       h = `<div class="bloc"><h2>ORDRE DE LA PAGE</h2>
@@ -372,6 +386,59 @@
         : `<div><button class="btn petit danger" type="button" data-action="supprimer" data-id="${j.id}">Supprimer ce jeu</button></div>`}
     </div>` : ""}</div>`;
   }
+  // ---------- Slides ----------
+  // Mêmes slides de départ que sur le site (script.js) tant que rien n'est enregistré
+  function slides() {
+    if (!Array.isArray(donnees.slides)) {
+      const reseaux = blocs().find((b) => b.type === "liens");
+      donnees.slides = [{ id: "s-accueil", type: "accueil" }, { id: "s-jeu", type: "dernier-jeu", surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" }];
+      if (reseaux) donnees.slides.push({ id: "s-reseaux", type: "perso", surtitre: "Rejoins-moi", titre: "Suis BS sur les réseaux",
+        texte: "Les coulisses de mes jeux, les prochaines sorties et des défis à relever.", image: "images/slide-reseaux.jpg",
+        boutonTexte: "Voir mes réseaux", cible: "#bloc-" + reseaux.id });
+      donnees.slides.push({ id: "s-actu", type: "perso", surtitre: "Actu Rocket League", titre: "Mercato RLCS 2027 : ça bouge",
+        texte: "Gentle Mates sur zen, Vatira et Atow ? Vitality déjà sur sa relève. Le point sur les rumeurs du mercato européen.",
+        image: "images/slide-actu-rl.jpg", boutonTexte: "Lire l'article", cible: "url",
+        url: "https://www.team-aaa.com/fr/actualite/rlcs-2027-point-sur-les-rumeurs-et-les-pistes-du-mercato-europeen_137272" });
+    }
+    return donnees.slides;
+  }
+  let slideOuverte = null, slideASupprimer = null;
+  const NOMS_SLIDES = { accueil: "Accueil du site", "dernier-jeu": "Dernier jeu (auto)", perso: "Slide" };
+  function resumeSlide(s) {
+    if (s.type === "accueil") return donnees.site.nom;
+    if (s.type === "dernier-jeu") {
+      const j = donnees.jeux.reduce((a, b) => (!a || (parseInt(b.id.slice(1), 36) || 0) >= (parseInt(a.id.slice(1), 36) || 0) ? b : a), null);
+      return j ? "Affiche : " + j.titre : "Aucun jeu pour l'instant";
+    }
+    return s.titre || "Sans titre";
+  }
+  function formSlide(s, i) {
+    const p = "slides." + i;
+    if (s.type === "accueil") return `<span class="aide">Le nom, l'accroche, la bannière et les boutons se règlent dans l'onglet Général.</span>`;
+    if (s.type === "dernier-jeu") return `<span class="aide">Affiche automatiquement le dernier jeu que tu as ajouté, avec sa jaquette.</span>`
+      + texte(p + ".surtitre", "Petit texte au-dessus", 40) + texte(p + ".boutonTexte", "Texte du bouton", 30);
+    const dest = destinations();
+    return image(p + ".image", "Image de fond", "Grande image horizontale (1920 × 1080 idéalement). Le côté gauche est assombri pour le texte.")
+      + texte(p + ".surtitre", "Petit texte au-dessus", 40)
+      + texte(p + ".titre", "Titre", 70)
+      + zone(p + ".texte", "Texte", "", 70)
+      + texte(p + ".boutonTexte", "Texte du bouton (vide = pas de bouton)", 30)
+      + `<div class="champ"><label for="f-${p}.cible">Le bouton mène vers</label><select id="f-${p}.cible" data-champ="${p}.cible" data-rafraichir>${dest.map(([v, l]) =>
+          `<option value="${echapper(v)}" ${v === (s.cible || "#jeux") ? "selected" : ""}>${echapper(l)}</option>`).join("")}</select></div>`
+      + (s.cible === "url" ? texte(p + ".url", "Adresse (https://…)", 400) : "");
+  }
+  function ligneSlide(s, i, n) {
+    const ouvert = slideOuverte === s.id;
+    return `<div class="ligne"><div class="ligne-tete">
+      <div class="nom">${i + 1}. ${NOMS_SLIDES[s.type] || "Slide"}<small>${echapper(resumeSlide(s))}</small></div>
+      <button class="ico" type="button" data-sl="monter" data-i="${i}" ${i === 0 ? "disabled" : ""} aria-label="Monter">↑</button>
+      <button class="ico" type="button" data-sl="descendre" data-i="${i}" ${i === n - 1 ? "disabled" : ""} aria-label="Descendre">↓</button>
+      <button class="ico" type="button" data-sl="ouvrir" data-i="${i}" aria-expanded="${ouvert}" aria-label="Modifier">✎</button>
+    </div>${ouvert ? `<div class="formulaire">${formSlide(s, i)}${slideASupprimer === s.id
+      ? `<div class="confirmer"><span>Supprimer cette slide ?</span><button class="btn petit danger" type="button" data-sl="supprimer-oui" data-i="${i}">Supprimer</button><button class="btn petit" type="button" data-sl="supprimer-non">Garder</button></div>`
+      : `<div><button class="btn petit danger" type="button" data-sl="supprimer" data-i="${i}">Supprimer cette slide</button></div>`}</div>` : ""}</div>`;
+  }
+
   // ---------- Boutons de l'accueil ----------
   function boutons() {
     const s = donnees.site;
@@ -472,6 +539,8 @@
       if (el.dataset.rafraichir !== undefined) { changement(); afficherOnglet(); return; }
       if (/^blocs\.\d+\.titre$/.test(el.dataset.champ)) { const s = el.closest(".ligne")?.querySelector(".nom small"); if (s) s.textContent = el.value || "Vide"; }
       if (el.dataset.champ === "apparence.relief") $("valRelief").textContent = el.value;
+      if (el.dataset.champ === "slidesDuree") $("valDuree").textContent = el.value;
+      if (/^slides\.\d+\.titre$/.test(el.dataset.champ)) { const s = el.closest(".ligne")?.querySelector(".nom small"); if (s) s.textContent = el.value || "Sans titre"; }
       changement();
     } else if (el.dataset.jeu && el.dataset.cle) {
       const j = trouverJeu(el.dataset.jeu); j[el.dataset.cle] = el.value;
@@ -485,6 +554,27 @@
     if (p) { Object.assign(donnees.apparence, PALETTES[p.dataset.palette].c); changement(); afficherOnglet(); return; }
     const r = e.target.closest("[data-retirer]");
     if (r) { ecrire(r.dataset.retirer, ""); changement(); afficherOnglet(); return; }
+    const sa = e.target.closest("[data-slide-ajout]");
+    if (sa) {
+      const t = sa.dataset.slideAjout;
+      const ns = { id: "s" + Date.now().toString(36), type: t };
+      if (t === "perso") Object.assign(ns, { surtitre: "", titre: "Nouvelle slide", texte: "", boutonTexte: "", cible: "#jeux" });
+      if (t === "dernier-jeu") Object.assign(ns, { surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" });
+      slides().push(ns); slideOuverte = ns.id; changement(); afficherOnglet(); return;
+    }
+    const sl = e.target.closest("[data-sl]");
+    if (sl) {
+      const L = slides(), i = Number(sl.dataset.i);
+      switch (sl.dataset.sl) {
+        case "monter": if (i > 0) [L[i - 1], L[i]] = [L[i], L[i - 1]]; break;
+        case "descendre": if (i < L.length - 1) [L[i + 1], L[i]] = [L[i], L[i + 1]]; break;
+        case "ouvrir": slideOuverte = slideOuverte === L[i].id ? null : L[i].id; slideASupprimer = null; afficherOnglet(); return;
+        case "supprimer": slideASupprimer = L[i].id; afficherOnglet(); return;
+        case "supprimer-non": slideASupprimer = null; afficherOnglet(); return;
+        case "supprimer-oui": L.splice(i, 1); slideASupprimer = null; slideOuverte = null; break;
+      }
+      changement(); afficherOnglet(); return;
+    }
     const bt = e.target.closest("[data-bouton]");
     if (bt) {
       const L = boutons(), i = Number(bt.dataset.i);
@@ -575,7 +665,7 @@
   // ---------- Publication (un seul envoi sur GitHub) ----------
   function references(d) {
     return [d.site?.logo, d.site?.banniere, d.histoire?.image, ...(d.jeux || []).flatMap((j) => [j.fichier, j.image]),
-      ...(d.blocs || []).flatMap((b) => [b.image, ...(b.images || [])])]
+      ...(d.blocs || []).flatMap((b) => [b.image, ...(b.images || [])]), ...(d.slides || []).map((s) => s.image)]
       .filter((c) => c && /^(images|jeux)\//.test(c));
   }
 

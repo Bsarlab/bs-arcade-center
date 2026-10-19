@@ -80,7 +80,137 @@ function afficher(d) {
   if (h.image) $("imageHistoire").src = lien(h.image);
 
   afficherBlocs(d);
+  afficherSlides(d);
 }
+
+// ---------- Slides ----------
+// Le jeu le plus récent : l'identifiant d'un jeu contient sa date d'ajout
+function dernierJeu(d) {
+  const jeux = d.jeux || [];
+  if (!jeux.length) return null;
+  const date = (j) => parseInt(String(j.id).slice(1), 36) || 0;
+  return jeux.reduce((a, b) => (date(b) >= date(a) ? b : a));
+}
+// Slides proposées tant que tu n'as rien enregistré dans l'onglet Slides
+function slidesParDefaut(d) {
+  const reseaux = (d.blocs || []).find((b) => b.type === "liens");
+  const liste = [{ id: "s-accueil", type: "accueil" }, { id: "s-jeu", type: "dernier-jeu", surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" }];
+  if (reseaux) liste.push({
+    id: "s-reseaux", type: "perso", surtitre: "Rejoins-moi", titre: "Suis BS sur les réseaux",
+    texte: "Les coulisses de mes jeux, les prochaines sorties et des défis à relever.",
+    image: "images/slide-reseaux.jpg", boutonTexte: "Voir mes réseaux", cible: "#bloc-" + reseaux.id,
+  });
+  liste.push({
+    id: "s-actu", type: "perso", surtitre: "Actu Rocket League", titre: "Mercato RLCS 2027 : ça bouge",
+    texte: "Gentle Mates sur zen, Vatira et Atow ? Vitality déjà sur sa relève. Le point sur les rumeurs du mercato européen.",
+    image: "images/slide-actu-rl.jpg", boutonTexte: "Lire l'article", cible: "url",
+    url: "https://www.team-aaa.com/fr/actualite/rlcs-2027-point-sur-les-rumeurs-et-les-pistes-du-mercato-europeen_137272",
+  });
+  return liste;
+}
+const slidesDe = (d) => (Array.isArray(d.slides) ? d.slides : slidesParDefaut(d));
+
+function boutonSlide(texte, cible, url, plein = true) {
+  if (!texte) return "";
+  const externe = cible === "url", href = externe ? lienSur(url) : cible;
+  if (!href) return "";
+  return `<a class="bouton ${plein ? "plein" : ""}" href="${echapper(href)}"${externe ? ' target="_blank" rel="noopener"' : ""}>${echapper(texte)}${externe ? " ↗" : ""}</a>`;
+}
+
+function htmlSlide(s, d) {
+  if (s.type === "dernier-jeu") {
+    const j = dernierJeu(d);
+    if (!j) return "";
+    const fond = j.image || d.site.banniere;
+    const jaquette = j.image ? `<img src="${echapper(lien(j.image))}" alt="">` : `<span class="initiales">${echapper(initiales(j.titre))}</span>`;
+    return `${fond ? `<img class="hero-fond" src="${echapper(lien(fond))}" alt="" style="filter: blur(6px) saturate(1.2)">` : ""}
+      <div class="hero-contenu">
+        <div class="une-texte">
+          <p class="surtitre"><span class="badge">NEW</span>${echapper(s.surtitre || "Dernière sortie")}</p>
+          <h2 class="titre-slide relief">${echapper(j.titre)}</h2>
+          ${j.description ? `<p class="accroche">${echapper(j.description)}</p>` : ""}
+          <div class="hero-boutons">
+            <button class="bouton plein" type="button" data-jeu="${echapper(j.id)}">▶ ${echapper(s.boutonTexte || "Jouer maintenant")}</button>
+            <a class="bouton" href="#jeux">Tous les jeux</a>
+          </div>
+        </div>
+        <button class="cartouche-une ${j.image ? "" : "jaquette generee"}" type="button" data-jeu="${echapper(j.id)}" aria-label="Jouer à ${echapper(j.titre)}">${jaquette}</button>
+      </div>`;
+  }
+  if (!s.titre && !s.texte) return "";
+  return `${s.image ? `<img class="hero-fond" src="${echapper(lien(s.image))}" alt="">` : ""}
+    <div class="hero-contenu">
+      ${s.surtitre ? `<p class="surtitre">${echapper(s.surtitre)}</p>` : ""}
+      ${s.titre ? `<h2 class="titre-slide relief">${echapper(s.titre)}</h2>` : ""}
+      ${s.texte ? `<p class="accroche">${echapper(s.texte)}</p>` : ""}
+      <div class="hero-boutons">${boutonSlide(s.boutonTexte, s.cible, s.url)}</div>
+    </div>`;
+}
+
+let slideActuelle = 0, nbSlides = 0;
+function afficherSlides(d) {
+  const conteneur = $("slides"), accueil = $("slideAccueil");
+  const noeuds = [];
+  for (const s of slidesDe(d)) {
+    if (s.type === "accueil") { noeuds.push(accueil); continue; }
+    const html = htmlSlide(s, d);
+    if (!html) continue;
+    const a = document.createElement("article");
+    a.className = "slide" + (s.type === "dernier-jeu" ? " slide-jeu" : "");
+    a.setAttribute("aria-roledescription", "slide");
+    a.innerHTML = html;
+    noeuds.push(a);
+  }
+  if (!noeuds.length) noeuds.push(accueil);
+  accueil.hidden = !noeuds.includes(accueil);
+  conteneur.replaceChildren(...noeuds, ...(accueil.hidden ? [accueil] : []));
+  nbSlides = noeuds.length;
+  document.querySelector(".hero").style.setProperty("--duree", (Number(d.slidesDuree) || 7) + "s");
+  $("slidesNav").hidden = nbSlides < 2;
+  $("progs").innerHTML = noeuds.map((_, i) => `<button class="prog" type="button" data-slide="${i}" aria-label="Aller à la slide ${i + 1}"><span></span></button>`).join("");
+  allerA(Math.min(slideActuelle, nbSlides - 1));
+}
+
+function allerA(i) {
+  const slides = [...$("slides").children].filter((s) => !s.hidden);
+  if (!slides.length) return;
+  slideActuelle = (i + slides.length) % slides.length;
+  slides.forEach((s, k) => {
+    s.classList.toggle("actif", k === slideActuelle);
+    s.setAttribute("aria-label", `${k + 1} sur ${slides.length}`);
+    s.inert = k !== slideActuelle;
+  });
+  [...$("progs").children].forEach((b, k) => {
+    b.classList.remove("actif");
+    b.classList.toggle("vue", k < slideActuelle);
+    if (k === slideActuelle) { void b.offsetWidth; b.classList.add("actif"); } // relance la barre de progression
+  });
+  $("numeroSlide").textContent = String(slideActuelle + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+}
+
+// Défilement automatique : quand la barre active est pleine, on passe à la suivante
+$("progs").addEventListener("animationend", (e) => { if (e.target.closest(".prog.actif")) allerA(slideActuelle + 1); });
+$("progs").addEventListener("click", (e) => { const b = e.target.closest("[data-slide]"); if (b) allerA(Number(b.dataset.slide)); });
+$("slidePrec").addEventListener("click", () => allerA(slideActuelle - 1));
+$("slideSuiv").addEventListener("click", () => allerA(slideActuelle + 1));
+const hero = document.querySelector(".hero");
+const pause = (oui) => hero.classList.toggle("pause", oui);
+hero.addEventListener("mouseenter", () => pause(true));
+hero.addEventListener("mouseleave", () => pause(hero.contains(document.activeElement)));
+hero.addEventListener("focusin", () => pause(true));
+hero.addEventListener("focusout", (e) => { if (!hero.contains(e.relatedTarget)) pause(hero.matches(":hover")); });
+hero.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") allerA(slideActuelle - 1);
+  if (e.key === "ArrowRight") allerA(slideActuelle + 1);
+});
+// Glisser du doigt sur mobile
+let departX = null;
+hero.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") departX = e.clientX; });
+hero.addEventListener("pointerup", (e) => {
+  if (departX === null) return;
+  const dx = e.clientX - departX; departX = null;
+  if (Math.abs(dx) > 50) allerA(slideActuelle + (dx < 0 ? 1 : -1));
+});
 
 // Boutons de l'accueil (anciens sites : on reprend les deux boutons d'origine)
 function boutonsAccueil(s) {
@@ -265,7 +395,9 @@ if (apercu) {
       const m = location.hash.match(/^#jouer-(.+)$/);
       if (m) ouvrirJeu(m[1]);
     })
-    .catch(() => {
+    .catch((err) => {
+      console.error(err);
+      if (donnees) return; // le contenu est chargé : on ne masque pas le site pour une petite erreur
       $("videJeux").hidden = false;
       $("videJeux").textContent = "Le contenu du site n'a pas pu être chargé. Si tu as ouvert index.html en double-cliquant dessus, c'est normal : le site fonctionne une fois en ligne.";
     });

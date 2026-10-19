@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link id="polices" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;700&family=Silkscreen&display=swap">
-  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css?v=6">
 </head>
 <body>
 
@@ -36,17 +36,28 @@
 
   <main>
     <!-- ===== Accueil ===== -->
-    <section class="hero" id="accueil">
-      <img class="hero-fond" id="heroFond" alt="" hidden>
-      <div class="hero-contenu">
-        <p class="surtitre">Salle d'arcade · ouverte 24 h / 24</p>
-        <h1 class="relief" id="titreSite">BS arcade center</h1>
-        <p class="accroche" id="accroche"></p>
-        <!-- Boutons de l'accueil : réglés dans l'admin, onglet Général -->
-        <div class="hero-boutons" id="heroBoutons">
-          <a class="bouton plein" href="#jeux">Voir les jeux</a>
-          <a class="bouton" href="#histoire">Mon histoire</a>
-        </div>
+    <!-- Carrousel de slides : réglé dans l'admin, onglet Slides -->
+    <section class="hero" id="accueil" aria-roledescription="carrousel" aria-label="À la une">
+      <div class="slides" id="slides" aria-live="polite">
+        <!-- Slide « Accueil » : nom du site, accroche et boutons (onglet Général) -->
+        <article class="slide actif" id="slideAccueil" aria-roledescription="slide">
+          <img class="hero-fond" id="heroFond" alt="" hidden>
+          <div class="hero-contenu">
+            <p class="surtitre">Salle d'arcade · ouverte 24 h / 24</p>
+            <h1 class="relief" id="titreSite">BS arcade center</h1>
+            <p class="accroche" id="accroche"></p>
+            <div class="hero-boutons" id="heroBoutons">
+              <a class="bouton plein" href="#jeux">Voir les jeux</a>
+              <a class="bouton" href="#histoire">Mon histoire</a>
+            </div>
+          </div>
+        </article>
+      </div>
+      <div class="slides-nav" id="slidesNav" hidden>
+        <button class="fleche-slide" type="button" id="slidePrec" aria-label="Slide précédente">←</button>
+        <div class="progs" id="progs"></div>
+        <span class="numero" id="numeroSlide" aria-hidden="true"></span>
+        <button class="fleche-slide" type="button" id="slideSuiv" aria-label="Slide suivante">→</button>
       </div>
     </section>
 
@@ -88,6 +99,6 @@
     <div class="lecteur-scene" id="scene"><p class="chargement" id="chargement">CHARGEMENT…</p></div>
   </div>
 
-  <script src="script.js"></script>
+  <script src="script.js?v=6"></script>
 </body>
 </html>
