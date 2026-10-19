@@ -6,7 +6,24 @@
     "boutonHistoire": "Mon histoire",
     "logo": "images/logo-662gr.png",
     "banniere": "images/banniere-it3fd.jpg",
-    "piedDePage": "© 2026 BS arcade center · Tous les jeux sont faits maison"
+    "piedDePage": "© 2026 BS arcade center · Tous les jeux sont faits maison",
+    "boutons": [
+      {
+        "texte": "Voir les jeux",
+        "cible": "#jeux",
+        "style": "plein"
+      },
+      {
+        "texte": "Mon histoire",
+        "cible": "#histoire",
+        "style": "contour"
+      },
+      {
+        "texte": "Mes réseaux sociaux",
+        "cible": "#bloc-bmvfd2fo1",
+        "style": "contour"
+      }
+    ]
   },
   "apparence": {
     "fond": "#050505",
