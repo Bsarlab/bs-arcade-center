@@ -9,10 +9,10 @@
     "piedDePage": "© 2026 BS arcade center · Tous les jeux sont faits maison"
   },
   "apparence": {
-    "fond": "#07050C",
-    "carte": "#14101E",
+    "fond": "#050505",
+    "carte": "#121212",
     "texte": "#FFFFFF",
-    "accent": "#9B4DFF",
+    "accent": "#E3121B",
     "titres": "Black Ops One",
     "corps": "IBM Plex Sans",
     "relief": 5
