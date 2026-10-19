@@ -296,8 +296,7 @@
       h = `<div class="bloc"><h2>ACCUEIL</h2>
         ${texte("site.nom", "Nom du site", 60)}
         ${zone("site.accroche", "Phrase d'accroche", "", 70)}
-        ${texte("site.boutonJeux", "Texte du bouton vers les jeux", 30)}
-        ${texte("site.boutonHistoire", "Texte du bouton vers l'histoire", 30)}
+        ${editeurBoutons()}
         ${image("site.banniere", "Image de fond de l'accueil", "Une grande image horizontale. Elle est assombrie pour garder le texte lisible.")}
       </div>
       <div class="bloc"><h2>IDENTITÉ</h2>
@@ -373,6 +372,41 @@
         : `<div><button class="btn petit danger" type="button" data-action="supprimer" data-id="${j.id}">Supprimer ce jeu</button></div>`}
     </div>` : ""}</div>`;
   }
+  // ---------- Boutons de l'accueil ----------
+  function boutons() {
+    const s = donnees.site;
+    if (!Array.isArray(s.boutons)) s.boutons = [
+      { texte: s.boutonJeux || "Voir les jeux", cible: "#jeux", style: "plein" },
+      { texte: s.boutonHistoire || "Mon histoire", cible: "#histoire", style: "contour" },
+    ];
+    return s.boutons;
+  }
+  function destinations() {
+    const d = [["#jeux", "Section Jeux"], ["#histoire", "Section Histoire"]];
+    for (const b of blocs()) if (b.type !== "jeux" && b.type !== "histoire" && b.type !== "separateur")
+      d.push(["#bloc-" + b.id, (TYPES_BLOCS[b.type]?.nom || "Bloc") + (b.titre ? " : " + b.titre : "")]);
+    d.push(["url", "Lien externe (autre site)"]);
+    return d;
+  }
+  function editeurBoutons() {
+    const L = boutons(), dest = destinations();
+    return `<div class="champ"><span class="lbl">Boutons de l'accueil</span><div class="jeux">${L.map((b, i) => {
+      const p = "site.boutons." + i;
+      return `<div class="ligne"><div class="formulaire" style="border-top:0">
+        <div style="display:flex;gap:6px;align-items:center"><strong style="flex:1">Bouton ${i + 1}</strong>
+          <button class="ico" type="button" data-bouton="monter" data-i="${i}" ${i === 0 ? "disabled" : ""} aria-label="Monter">↑</button>
+          <button class="ico" type="button" data-bouton="descendre" data-i="${i}" ${i === L.length - 1 ? "disabled" : ""} aria-label="Descendre">↓</button>
+          <button class="ico" type="button" data-bouton="supprimer" data-i="${i}" aria-label="Supprimer ce bouton">×</button></div>
+        ${texte(p + ".texte", "Texte du bouton", 40)}
+        <div class="champ"><label for="f-${p}.cible">Il mène vers</label><select id="f-${p}.cible" data-champ="${p}.cible" data-rafraichir>${dest.map(([v, l]) =>
+          `<option value="${echapper(v)}" ${v === b.cible ? "selected" : ""}>${echapper(l)}</option>`).join("")}</select></div>
+        ${b.cible === "url" ? texte(p + ".url", "Adresse (https://…)", 300) : ""}
+        ${choixVL(p + ".style", "Style", [["plein", "Plein (blanc)"], ["contour", "Contour"]])}
+      </div></div>`;
+    }).join("")}</div>
+    <button class="btn petit" type="button" data-bouton="ajouter" style="justify-self:start">+ Ajouter un bouton</button></div>`;
+  }
+
   // ---------- Blocs ----------
   const TYPES_BLOCS = {
     texte: { nom: "Texte", desc: "Un titre et des paragraphes" },
@@ -405,7 +439,7 @@
           `<div class="vg"><img src="${echapper(url(img))}" alt=""><button class="ico" type="button" data-galerie-retirer="${i}" data-k="${k}" aria-label="Retirer">×</button></div>`).join("")}</div>
           <label class="btn petit" for="gal-${i}" style="justify-self:start">+ Ajouter des images<input type="file" id="gal-${i}" data-galerie="${i}" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="position:absolute;width:1px;height:1px;opacity:0"></label></div>` + caseMenu(p);
       case "video": return texte(p + ".titre", "Titre", 80) + texte(p + ".url", "Lien de la vidéo YouTube", 300) + `<span class="aide">Colle le lien de la vidéo, par exemple https://youtu.be/…</span>` + texte(p + ".texte", "Petit texte sous la vidéo", 200) + caseMenu(p);
-      case "liens": return texte(p + ".titre", "Titre", 80) + zone(p + ".liens", "Liens", "Un lien par ligne : Nom | https://adresse", 110) + caseMenu(p);
+      case "liens": return texte(p + ".titre", "Titre", 80) + zone(p + ".liens", "Liens", "Un lien par ligne. Tu peux juste coller l'adresse, ou écrire Nom | https://adresse pour choisir le nom.", 110) + caseMenu(p);
       case "separateur": return choixVL(p + ".style", "Style", [["ligne", "Trait fin"], ["pixel", "Pointillés pixel"], ["espace", "Espace vide"]]);
     }
     return "";
@@ -435,6 +469,7 @@
     const el = e.target;
     if (el.dataset.champ) {
       ecrire(el.dataset.champ, el.type === "checkbox" ? el.checked : el.dataset.nombre !== undefined ? Number(el.value) : el.value);
+      if (el.dataset.rafraichir !== undefined) { changement(); afficherOnglet(); return; }
       if (/^blocs\.\d+\.titre$/.test(el.dataset.champ)) { const s = el.closest(".ligne")?.querySelector(".nom small"); if (s) s.textContent = el.value || "Vide"; }
       if (el.dataset.champ === "apparence.relief") $("valRelief").textContent = el.value;
       changement();
@@ -450,6 +485,15 @@
     if (p) { Object.assign(donnees.apparence, PALETTES[p.dataset.palette].c); changement(); afficherOnglet(); return; }
     const r = e.target.closest("[data-retirer]");
     if (r) { ecrire(r.dataset.retirer, ""); changement(); afficherOnglet(); return; }
+    const bt = e.target.closest("[data-bouton]");
+    if (bt) {
+      const L = boutons(), i = Number(bt.dataset.i);
+      if (bt.dataset.bouton === "ajouter") L.push({ texte: "Nouveau bouton", cible: "#jeux", style: "contour" });
+      if (bt.dataset.bouton === "supprimer") L.splice(i, 1);
+      if (bt.dataset.bouton === "monter" && i > 0) [L[i - 1], L[i]] = [L[i], L[i - 1]];
+      if (bt.dataset.bouton === "descendre" && i < L.length - 1) [L[i + 1], L[i]] = [L[i], L[i + 1]];
+      changement(); afficherOnglet(); return;
+    }
     const aj = e.target.closest("[data-ajout]");
     if (aj) {
       const nb = { id: "b" + Date.now().toString(36), type: aj.dataset.ajout };

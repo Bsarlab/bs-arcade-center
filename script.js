@@ -41,8 +41,12 @@ function afficher(d) {
   $("nomBarre").textContent = s.nom;
   $("titreSite").textContent = s.nom;
   $("accroche").textContent = s.accroche || "";
-  $("boutonJeux").textContent = s.boutonJeux || "Voir les jeux";
-  $("boutonHistoire").textContent = s.boutonHistoire || "Mon histoire";
+  $("heroBoutons").innerHTML = boutonsAccueil(s).map((b) => {
+    const externe = b.cible === "url";
+    const href = externe ? lienSur(b.url) : b.cible;
+    if (!b.texte || !href) return "";
+    return `<a class="bouton ${b.style === "contour" ? "" : "plein"}" href="${echapper(href)}"${externe ? ' target="_blank" rel="noopener"' : ""}>${echapper(b.texte)}${externe ? " ↗" : ""}</a>`;
+  }).join("");
   $("pied").textContent = s.piedDePage || "";
   montrerImage($("logoBarre"), s.logo);
   montrerImage($("heroFond"), s.banniere);
@@ -78,10 +82,25 @@ function afficher(d) {
   afficherBlocs(d);
 }
 
+// Boutons de l'accueil (anciens sites : on reprend les deux boutons d'origine)
+function boutonsAccueil(s) {
+  if (Array.isArray(s.boutons)) return s.boutons;
+  return [
+    { texte: s.boutonJeux || "Voir les jeux", cible: "#jeux", style: "plein" },
+    { texte: s.boutonHistoire || "Mon histoire", cible: "#histoire", style: "contour" },
+  ];
+}
+
 // ---------- Blocs (ordre des sections + blocs ajoutés) ----------
 const paragraphes = (t) => String(t || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
   .map((p) => `<p>${echapper(p).replace(/\n/g, "<br>")}</p>`).join("");
 const lienSur = (u) => { try { const x = new URL(String(u).trim()); return /^https?:$/.test(x.protocol) ? x.href : ""; } catch { return ""; } };
+const NOMS_SITES = { instagram: "Instagram", linkedin: "LinkedIn", youtube: "YouTube", youtu: "YouTube", tiktok: "TikTok", twitter: "X", x: "X", discord: "Discord", twitch: "Twitch", facebook: "Facebook", github: "GitHub", itch: "itch.io", snapchat: "Snapchat" };
+function nomDuSite(u) {
+  const morceaux = new URL(u).hostname.replace(/^www\./, "").split(".");
+  const cle = morceaux.find((m) => NOMS_SITES[m]);
+  return cle ? NOMS_SITES[cle] : morceaux[0].charAt(0).toUpperCase() + morceaux[0].slice(1);
+}
 function idYouTube(u) {
   const m = String(u || "").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
   return m ? m[1] : "";
@@ -100,7 +119,11 @@ function htmlBloc(b) {
       return `<div class="b-encadre" style="--fond-encadre:${echapper(b.couleur || "var(--accent)")}">${b.titre ? `<h2>${echapper(b.titre)}</h2>` : ""}${paragraphes(b.texte)}${b.texteBouton && url ? `<a class="bouton plein" href="${echapper(url)}" target="_blank" rel="noopener">${echapper(b.texteBouton)}</a>` : ""}</div>`;
     }
     case "liens": {
-      const items = String(b.liens || "").split("\n").map((l) => { const [nom, url] = l.split("|").map((s) => (s || "").trim()); return { nom, url: lienSur(url) }; }).filter((x) => x.nom && x.url);
+      const items = String(b.liens || "").split("\n").map((l) => {
+        let [nom, url] = l.split("|").map((s) => (s || "").trim());
+        if (!url && lienSur(nom)) { url = nom; nom = nomDuSite(nom); } // lien collé sans nom
+        return { nom, url: lienSur(url) };
+      }).filter((x) => x.nom && x.url);
       if (!items.length) return "";
       return `<div class="b-liens">${titreBloc(b)}<ul>${items.map((i) => `<li><a class="bouton" href="${echapper(i.url)}" target="_blank" rel="noopener">${echapper(i.nom)} ↗</a></li>`).join("")}</ul></div>`;
     }
