@@ -5,14 +5,14 @@
     "boutonJeux": "Voir les jeux",
     "boutonHistoire": "Mon histoire",
     "logo": "",
-    "banniere": "",
+    "banniere": "images/banniere-wo9q8.jpg",
     "piedDePage": "© 2026 BS arcade center · Tous les jeux sont faits maison"
   },
   "apparence": {
-    "fond": "#050505",
-    "carte": "#121212",
+    "fond": "#07050C",
+    "carte": "#14101E",
     "texte": "#FFFFFF",
-    "accent": "#E3121B",
+    "accent": "#9B4DFF",
     "titres": "Anton",
     "corps": "Barlow",
     "relief": 5
