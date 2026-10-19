@@ -85,6 +85,18 @@
     .confirmer { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
     .fichier { display: flex; align-items: center; gap: 10px; padding: 10px; border: 1px dashed var(--trait); border-radius: 10px; background: var(--champ); }
     .fichier span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--doux); font-size: 13px; }
+    .ajouts { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .ajout { text-align: left; display: grid; gap: 2px; padding: 10px; background: var(--champ); border: 1px solid var(--trait); border-radius: 10px; cursor: pointer; }
+    .ajout:hover { border-color: var(--rouge); }
+    .ajout b { font-size: 14px; }
+    .ajout span { font-size: 12px; color: var(--doux); }
+    .caseMenu { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; cursor: pointer; }
+    .caseMenu input { width: 18px; height: 18px; accent-color: var(--rouge); }
+    .galerieAdmin { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 6px; }
+    .galerieAdmin:empty { display: none; }
+    .vg { position: relative; }
+    .vg img { width: 100%; aspect-ratio: 1; object-fit: cover; border-radius: 6px; display: block; }
+    .vg .ico { position: absolute; top: 3px; right: 3px; width: 24px; height: 24px; background: rgba(0,0,0,.75); }
     .modifie { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #E0A21F; margin-right: 6px; }
   </style>
 </head>
@@ -119,6 +131,7 @@
       <button class="onglet" role="tab" data-onglet="apparence" aria-selected="false" type="button">Apparence</button>
       <button class="onglet" role="tab" data-onglet="jeux" aria-selected="false" type="button">Jeux</button>
       <button class="onglet" role="tab" data-onglet="histoire" aria-selected="false" type="button">Histoire</button>
+      <button class="onglet" role="tab" data-onglet="blocs" aria-selected="false" type="button">Blocs</button>
     </div>
     <div class="corps" id="corps"></div>
     <div class="pied">
@@ -209,7 +222,8 @@
     const site = config.depot.toLowerCase() === config.pseudo.toLowerCase() + ".github.io"
       ? `https://${config.pseudo}.github.io/` : `https://${config.pseudo}.github.io/${config.depot}/`;
     $("lienSite").href = site;
-    $("apercu").src = "index.html?apercu=1";
+    // Ouvert depuis l'ordinateur : l'aperçu utilise la version en ligne du site
+    $("apercu").src = (location.protocol === "file:" ? site : "") + "index.html?apercu=1";
     afficherOnglet();
   }
 
@@ -316,6 +330,13 @@
       h = `<div class="bloc"><h2>TES JEUX · ${j.length}</h2><div class="jeux">${j.map((x, i) => ligneJeu(x, i, j.length)).join("") || `<p class="aide">Aucun jeu pour l'instant.</p>`}</div></div>
       <div class="bloc"><button class="btn rouge" type="button" data-action="nouveau-jeu">+ Ajouter un jeu</button>
       <span class="aide">Un jeu = un fichier .html (25 Mo maximum).</span></div>`;
+    } else if (onglet === "blocs") {
+      const b = blocs();
+      h = `<div class="bloc"><h2>ORDRE DE LA PAGE</h2>
+        <span class="aide">L'accueil reste toujours en haut. Utilise les flèches pour déplacer les blocs.</span>
+        <div class="jeux">${b.map((x, i) => ligneBloc(x, i, b.length)).join("")}</div></div>
+      <div class="bloc"><h2>AJOUTER UN BLOC</h2><div class="ajouts">${Object.entries(TYPES_BLOCS).map(([k, v]) =>
+        `<button type="button" class="ajout" data-ajout="${k}"><b>${v.nom}</b><span>${v.desc}</span></button>`).join("")}</div></div>`;
     } else {
       h = `<div class="bloc"><h2>HISTOIRE</h2>
         ${texte("histoire.titre", "Titre", 80)}
@@ -352,6 +373,60 @@
         : `<div><button class="btn petit danger" type="button" data-action="supprimer" data-id="${j.id}">Supprimer ce jeu</button></div>`}
     </div>` : ""}</div>`;
   }
+  // ---------- Blocs ----------
+  const TYPES_BLOCS = {
+    texte: { nom: "Texte", desc: "Un titre et des paragraphes" },
+    image: { nom: "Image", desc: "Une grande image avec légende" },
+    encadre: { nom: "Encadré", desc: "Message sur fond coloré + bouton" },
+    galerie: { nom: "Galerie", desc: "Plusieurs images en grille" },
+    video: { nom: "Vidéo YouTube", desc: "Une bande-annonce, un gameplay…" },
+    liens: { nom: "Liens", desc: "Réseaux, itch.io, contact…" },
+    separateur: { nom: "Séparateur", desc: "Une ligne entre deux parties" },
+  };
+  const NOMS_FIXES = { jeux: "Section Jeux", histoire: "Section Histoire" };
+  function blocs() {
+    if (!donnees.blocs || !donnees.blocs.length) donnees.blocs = [{ id: "jeux", type: "jeux" }, { id: "histoire", type: "histoire" }];
+    return donnees.blocs;
+  }
+  let blocOuvert = null, blocASupprimer = null;
+  const choixVL = (chemin, label, options) => `<div class="champ"><label for="f-${chemin}">${label}</label><select id="f-${chemin}" data-champ="${chemin}">${options.map(([v, l]) => `<option value="${v}" ${v === (lire(chemin) || options[0][0]) ? "selected" : ""}>${l}</option>`).join("")}</select></div>`;
+  const caseMenu = (p) => `<label class="caseMenu"><input type="checkbox" id="f-${p}.dansMenu" data-champ="${p}.dansMenu" ${lire(p + ".dansMenu") ? "checked" : ""}> Afficher ce bloc dans le menu burger</label>`;
+  function formBloc(b, i) {
+    const p = "blocs." + i;
+    switch (b.type) {
+      case "jeux": return `<span class="aide">Le contenu se règle dans l'onglet Jeux.</span>`;
+      case "histoire": return texte(p + ".titreMenu", "Nom dans le menu", 30) + `<span class="aide">Le texte se règle dans l'onglet Histoire.</span>`;
+      case "texte": return texte(p + ".titre", "Titre", 80) + zone(p + ".texte", "Texte", "Laisse une ligne vide entre deux paragraphes.", 160) + choixVL(p + ".alignement", "Alignement", [["gauche", "À gauche"], ["centre", "Centré"]]) + caseMenu(p);
+      case "image": return image(p + ".image", "Image") + texte(p + ".titre", "Titre (facultatif)", 80) + texte(p + ".legende", "Légende", 160) + choixVL(p + ".largeur", "Largeur", [["pleine", "Pleine largeur"], ["moyenne", "Moyenne"]]) + caseMenu(p);
+      case "encadre": return texte(p + ".titre", "Titre", 80) + zone(p + ".texte", "Message", "", 90)
+        + `<label class="couleur"><input type="color" id="f-${p}.couleur" data-champ="${p}.couleur" value="${echapper(b.couleur || donnees.apparence.accent)}"><span>Couleur de fond</span></label>`
+        + texte(p + ".texteBouton", "Texte du bouton (facultatif)", 30) + texte(p + ".lienBouton", "Lien du bouton (https://…)", 300) + caseMenu(p);
+      case "galerie": return texte(p + ".titre", "Titre", 80) + `<div class="champ"><span class="lbl">Images</span><div class="galerieAdmin">${(b.images || []).map((img, k) =>
+          `<div class="vg"><img src="${echapper(url(img))}" alt=""><button class="ico" type="button" data-galerie-retirer="${i}" data-k="${k}" aria-label="Retirer">×</button></div>`).join("")}</div>
+          <label class="btn petit" for="gal-${i}" style="justify-self:start">+ Ajouter des images<input type="file" id="gal-${i}" data-galerie="${i}" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="position:absolute;width:1px;height:1px;opacity:0"></label></div>` + caseMenu(p);
+      case "video": return texte(p + ".titre", "Titre", 80) + texte(p + ".url", "Lien de la vidéo YouTube", 300) + `<span class="aide">Colle le lien de la vidéo, par exemple https://youtu.be/…</span>` + texte(p + ".texte", "Petit texte sous la vidéo", 200) + caseMenu(p);
+      case "liens": return texte(p + ".titre", "Titre", 80) + zone(p + ".liens", "Liens", "Un lien par ligne : Nom | https://adresse", 110) + caseMenu(p);
+      case "separateur": return choixVL(p + ".style", "Style", [["ligne", "Trait fin"], ["pixel", "Pointillés pixel"], ["espace", "Espace vide"]]);
+    }
+    return "";
+  }
+  function resumeBloc(b) {
+    if (b.type === "jeux") return donnees.jeux.length + " jeu" + (donnees.jeux.length > 1 ? "x" : "");
+    if (b.type === "histoire") return donnees.histoire?.titre || "";
+    return b.titre || (b.type === "galerie" ? (b.images || []).length + " image(s)" : "") || (b.type === "separateur" ? "" : "Vide");
+  }
+  function ligneBloc(b, i, n) {
+    const ouvert = blocOuvert === b.id, fixe = b.type === "jeux" || b.type === "histoire";
+    return `<div class="ligne"><div class="ligne-tete">
+      <div class="nom">${NOMS_FIXES[b.type] || TYPES_BLOCS[b.type]?.nom || b.type}<small>${echapper(resumeBloc(b))}</small></div>
+      <button class="ico" type="button" data-bloc="monter" data-i="${i}" ${i === 0 ? "disabled" : ""} aria-label="Monter">↑</button>
+      <button class="ico" type="button" data-bloc="descendre" data-i="${i}" ${i === n - 1 ? "disabled" : ""} aria-label="Descendre">↓</button>
+      <button class="ico" type="button" data-bloc="ouvrir" data-i="${i}" aria-expanded="${ouvert}" aria-label="Modifier">✎</button>
+    </div>${ouvert ? `<div class="formulaire">${formBloc(b, i)}${fixe ? "" : blocASupprimer === b.id
+      ? `<div class="confirmer"><span>Supprimer ce bloc ?</span><button class="btn petit danger" type="button" data-bloc="supprimer-oui" data-i="${i}">Supprimer</button><button class="btn petit" type="button" data-bloc="supprimer-non">Garder</button></div>`
+      : `<div><button class="btn petit danger" type="button" data-bloc="supprimer" data-i="${i}">Supprimer ce bloc</button></div>`}</div>` : ""}</div>`;
+  }
+
   const champJeu = (j, cle, label, max) => `<div class="champ"><label for="j-${j.id}-${cle}">${label}</label><input type="text" id="j-${j.id}-${cle}" data-jeu="${j.id}" data-cle="${cle}" maxlength="${max}" value="${echapper(j[cle])}"></div>`;
   const trouverJeu = (id) => donnees.jeux.find((j) => j.id === id);
 
@@ -359,7 +434,8 @@
   $("corps").addEventListener("input", (e) => {
     const el = e.target;
     if (el.dataset.champ) {
-      ecrire(el.dataset.champ, el.dataset.nombre !== undefined ? Number(el.value) : el.value);
+      ecrire(el.dataset.champ, el.type === "checkbox" ? el.checked : el.dataset.nombre !== undefined ? Number(el.value) : el.value);
+      if (/^blocs\.\d+\.titre$/.test(el.dataset.champ)) { const s = el.closest(".ligne")?.querySelector(".nom small"); if (s) s.textContent = el.value || "Vide"; }
       if (el.dataset.champ === "apparence.relief") $("valRelief").textContent = el.value;
       changement();
     } else if (el.dataset.jeu && el.dataset.cle) {
@@ -374,6 +450,30 @@
     if (p) { Object.assign(donnees.apparence, PALETTES[p.dataset.palette].c); changement(); afficherOnglet(); return; }
     const r = e.target.closest("[data-retirer]");
     if (r) { ecrire(r.dataset.retirer, ""); changement(); afficherOnglet(); return; }
+    const aj = e.target.closest("[data-ajout]");
+    if (aj) {
+      const nb = { id: "b" + Date.now().toString(36), type: aj.dataset.ajout };
+      if (nb.type === "texte") nb.titre = "Nouveau bloc";
+      if (nb.type === "galerie") nb.images = [];
+      blocs().push(nb); blocOuvert = nb.id; changement(); afficherOnglet();
+      setTimeout(() => $("corps").querySelector(".ligne:last-child")?.scrollIntoView({ behavior: "smooth", block: "nearest" }), 30);
+      return;
+    }
+    const gr = e.target.closest("[data-galerie-retirer]");
+    if (gr) { blocs()[gr.dataset.galerieRetirer].images.splice(Number(gr.dataset.k), 1); changement(); afficherOnglet(); return; }
+    const bb = e.target.closest("[data-bloc]");
+    if (bb) {
+      const L = blocs(), i = Number(bb.dataset.i);
+      switch (bb.dataset.bloc) {
+        case "monter": if (i > 0) [L[i - 1], L[i]] = [L[i], L[i - 1]]; break;
+        case "descendre": if (i < L.length - 1) [L[i + 1], L[i]] = [L[i], L[i + 1]]; break;
+        case "ouvrir": blocOuvert = blocOuvert === L[i].id ? null : L[i].id; blocASupprimer = null; afficherOnglet(); return;
+        case "supprimer": blocASupprimer = L[i].id; afficherOnglet(); return;
+        case "supprimer-non": blocASupprimer = null; afficherOnglet(); return;
+        case "supprimer-oui": L.splice(i, 1); blocASupprimer = null; blocOuvert = null; break;
+      }
+      changement(); afficherOnglet(); return;
+    }
     const a = e.target.closest("[data-action]");
     if (!a) return;
     const liste = donnees.jeux, i = liste.findIndex((j) => j.id === a.dataset.id);
@@ -402,6 +502,15 @@
   $("corps").addEventListener("change", async (e) => {
     const el = e.target, f = el.files && el.files[0];
     if (!f) return;
+    if (el.dataset.galerie !== undefined) {
+      const b = blocs()[Number(el.dataset.galerie)];
+      b.images = b.images || [];
+      for (const img of el.files) {
+        if (!EXT[img.type] || img.size > 25 * 1048576) { statut(`« ${echapper(img.name)} » ignorée : format ou taille non pris en charge.`, "ko"); continue; }
+        b.images.push(ajouterEnAttente(img, "images", (b.titre || "galerie"), EXT[img.type]));
+      }
+      changement(); afficherOnglet(); return;
+    }
     if (f.size > 25 * 1048576) { statut("Ce fichier dépasse 25 Mo, GitHub le refusera.", "ko"); return; }
     if (el.dataset.image || el.dataset.imageJeu) {
       if (!EXT[f.type]) { statut("Image non prise en charge : utilise PNG, JPG, WebP, GIF ou SVG.", "ko"); return; }
@@ -421,7 +530,8 @@
 
   // ---------- Publication (un seul envoi sur GitHub) ----------
   function references(d) {
-    return [d.site?.logo, d.site?.banniere, d.histoire?.image, ...(d.jeux || []).flatMap((j) => [j.fichier, j.image])]
+    return [d.site?.logo, d.site?.banniere, d.histoire?.image, ...(d.jeux || []).flatMap((j) => [j.fichier, j.image]),
+      ...(d.blocs || []).flatMap((b) => [b.image, ...(b.images || [])])]
       .filter((c) => c && /^(images|jeux)\//.test(c));
   }
 

@@ -28,15 +28,9 @@
   <div class="voile" id="voile" hidden></div>
   <nav class="menu" id="menu" aria-label="Menu principal" inert>
     <p class="menu-etiquette">Menu</p>
-    <ul class="menu-liens">
+    <!-- Rempli automatiquement selon l'ordre des blocs -->
+    <ul class="menu-liens" id="menuLiens">
       <li><a class="relief" href="#accueil" data-ferme>Accueil</a></li>
-      <li>
-        <button class="relief menu-jeux" id="menuJeuxBtn" type="button" aria-expanded="false" aria-controls="menuListeJeux">
-          Jeux <span class="fleche" aria-hidden="true">▾</span>
-        </button>
-        <ul class="menu-sous" id="menuListeJeux" hidden></ul>
-      </li>
-      <li><a class="relief" href="#histoire" data-ferme>Histoire</a></li>
     </ul>
   </nav>
 
@@ -55,6 +49,8 @@
       </div>
     </section>
 
+    <!-- Les sections ci-dessous sont remises dans l'ordre choisi dans l'admin (onglet Blocs) -->
+    <div id="sections">
     <!-- ===== Jeux ===== -->
     <section class="section" id="jeux">
       <div class="section-tete">
@@ -75,6 +71,7 @@
         <div id="texteHistoire"></div>
       </div>
     </section>
+    </div>
   </main>
 
   <footer class="pied" id="pied"></footer>

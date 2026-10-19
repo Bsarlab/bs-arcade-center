@@ -67,11 +67,6 @@ function afficher(d) {
       </div>
     </button>`).join("");
 
-  // Liste des jeux dans le menu
-  $("menuListeJeux").innerHTML =
-    jeux.map((j) => `<li><button type="button" data-jeu="${echapper(j.id)}">${echapper(j.titre)}</button></li>`).join("") +
-    `<li><a class="tous" href="#jeux" data-ferme>${jeux.length ? "Voir tous les jeux" : "Bientôt des jeux ici"}</a></li>`;
-
   // Histoire
   const h = d.histoire || {};
   $("titreHistoire").textContent = h.titre || "Histoire";
@@ -79,6 +74,81 @@ function afficher(d) {
     .map((p) => `<p>${echapper(p).replace(/\n/g, "<br>")}</p>`).join("");
   $("histoireImage").hidden = !h.image;
   if (h.image) $("imageHistoire").src = lien(h.image);
+
+  afficherBlocs(d);
+}
+
+// ---------- Blocs (ordre des sections + blocs ajoutés) ----------
+const paragraphes = (t) => String(t || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)
+  .map((p) => `<p>${echapper(p).replace(/\n/g, "<br>")}</p>`).join("");
+const lienSur = (u) => { try { const x = new URL(String(u).trim()); return /^https?:$/.test(x.protocol) ? x.href : ""; } catch { return ""; } };
+function idYouTube(u) {
+  const m = String(u || "").match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?(?:.*&)?v=|embed\/|shorts\/|live\/))([\w-]{11})/);
+  return m ? m[1] : "";
+}
+const titreBloc = (b) => b.titre ? `<h2 class="relief">${echapper(b.titre)}</h2>` : "";
+
+function htmlBloc(b) {
+  switch (b.type) {
+    case "texte":
+      return `<div class="b-texte ${b.alignement === "centre" ? "centre" : ""}">${titreBloc(b)}<div class="b-paras">${paragraphes(b.texte)}</div></div>`;
+    case "image":
+      if (!b.image) return "";
+      return `<figure class="b-image ${b.largeur === "moyenne" ? "moyenne" : ""}">${titreBloc(b)}<img src="${echapper(lien(b.image))}" alt="${echapper(b.legende || "")}" loading="lazy">${b.legende ? `<figcaption>${echapper(b.legende)}</figcaption>` : ""}</figure>`;
+    case "encadre": {
+      const url = lienSur(b.lienBouton);
+      return `<div class="b-encadre" style="--fond-encadre:${echapper(b.couleur || "var(--accent)")}">${b.titre ? `<h2>${echapper(b.titre)}</h2>` : ""}${paragraphes(b.texte)}${b.texteBouton && url ? `<a class="bouton plein" href="${echapper(url)}" target="_blank" rel="noopener">${echapper(b.texteBouton)}</a>` : ""}</div>`;
+    }
+    case "liens": {
+      const items = String(b.liens || "").split("\n").map((l) => { const [nom, url] = l.split("|").map((s) => (s || "").trim()); return { nom, url: lienSur(url) }; }).filter((x) => x.nom && x.url);
+      if (!items.length) return "";
+      return `<div class="b-liens">${titreBloc(b)}<ul>${items.map((i) => `<li><a class="bouton" href="${echapper(i.url)}" target="_blank" rel="noopener">${echapper(i.nom)} ↗</a></li>`).join("")}</ul></div>`;
+    }
+    case "video": {
+      const id = idYouTube(b.url);
+      if (!id) return "";
+      return `<div class="b-video">${titreBloc(b)}<div class="cadre-video"><iframe src="https://www.youtube-nocookie.com/embed/${id}" title="${echapper(b.titre || "Vidéo")}" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen loading="lazy"></iframe></div>${b.texte ? `<p class="intro">${echapper(b.texte)}</p>` : ""}</div>`;
+    }
+    case "galerie": {
+      const imgs = (b.images || []).filter(Boolean);
+      if (!imgs.length) return "";
+      return `<div class="b-galerie">${titreBloc(b)}<div class="galerie">${imgs.map((i) => `<img src="${echapper(lien(i))}" alt="" loading="lazy">`).join("")}</div></div>`;
+    }
+    case "separateur":
+      return `<div class="b-sep ${b.style || "ligne"}" role="presentation"></div>`;
+  }
+  return "";
+}
+
+function afficherBlocs(d) {
+  const blocs = d.blocs && d.blocs.length ? d.blocs : [{ id: "jeux", type: "jeux" }, { id: "histoire", type: "histoire" }];
+  const noeuds = [];
+  const menu = [`<li><a class="relief" href="#accueil" data-ferme>Accueil</a></li>`];
+  const jeux = d.jeux || [];
+  for (const b of blocs) {
+    if (b.type === "jeux") {
+      noeuds.push($("jeux"));
+      menu.push(`<li><button class="relief menu-jeux" id="menuJeuxBtn" type="button" aria-expanded="false" aria-controls="menuListeJeux">${echapper(d.sectionJeux?.titre || "Jeux")} <span class="fleche" aria-hidden="true">▾</span></button>
+        <ul class="menu-sous" id="menuListeJeux" hidden>${jeux.map((j) => `<li><button type="button" data-jeu="${echapper(j.id)}">${echapper(j.titre)}</button></li>`).join("")}
+        <li><a class="tous" href="#jeux" data-ferme>${jeux.length ? "Voir tous les jeux" : "Bientôt des jeux ici"}</a></li></ul></li>`);
+    } else if (b.type === "histoire") {
+      noeuds.push($("histoire"));
+      menu.push(`<li><a class="relief" href="#histoire" data-ferme>${echapper(b.titreMenu || "Histoire")}</a></li>`);
+    } else {
+      const html = htmlBloc(b);
+      if (!html) continue;
+      const s = document.createElement("section");
+      s.className = "section bloc bloc-" + b.type;
+      s.id = "bloc-" + b.id;
+      s.innerHTML = html;
+      noeuds.push(s);
+      if (b.dansMenu && b.titre) menu.push(`<li><a class="relief" href="#bloc-${echapper(b.id)}" data-ferme>${echapper(b.titre)}</a></li>`);
+    }
+  }
+  // Une section jeux ou histoire retirée de la liste reste cachée
+  ["jeux", "histoire"].forEach((id) => { $(id).hidden = !noeuds.includes($(id)); if ($(id).hidden) noeuds.push($(id)); });
+  $("sections").replaceChildren(...noeuds);
+  $("menuLiens").innerHTML = menu.join("");
 }
 
 function montrerImage(img, chemin) {
@@ -96,9 +166,11 @@ function ouvrirMenu(ouvrir) {
 }
 $("burger").addEventListener("click", () => ouvrirMenu($("burger").getAttribute("aria-expanded") !== "true"));
 $("voile").addEventListener("click", () => ouvrirMenu(false));
-$("menuJeuxBtn").addEventListener("click", () => {
-  const ouvert = $("menuJeuxBtn").getAttribute("aria-expanded") === "true";
-  $("menuJeuxBtn").setAttribute("aria-expanded", String(!ouvert));
+document.addEventListener("click", (e) => {
+  const btn = e.target.closest("#menuJeuxBtn");
+  if (!btn) return;
+  const ouvert = btn.getAttribute("aria-expanded") === "true";
+  btn.setAttribute("aria-expanded", String(!ouvert));
   $("menuListeJeux").hidden = ouvert;
 });
 document.addEventListener("keydown", (e) => {
