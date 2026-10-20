@@ -42,7 +42,7 @@
   "histoire": {
     "titre": "L'histoire de BS Arcade Center",
     "image": "images/image-aogv1.jpg",
-    "texte": "Je mets ici, tous les jeux de merde que je créé pour les répertorier et ne plus devoir les générer n'importe où cliquez sur mes jeux pour voir la liste des jeux que j'ai mis sur cette plateforme."
+    "texte": "Je mets ici, tous les jeux de merde que j'ai créé pour les répertorier et ne plus devoir les générer n'importe où cliquez sur mes jeux pour voir la liste des jeux que j'ai mis sur cette plateforme."
   },
   "jeux": [
     {
@@ -90,7 +90,7 @@
       "id": "s-reseaux",
       "type": "perso",
       "surtitre": "Rejoins-moi",
-      "titre": "Suis BS sur les réseaux",
+      "titre": "Suis moi sur les réseaux",
       "texte": "Les coulisses de mes jeux, les prochaines sorties et des défis à relever.",
       "image": "images/image-pxjbq.png",
       "boutonTexte": "Voir mes réseaux",
