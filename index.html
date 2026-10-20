@@ -5,27 +5,37 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>BS arcade center</title>
   <meta name="description" content="Des jeux faits maison, à lancer en un clic, sans compte et gratuitement.">
-  <meta name="theme-color" content="#0A0A0B">
+  <meta name="theme-color" content="#F5F5F7">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link id="polices" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700&family=Geist:wght@400;500;600&family=Geist+Mono:wght@400;500&display=swap">
-  <link rel="stylesheet" href="style.css?v=10">
+  <link id="polices" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Geist:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="style.css?v=20">
 </head>
 <body>
-  <a class="lien-evitement" href="#jeux">Aller aux jeux</a>
+  <a class="lien-evitement" href="#contenu">Aller au contenu</a>
 
   <!-- ===== En-tête ===== -->
   <header class="entete" id="entete">
     <div class="entete-int">
-      <a class="marque" href="#accueil" aria-label="Retour en haut">
+      <a class="marque" href="#/" aria-label="Accueil">
         <img id="logoEntete" class="marque-logo" alt="" hidden>
         <span id="nomEntete" class="marque-nom">BS arcade center</span>
       </a>
-      <nav class="nav-rapide" aria-label="Accès rapide" id="navRapide"></nav>
+
+      <!-- Navigation principale (grand écran) : la pastille suit la page active -->
+      <nav class="nav" aria-label="Navigation principale">
+        <span class="nav-pastille" id="navPastille" aria-hidden="true"></span>
+        <a href="#/" data-page="accueil">Accueil</a>
+        <a href="#/jeux" data-page="jeux">Jeux</a>
+        <a href="#/a-propos" data-page="a-propos">À propos</a>
+        <a href="#/contact" data-page="contact">Contact</a>
+      </nav>
+
       <div class="entete-actions">
-        <button class="bouton-icone" type="button" id="btnRecherche" aria-label="Rechercher un jeu (raccourci : /)">
+        <button class="bouton-rond" type="button" id="btnRecherche" aria-label="Rechercher (raccourci : /)">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </button>
+        <a class="btn plein petit entete-cta" href="#/jeux">Jouer</a>
         <button class="burger" id="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">
           <span></span><span></span>
         </button>
@@ -35,173 +45,50 @@
 
   <!-- ===== Menu à droite ===== -->
   <div class="voile" id="voile" hidden></div>
-  <nav class="menu" id="menu" aria-label="Menu principal" inert>
-    <div class="menu-haut">
+  <nav class="menu" id="menu" aria-label="Menu" inert>
+    <div>
       <p class="etiquette">Menu</p>
       <ul class="menu-liens" id="menuLiens"></ul>
     </div>
     <div class="menu-bas">
-      <button class="menu-recherche" type="button" data-ouvrir-recherche>
-        <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-        Rechercher un jeu <kbd>/</kbd>
-      </button>
+      <p class="etiquette">Derniers jeux</p>
+      <div class="menu-jeux" id="menuJeux"></div>
       <div class="menu-reseaux" id="menuReseaux"></div>
     </div>
   </nav>
 
-  <main>
-    <!-- ===== Accueil ===== -->
-    <section class="hero" id="accueil">
-      <img class="hero-fond" id="heroFond" alt="" hidden>
-      <div class="conteneur hero-grille">
-        <div class="hero-texte">
-          <p class="pastille" id="pastille"><span class="point" aria-hidden="true"></span><span id="pastilleTexte">Salle de jeux en ligne</span></p>
-          <h1 id="titreSite">BS arcade center</h1>
-          <p class="accroche" id="accroche"></p>
-          <div class="boutons" id="heroBoutons"></div>
-          <dl class="chiffres" id="chiffres"></dl>
-        </div>
-        <div class="hero-visuel" id="heroVisuel" aria-hidden="true"></div>
-      </div>
-    </section>
-
-    <!-- ===== Bandeau défilant ===== -->
-    <div class="bandeau" id="bandeau" aria-hidden="true" hidden><div class="bandeau-piste" id="bandeauPiste"></div></div>
-
-    <!-- ===== À la une (carrousel) ===== -->
-    <section class="section carrousel" id="une" aria-roledescription="carrousel" aria-label="À la une" hidden>
-      <div class="conteneur">
-        <div class="section-tete">
-          <div>
-            <p class="etiquette"><span class="point" aria-hidden="true"></span>À la une</p>
-            <h2 class="titre-section">Les nouveautés</h2>
-          </div>
-          <div class="carrousel-nav" id="carrouselNav">
-            <span class="numero" id="numeroSlide" aria-hidden="true"></span>
-            <button class="bouton-icone contour" type="button" id="slidePrec" aria-label="Carte précédente"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18 9 12l6-6"/></svg></button>
-            <button class="bouton-icone contour" type="button" id="slideSuiv" aria-label="Carte suivante"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg></button>
-          </div>
-        </div>
-        <div class="carrousel-fenetre" id="fenetre"><div class="piste" id="piste"></div></div>
-        <div class="progs" id="progs"></div>
-      </div>
-    </section>
-
-    <!-- Sections remises dans l'ordre choisi dans l'admin (onglet Blocs) -->
-    <div id="sections">
-      <!-- ===== Jeux ===== -->
-      <section class="section" id="jeux">
-        <div class="conteneur">
-          <div class="section-tete">
-            <div>
-              <p class="etiquette"><span class="point" aria-hidden="true"></span>Ludothèque <span class="compte" id="compteJeux"></span></p>
-              <h2 class="titre-section" id="titreJeux">Jeux</h2>
-              <p class="intro" id="introJeux"></p>
-            </div>
-          </div>
-
-          <!-- Reprendre : derniers jeux lancés sur cet appareil -->
-          <div class="reprendre" id="reprendre" hidden>
-            <p class="sous-titre">Reprendre</p>
-            <div class="reprendre-liste" id="reprendreListe"></div>
-          </div>
-
-          <div class="outils" id="outils">
-            <label class="champ-recherche">
-              <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-              <input type="search" id="filtreTexte" placeholder="Rechercher un jeu" aria-label="Rechercher un jeu">
-            </label>
-            <div class="puces" id="puces" role="group" aria-label="Filtrer par genre"></div>
-            <label class="tri"><span class="visuellement-cache">Trier</span>
-              <select id="tri">
-                <option value="recent">Plus récents</option>
-                <option value="az">De A à Z</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="grille" id="grilleJeux"></div>
-          <div class="vide" id="videJeux" hidden></div>
-        </div>
-      </section>
-
-      <!-- ===== Histoire ===== -->
-      <section class="section" id="histoire">
-        <div class="conteneur histoire">
-          <figure class="histoire-image" id="histoireImage" hidden><img id="imageHistoire" alt=""></figure>
-          <div class="histoire-texte">
-            <p class="etiquette"><span class="point" aria-hidden="true"></span>À propos</p>
-            <h2 class="titre-section" id="titreHistoire">Histoire</h2>
-            <div class="histoire-corps" id="texteHistoire"></div>
-            <dl class="chiffres petits" id="chiffresHistoire"></dl>
-          </div>
-        </div>
-      </section>
-    </div>
-
-    <!-- ===== Appel final ===== -->
-    <section class="section appel" id="appel" hidden>
-      <div class="conteneur">
-        <div class="appel-carte">
-          <div>
-            <p class="etiquette clair">Restons en contact</p>
-            <h2 class="titre-section" id="appelTitre">Ne rate pas le prochain jeu</h2>
-            <p class="intro" id="appelTexte">Les nouveautés arrivent d'abord sur mes réseaux.</p>
-          </div>
-          <div class="boutons" id="appelLiens"></div>
-        </div>
-      </div>
-    </section>
+  <!-- ===== Contenu : chaque page s'affiche ici ===== -->
+  <main id="contenu" tabindex="-1">
+    <div class="vue" id="vue" aria-live="polite"></div>
   </main>
 
   <!-- ===== Pied de page ===== -->
   <footer class="pied">
     <div class="conteneur">
-      <div class="pied-grille">
+      <div class="pied-haut">
         <div class="pied-marque">
           <p class="pied-nom" id="piedNom">BS arcade center</p>
-          <p class="intro" id="piedAccroche"></p>
+          <p class="pied-texte" id="piedAccroche"></p>
         </div>
-        <div><p class="pied-titre">Naviguer</p><ul class="pied-liste" id="piedNav"></ul></div>
-        <div><p class="pied-titre">Jeux</p><ul class="pied-liste" id="piedJeux"></ul></div>
-        <div id="piedReseauxCol" hidden><p class="pied-titre">Réseaux</p><ul class="pied-liste" id="piedReseaux"></ul></div>
+        <div class="pied-colonnes">
+          <div><p class="pied-titre">Le site</p><ul class="pied-liste" id="piedNav"></ul></div>
+          <div><p class="pied-titre">Jeux</p><ul class="pied-liste" id="piedJeux"></ul></div>
+          <div id="piedReseauxCol" hidden><p class="pied-titre">Réseaux</p><ul class="pied-liste" id="piedReseaux"></ul></div>
+        </div>
       </div>
       <div class="pied-bas">
         <p id="pied"></p>
-        <a class="haut-de-page" href="#accueil">Haut de page
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></a>
+        <button class="lien-haut" type="button" id="btnHaut">Revenir en haut
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 19V5M5 12l7-7 7 7"/></svg></button>
       </div>
     </div>
   </footer>
 
-  <!-- ===== Fiche d'un jeu ===== -->
-  <dialog class="fenetre-modale fiche" id="fiche" aria-labelledby="ficheTitre">
-    <button class="fermer bouton-icone" type="button" data-fermer aria-label="Fermer"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6 6 18M6 6l12 12"/></svg></button>
-    <div class="fiche-media" id="ficheMedia"></div>
-    <div class="fiche-corps">
-      <p class="etiquette" id="ficheGenre"></p>
-      <h2 id="ficheTitre"></h2>
-      <p class="fiche-date" id="ficheDate"></p>
-      <div class="fiche-desc" id="ficheDesc"></div>
-      <div class="boutons">
-        <button class="btn plein" type="button" id="ficheJouer">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z" class="rempli"/></svg>Jouer
-        </button>
-        <button class="btn" type="button" id="fichePartager">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>Copier le lien
-        </button>
-        <button class="btn icone-seule" type="button" id="ficheFavori" aria-pressed="false" aria-label="Ajouter aux favoris">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 5c-2.3 4.6-9.3 9-9.3 9z"/></svg>
-        </button>
-      </div>
-    </div>
-  </dialog>
-
   <!-- ===== Recherche rapide ===== -->
-  <dialog class="fenetre-modale palette" id="palette" aria-label="Recherche rapide">
+  <dialog class="palette" id="palette" aria-label="Recherche">
     <label class="palette-champ">
       <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-      <input type="search" id="paletteTexte" placeholder="Un jeu, une section…" autocomplete="off" aria-label="Rechercher">
+      <input type="search" id="paletteTexte" placeholder="Chercher un jeu ou une page…" autocomplete="off" aria-label="Rechercher">
       <kbd>Échap</kbd>
     </label>
     <ul class="palette-liste" id="paletteListe" role="listbox"></ul>
@@ -210,20 +97,21 @@
   <!-- ===== Lecteur de jeu ===== -->
   <dialog class="lecteur" id="lecteur" aria-labelledby="lecteurTitre">
     <div class="lecteur-barre">
-      <button class="bouton-icone" type="button" id="btnFermer" aria-label="Fermer le jeu"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18 9 12l6-6"/></svg></button>
-      <div class="lecteur-info"><p class="etiquette" id="lecteurGenre"></p><h2 id="lecteurTitre"></h2></div>
+      <button class="btn petit" type="button" id="btnFermer">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18 9 12l6-6"/></svg>Retour</button>
+      <div class="lecteur-info"><h2 id="lecteurTitre"></h2><p id="lecteurGenre"></p></div>
       <div class="lecteur-actions">
         <button class="btn petit" type="button" id="btnRejouer">Recommencer</button>
-        <button class="btn petit" type="button" id="btnPartager">Partager</button>
+        <button class="btn petit masque-mobile" type="button" id="btnPartager">Partager</button>
         <button class="btn petit" type="button" id="btnSuivant">Jeu suivant</button>
-        <button class="bouton-icone" type="button" id="btnPleinEcran" aria-label="Plein écran"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+        <button class="bouton-rond" type="button" id="btnPleinEcran" aria-label="Plein écran"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
       </div>
     </div>
-    <div class="lecteur-scene" id="scene"><p class="chargement" id="chargement"><span></span>Chargement du jeu</p></div>
+    <div class="lecteur-scene" id="scene"><p class="chargement" id="chargement"><span></span>Chargement du jeu…</p></div>
   </dialog>
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js?v=10"></script>
+  <script src="script.js?v=20"></script>
 </body>
 </html>

@@ -157,11 +157,11 @@
   const POLICES_TITRES = ["Bricolage Grotesque", "Familjen Grotesk", "Syne", "Unbounded", "Instrument Serif", "DM Serif Display"];
   const POLICES_CORPS = ["Geist", "Manrope", "DM Sans", "Figtree"];
   const PALETTES = [
-    { nom: "Nuit rouge", c: { fond: "#0A0A0B", carte: "#141416", texte: "#F4F4F5", accent: "#E3121B" } },
-    { nom: "Encre bleue", c: { fond: "#0A0D14", carte: "#121826", texte: "#EEF2FA", accent: "#4C7DFF" } },
-    { nom: "Forêt", c: { fond: "#0B0F0D", carte: "#131A16", texte: "#EEF3EF", accent: "#3DD68C" } },
-    { nom: "Ambre", c: { fond: "#0D0B09", carte: "#181410", texte: "#F7F2EA", accent: "#F2A93B" } },
-    { nom: "Papier", c: { fond: "#F5F4F1", carte: "#FFFFFF", texte: "#151515", accent: "#E3121B" } },
+    { nom: "Clair", c: { fond: "#F5F5F7", carte: "#FFFFFF", texte: "#121214", accent: "#E3121B" } },
+    { nom: "Lin", c: { fond: "#F3F1EC", carte: "#FFFFFF", texte: "#1A1814", accent: "#D9480F" } },
+    { nom: "Menthe", c: { fond: "#EEF5F1", carte: "#FFFFFF", texte: "#10201A", accent: "#0F9D62" } },
+    { nom: "Lavande", c: { fond: "#F2F0FA", carte: "#FFFFFF", texte: "#17142A", accent: "#6A4CFF" } },
+    { nom: "Nuit", c: { fond: "#0E0E10", carte: "#18181B", texte: "#F4F4F5", accent: "#FF3B44" } },
   ];
 
   let config = null;          // { pseudo, depot, cle, branche }
@@ -220,6 +220,11 @@
     donnees.jeux = donnees.jeux || [];
     // Nouveau design : les anciennes polices « gamer » passent aux nouvelles
     donnees.apparence = donnees.apparence || {};
+    // Nouveau site clair (v3) : l'ancien thème sombre « gaming » est remplacé, l'accent est gardé
+    if (!(donnees.apparence.v >= 3)) donnees.apparence = { ...PALETTES[0].c, accent: donnees.apparence.accent || PALETTES[0].c.accent, relief: 4, v: 3 };
+    // Anciennes destinations de boutons → nouvelles pages
+    const PAGES_V3 = { "#jeux": "#/jeux", "#histoire": "#/a-propos", "#accueil": "#/" };
+    [...(donnees.site?.boutons || []), ...(donnees.slides || [])].forEach((x) => { if (PAGES_V3[x.cible]) x.cible = PAGES_V3[x.cible]; });
     if (!POLICES_TITRES.includes(donnees.apparence.titres)) donnees.apparence.titres = POLICES_TITRES[0];
     if (!POLICES_CORPS.includes(donnees.apparence.corps)) donnees.apparence.corps = POLICES_CORPS[0];
     refsPubliees = new Set(references(donnees));
@@ -304,7 +309,7 @@
         ${texte("site.nom", "Nom du site", 60)}
         ${zone("site.accroche", "Phrase d'accroche", "", 70)}
         ${editeurBoutons()}
-        ${image("site.banniere", "Image de fond de l'accueil", "Facultatif. Elle s'affiche très en transparence derrière le titre, pour l'ambiance.")}
+        ${image("site.banniere", "Image de l'accueil", "Affichée à droite du titre tant qu'aucun jeu n'a de jaquette. Ensuite, ce sont tes jaquettes qui s'y affichent.")}
       </div>
       <div class="bloc"><h2>IDENTITÉ</h2>
         ${image("site.logo", "Logo", "Carré de préférence, affiché à côté du nom en haut.")}
@@ -429,7 +434,7 @@
       + zone(p + ".texte", "Texte", "", 70)
       + texte(p + ".boutonTexte", "Texte du bouton (vide = pas de bouton)", 30)
       + `<div class="champ"><label for="f-${p}.cible">Le bouton mène vers</label><select id="f-${p}.cible" data-champ="${p}.cible" data-rafraichir>${dest.map(([v, l]) =>
-          `<option value="${echapper(v)}" ${v === (s.cible || "#jeux") ? "selected" : ""}>${echapper(l)}</option>`).join("")}</select></div>`
+          `<option value="${echapper(v)}" ${v === (s.cible || "#/jeux") ? "selected" : ""}>${echapper(l)}</option>`).join("")}</select></div>`
       + (s.cible === "url" ? texte(p + ".url", "Adresse (https://…)", 400) : "");
   }
   function ligneSlide(s, i, n) {
@@ -454,7 +459,7 @@
     return s.boutons;
   }
   function destinations() {
-    const d = [["#jeux", "Section Jeux"], ["#histoire", "Section Histoire"]];
+    const d = [["#/", "Page Accueil"], ["#/jeux", "Page Jeux"], ["#/a-propos", "Page À propos"], ["#/contact", "Page Contact"]];
     for (const b of blocs()) if (b.type !== "jeux" && b.type !== "histoire" && b.type !== "separateur")
       d.push(["#bloc-" + b.id, (TYPES_BLOCS[b.type]?.nom || "Bloc") + (b.titre ? " : " + b.titre : "")]);
     d.push(["url", "Lien externe (autre site)"]);
@@ -563,7 +568,7 @@
     if (sa) {
       const t = sa.dataset.slideAjout;
       const ns = { id: "s" + Date.now().toString(36), type: t };
-      if (t === "perso") Object.assign(ns, { surtitre: "", titre: "Nouvelle carte", texte: "", boutonTexte: "", cible: "#jeux" });
+      if (t === "perso") Object.assign(ns, { surtitre: "", titre: "Nouvelle carte", texte: "", boutonTexte: "", cible: "#/jeux" });
       if (t === "dernier-jeu") Object.assign(ns, { surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" });
       slides().push(ns); slideOuverte = ns.id; changement(); afficherOnglet(); return;
     }
@@ -583,7 +588,7 @@
     const bt = e.target.closest("[data-bouton]");
     if (bt) {
       const L = boutons(), i = Number(bt.dataset.i);
-      if (bt.dataset.bouton === "ajouter") L.push({ texte: "Nouveau bouton", cible: "#jeux", style: "contour" });
+      if (bt.dataset.bouton === "ajouter") L.push({ texte: "Nouveau bouton", cible: "#/jeux", style: "contour" });
       if (bt.dataset.bouton === "supprimer") L.splice(i, 1);
       if (bt.dataset.bouton === "monter" && i > 0) [L[i - 1], L[i]] = [L[i], L[i - 1]];
       if (bt.dataset.bouton === "descendre" && i < L.length - 1) [L[i + 1], L[i]] = [L[i], L[i + 1]];
