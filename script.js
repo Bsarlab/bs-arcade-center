@@ -147,7 +147,7 @@ function carteJeu(j, { grande = false } = {}) {
   return `<article class="carte-jeu ${grande ? "grande" : ""}" ${attrCouleur(j)}>
     <a class="carte-jeu-media" href="#/jeu/${echapper(j.id)}" aria-label="${echapper(j.titre)}">
       ${imageJeu(j)}
-      ${estNouveau(j) ? '<span class="badge">Nouveau</span>' : ""}
+      ${estNouveau(j) ? `<span class="badge">${t("carte_nouveau")}</span>` : ""}
     </a>
     <button class="bouton-fav" type="button" data-favori="${echapper(j.id)}" aria-pressed="${fav}" aria-label="${fav ? "Retirer des" : "Ajouter aux"} favoris">${I.coeur}</button>
     <div class="carte-jeu-texte">
@@ -205,6 +205,8 @@ function htmlBloc(b) {
       if (!imgs.length) return "";
       return `<div class="b-galerie">${titreBloc(b)}<div class="galerie">${imgs.map((i) => `<img src="${echapper(lien(i))}" alt="" loading="lazy">`).join("")}</div></div>`;
     }
+    case "html":
+      return b.code ? `<div class="b-html">${titreBloc(b)}${b.code}</div>` : "";
     case "separateur":
       return `<hr class="b-sep ${b.style || "ligne"}">`;
   }
@@ -228,8 +230,37 @@ const carteReseau = (l) => {
     : `<span class="carte-reseau-initiale">${echapper(l.nom.charAt(0).toUpperCase())}</span>`}
   <span class="carte-reseau-texte"><b>${echapper(l.nom)}</b><small>${echapper(adresseCourte(l.url))}</small></span>${I.externe}</a>`;
 };
+// =========================================================
+// Textes, sections et options (modifiables dans l'admin)
+// =========================================================
+const TEXTES_DEFAUT = Object.fromEntries((window.TEXTES_SITE || []).flatMap((g) => g.textes.map(([k, , v]) => [k, v])));
+// Texte brut (avec {jeux} / {prochains} remplacés) puis version échappée pour le HTML
+function T(cle, vars = {}) {
+  const perso = donnees?.textes?.[cle];
+  let v = typeof perso === "string" && perso.trim() ? perso : (TEXTES_DEFAUT[cle] ?? cle);
+  for (const [k, val] of Object.entries(vars)) v = v.split("{" + k + "}").join(val);
+  return v;
+}
+const t = (cle, vars) => echapper(T(cle, vars));
+const option = (cle) => { const o = donnees?.miseEnPage?.options?.[cle]; return o === undefined ? (window.OPTIONS_SITE || []).find((x) => x[0] === cle)?.[2] ?? true : !!o; };
+// Ordre et visibilité des sections d'une page
+function sectionsDePage(page) {
+  const defaut = (window.SECTIONS_SITE?.[page]?.sections || []).map(([id]) => id);
+  const enregistre = donnees?.miseEnPage?.[page];
+  if (!Array.isArray(enregistre)) return defaut;
+  const vus = enregistre.filter((x) => defaut.includes(x.id));
+  const manquants = defaut.filter((id) => !vus.some((x) => x.id === id)).map((id) => ({ id, visible: true }));
+  return [...vus, ...manquants].filter((x) => x.visible !== false).map((x) => x.id);
+}
+const assembler = (page, morceaux) => sectionsDePage(page).map((id) => (morceaux[id] ? morceaux[id]() : "")).join("\n");
+
+// Blocs de l'admin : chacun s'affiche sur la page choisie (Accueil par défaut)
 const blocsDe = () => (donnees.blocs && donnees.blocs.length ? donnees.blocs : [{ id: "jeux", type: "jeux" }, { id: "histoire", type: "histoire" }]);
 const blocsPerso = () => blocsDe().filter((b) => b.type !== "jeux" && b.type !== "histoire");
+const blocsPour = (page) => blocsPerso().filter((b) => (b.page || "accueil") === page).map((b) => {
+  const html = htmlBloc(b);
+  return html ? `<section class="section bloc bloc-${b.type}" id="bloc-${echapper(b.id)}"><div class="conteneur">${html}</div></section>` : "";
+}).join("");
 
 // =========================================================
 // Pages
@@ -243,49 +274,46 @@ PAGES.accueil = () => {
   const collage = jeux.slice(0, 3);
   const h = donnees.histoire || {};
   const liens = reseaux();
-  const blocs = blocsPerso().map((b) => { const html = htmlBloc(b); return html ? `<section class="section bloc bloc-${b.type}" id="bloc-${echapper(b.id)}"><div class="conteneur">${html}</div></section>` : ""; }).join("");
-
-  return `
+  return assembler("accueil", {
+    hero: () => `
   <section class="hero">
-    <div class="conteneur hero-grille">
+    <div class="conteneur hero-grille ${option("collage") ? "" : "sans-collage"}">
       <div class="hero-texte">
-        <p class="pastille"><span class="point" aria-hidden="true"></span>${jeux.length ? `${pluriel(jeux.length, "jeu", "jeux")} · gratuits, sans compte` : "Les premiers jeux arrivent"}</p>
+        ${option("pastille") ? `<p class="pastille"><span class="point" aria-hidden="true"></span>${jeux.length ? t("accueil_pastille", { jeux: pluriel(jeux.length, "jeu", "jeux") }) : t("accueil_pastille_vide")}</p>` : ""}
         <h1>${echapper(s.nom)}</h1>
         ${s.accroche ? `<p class="accroche">${echapper(s.accroche)}</p>` : ""}
         <div class="boutons">${boutonsAccueil(s).map(lienBouton).join("")}</div>
       </div>
-      <div class="hero-collage" aria-hidden="true">
+      ${option("collage") ? `<div class="hero-collage" aria-hidden="true">
         ${collage.length
           ? collage.map((j, i) => `<a class="collage-carte c${i + 1}" href="#/jeu/${echapper(j.id)}" tabindex="-1" ${attrCouleur(j)}>${imageJeu(j)}<span class="collage-nom">${echapper(j.titre)}</span></a>`).join("")
           : s.banniere ? `<div class="collage-carte c1 seule"><img src="${echapper(lien(s.banniere))}" alt=""></div>` : ""}
-        ${collage.length ? `<div class="collage-bulle"><span class="point"></span>Dernière sortie<br><b>${echapper(collage[0].titre)}</b></div>` : ""}
-      </div>
+        ${collage.length ? `<div class="collage-bulle"><span class="point"></span>${t("accueil_bulle")}<br><b>${echapper(collage[0].titre)}</b></div>` : ""}
+      </div>` : ""}
     </div>
-  </section>
-
-  ${slidesDe().length ? `
-  <section class="section une" id="une" aria-roledescription="carrousel" aria-label="À la une">
+  </section>`,
+    une: () => !slidesDe().length ? "" : `
+  <section class="section une" id="une" aria-roledescription="carrousel" aria-label="${t("une_etiquette")}">
     <div class="conteneur">
-      ${enteteSection("À la une", "Les nouveautés", `<div class="carrousel-nav" id="carrouselNav">
+      ${enteteSection(t("une_etiquette"), t("une_titre"), `<div class="carrousel-nav" id="carrouselNav">
         <button class="bouton-rond contour" type="button" id="slidePrec" aria-label="Carte précédente">${I.chevG}</button>
         <button class="bouton-rond contour" type="button" id="slideSuiv" aria-label="Carte suivante">${I.chevD}</button></div>`)}
       <div class="carrousel-fenetre" id="fenetre"><div class="piste" id="piste"></div></div>
       <div class="progs" id="progs"></div>
     </div>
-  </section>` : ""}
-
+  </section>`,
+    derniers: () => `
   <section class="section">
     <div class="conteneur">
-      ${enteteSection("Ludothèque", "Derniers jeux", jeux.length > 3 ? `<a class="lien-fleche" href="#/jeux">Tous les jeux ${I.droite}</a>` : "")}
-      ${jeux.length ? `<div class="grille-jeux">${jeux.slice(0, 3).map((j) => carteJeu(j)).join("")}</div>` : `<div class="vide"><strong>Bientôt des jeux ici</strong><span>${echapper(donnees.sectionJeux?.vide || "")}</span></div>`}
-      ${jeux.length && jeux.length <= 3 ? `<div class="centre-bas"><a class="btn" href="#/jeux">Voir la ludothèque ${I.droite}</a></div>` : ""}
+      ${enteteSection(t("derniers_etiquette"), t("derniers_titre"), jeux.length > 3 ? `<a class="lien-fleche" href="#/jeux">${t("derniers_tous")} ${I.droite}</a>` : "")}
+      ${jeux.length ? `<div class="grille-jeux">${jeux.slice(0, 3).map((j) => carteJeu(j)).join("")}</div>` : `<div class="vide"><strong>${t("jeux_vide_titre")}</strong><span>${echapper(donnees.sectionJeux?.vide || "")}</span></div>`}
+      ${jeux.length && jeux.length <= 3 ? `<div class="centre-bas"><a class="btn" href="#/jeux">${t("derniers_voir")} ${I.droite}</a></div>` : ""}
     </div>
-  </section>
-
-  ${genres.length > 1 ? `
+  </section>`,
+    genres: () => genres.length < 2 ? "" : `
   <section class="section">
     <div class="conteneur">
-      ${enteteSection("Explorer", "Par genre")}
+      ${enteteSection(t("genres_etiquette"), t("genres_titre"))}
       <div class="grille-genres">${genres.map(([k, nom]) => {
         const liste = jeux.filter((j) => (j.genre || "").trim().toLowerCase() === k);
         return `<a class="tuile-genre" href="#/jeux?genre=${encodeURIComponent(k)}" style="--c:${couleurJeu(liste[0])}" data-couleur="${echapper(liste[0].id)}">
@@ -293,38 +321,36 @@ PAGES.accueil = () => {
           <span class="tuile-images">${liste.slice(0, 3).map((j) => j.image ? `<img src="${echapper(lien(j.image))}" alt="">` : "").join("")}</span></a>`;
       }).join("")}</div>
     </div>
-  </section>` : ""}
-
-  ${blocs}
-
-  ${h.texte || h.titre ? `
+  </section>`,
+    blocs: () => blocsPour("accueil"),
+    apropos: () => !(h.texte || h.titre) ? "" : `
   <section class="section">
     <div class="conteneur">
       <a class="teaser" href="#/a-propos">
         ${h.image ? `<span class="teaser-image"><img src="${echapper(lien(h.image))}" alt=""></span>` : ""}
         <span class="teaser-texte">
-          <span class="etiquette">À propos</span>
+          <span class="etiquette">${t("teaser_etiquette")}</span>
           <span class="teaser-titre">${echapper(h.titre || "Mon histoire")}</span>
           <span class="teaser-extrait">${echapper(String(h.texte || "").split(/\n{2,}/)[0].slice(0, 220))}${String(h.texte || "").length > 220 ? "…" : ""}</span>
-          <span class="lien-fleche">Lire la suite ${I.droite}</span>
+          <span class="lien-fleche">${t("teaser_lien")} ${I.droite}</span>
         </span>
       </a>
     </div>
-  </section>` : ""}
-
-  ${(liens.length || cartesCoordonnees()) && !blocsPerso().some((b) => b.type === "liens" && liensDe(b.liens).length) ? `
+  </section>`,
+    contact: () => !(liens.length || cartesCoordonnees()) || blocsPerso().some((b) => b.type === "liens" && (b.page || "accueil") === "accueil" && liensDe(b.liens).length) ? "" : `
   <section class="section">
     <div class="conteneur">
       <div class="bande-contact">
         <div class="bande-tete">
-          <div><p class="etiquette clair">Restons en contact</p><h2>Ne rate pas le prochain jeu</h2><p>Les nouveautés arrivent d'abord sur mes réseaux.</p></div>
-          <a class="btn blanc" href="#/contact">Page contact ${I.droite}</a>
+          <div><p class="etiquette clair">${t("bande_etiquette")}</p><h2>${t("bande_titre")}</h2><p>${t("bande_texte")}</p></div>
+          <a class="btn blanc" href="#/contact">${t("bande_bouton")} ${I.droite}</a>
         </div>
         ${cartesCoordonnees() ? `<div class="grille-coord">${cartesCoordonnees()}</div>` : ""}
         ${liens.length ? `<div class="grille-reseaux">${liens.map(carteReseau).join("")}</div>` : ""}
       </div>
     </div>
-  </section>` : ""}`;
+  </section>`,
+  });
 };
 
 // ---------- Jeux ----------
@@ -334,41 +360,43 @@ let recents = lire("bs-recents", []);
 
 PAGES.jeux = () => {
   const sj = donnees.sectionJeux || {}, jeux = jeuxTries();
-  return `
+  const ordre = sectionsDePage("jeux");
+  return assembler("jeux", {
+    entete: () => `
   <section class="entete-page">
     <div class="conteneur">
-      <p class="etiquette">Ludothèque · ${pluriel(jeux.length, "jeu", "jeux")}</p>
+      <p class="etiquette">${t("jeux_etiquette", { jeux: pluriel(jeux.length, "jeu", "jeux") })}</p>
       <h1>${echapper(sj.titre || "Jeux")}</h1>
       ${sj.intro ? `<p class="accroche">${echapper(sj.intro)}</p>` : ""}
     </div>
-  </section>
-  <section class="section serree">
-    <div class="conteneur">
-      <div class="reprendre" id="reprendre" hidden><p class="sous-titre">Reprendre là où tu t'es arrêté</p><div class="reprendre-liste" id="reprendreListe"></div></div>
-      ${jeux.length > 1 ? `
+  </section>`,
+    reprendre: () => `<section class="section serree"><div class="conteneur"><div class="reprendre" id="reprendre" hidden><p class="sous-titre">${t("jeux_reprendre")}</p><div class="reprendre-liste" id="reprendreListe"></div></div></div></section>`,
+    outils: () => jeux.length < 2 ? "" : `
+  <section class="section serree"><div class="conteneur">
       <div class="outils">
         <label class="champ-recherche">
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
-          <input type="search" id="filtreTexte" placeholder="Rechercher un jeu" aria-label="Rechercher un jeu" value="${echapper(filtres.texte)}">
+          <input type="search" id="filtreTexte" placeholder="${t("jeux_recherche")}" aria-label="${t("jeux_recherche")}" value="${echapper(filtres.texte)}">
         </label>
         <div class="puces" id="puces" role="group" aria-label="Filtrer"></div>
         <label class="tri"><span class="visuellement-cache">Trier</span>
-          <select id="tri"><option value="recent">Plus récents</option><option value="az">De A à Z</option></select></label>
-      </div>` : ""}
-      <div class="grille-jeux" id="grilleJeux"></div>
-      <div class="vide" id="videJeux" hidden></div>
-    </div>
-  </section>`;
+          <select id="tri"><option value="recent">${t("jeux_tri_recent")}</option><option value="az">${t("jeux_tri_az")}</option></select></label>
+      </div>
+  </div></section>`,
+    grille: () => `<section class="section serree"><div class="conteneur"><div class="grille-jeux" id="grilleJeux"></div><div class="vide" id="videJeux" hidden></div></div></section>`,
+    blocs: () => blocsPour("jeux"),
+  }) + (ordre.includes("grille") ? "" : `<div hidden><div id="grilleJeux"></div><div id="videJeux"></div></div>`)
+     + (ordre.includes("reprendre") ? "" : `<div hidden><div id="reprendre"></div><div id="reprendreListe"></div></div>`);
 };
 function majListeJeux() {
   if (pageActuelle !== "jeux") return;
   const sj = donnees.sectionJeux || {}, jeux = donnees.jeux;
   const genres = [...new Map(jeux.filter((j) => j.genre?.trim()).map((j) => [j.genre.trim().toLowerCase(), majuscule(j.genre.trim())])).entries()];
   if (filtres.genre && !genres.some(([k]) => k === filtres.genre)) filtres.genre = "";
-  const aFav = jeux.some((j) => favoris.has(j.id));
+  const aFav = option("favoris") && jeux.some((j) => favoris.has(j.id));
   if (!aFav) filtres.favoris = false;
-  if ($("puces")) $("puces").innerHTML = [`<button class="puce" type="button" data-genre="" aria-pressed="${!filtres.genre && !filtres.favoris}">Tous</button>`]
-    .concat(aFav ? [`<button class="puce" type="button" data-favoris aria-pressed="${filtres.favoris}">${I.coeur}Favoris</button>`] : [])
+  if ($("puces")) $("puces").innerHTML = [`<button class="puce" type="button" data-genre="" aria-pressed="${!filtres.genre && !filtres.favoris}">${t("jeux_tous")}</button>`]
+    .concat(aFav ? [`<button class="puce" type="button" data-favoris aria-pressed="${filtres.favoris}">${I.coeur}${t("jeux_favoris")}</button>`] : [])
     .concat(genres.map(([k, nom]) => `<button class="puce" type="button" data-genre="${echapper(k)}" aria-pressed="${filtres.genre === k}">${echapper(nom)}</button>`)).join("");
   if ($("tri")) $("tri").value = filtres.tri;
   const q = filtres.texte.trim().toLowerCase();
@@ -378,13 +406,12 @@ function majListeJeux() {
   $("grilleJeux").innerHTML = liste.map((j) => carteJeu(j)).join("");
   $("videJeux").hidden = liste.length > 0;
   $("videJeux").innerHTML = !jeux.length
-    ? `<strong>Bientôt des jeux ici</strong><span>${echapper(sj.vide || "")}</span>`
-    : `<strong>Aucun jeu trouvé</strong><span>Essaie un autre mot ou un autre genre.</span><button class="btn petit" type="button" data-reinitialiser>Tout afficher</button>`;
-  // Reprendre
+    ? `<strong>${t("jeux_vide_titre")}</strong><span>${echapper(sj.vide || "")}</span>`
+    : `<strong>${t("jeux_aucun_titre")}</strong><span>${t("jeux_aucun_texte")}</span><button class="btn petit" type="button" data-reinitialiser>${t("jeux_tout_afficher")}</button>`;
   const rep = recents.map(trouverJeu).filter(Boolean).slice(0, 4);
   $("reprendre").hidden = !rep.length || apercu;
   $("reprendreListe").innerHTML = rep.map((j) => `<button class="reprise" type="button" data-jouer="${echapper(j.id)}" ${attrCouleur(j)}>
-    <span class="reprise-image">${imageJeu(j)}</span><span><b>${echapper(j.titre)}</b><small>Continuer ${I.jouer}</small></span></button>`).join("");
+    <span class="reprise-image">${imageJeu(j)}</span><span><b>${echapper(j.titre)}</b><small>${t("jeux_continuer")} ${I.jouer}</small></span></button>`).join("");
   jeux.forEach(calculerCouleur);
 }
 
@@ -396,50 +423,53 @@ PAGES.jeu = (id) => {
   const prec = liste[(i + 1) % liste.length], suiv = liste[(i - 1 + liste.length) % liste.length];
   const autres = liste.filter((x) => x !== j).sort((a, b) => ((b.genre || "") === (j.genre || "")) - ((a.genre || "") === (j.genre || ""))).slice(0, 3);
   const fav = favoris.has(j.id);
-  return `
+  return assembler("jeu", {
+    fiche: () => `
   <section class="page-jeu" ${attrCouleur(j)}>
     <div class="conteneur">
-      <nav class="fil" aria-label="Fil d'Ariane"><a href="#/jeux">Jeux</a><span aria-hidden="true">/</span><span aria-current="page">${echapper(j.titre)}</span></nav>
+      <nav class="fil" aria-label="Fil d'Ariane"><a href="#/jeux">${t("jeu_fil")}</a><span aria-hidden="true">/</span><span aria-current="page">${echapper(j.titre)}</span></nav>
       <div class="jeu-grille">
         <button class="jeu-visuel" type="button" data-jouer="${echapper(j.id)}" aria-label="Jouer à ${echapper(j.titre)}">
           ${imageJeu(j)}
           <span class="jeu-visuel-jouer">${I.jouer}</span>
         </button>
         <div class="jeu-infos">
-          <p class="etiquette">${estNouveau(j) ? '<span class="badge">Nouveau</span>' : ""}${echapper(majuscule(j.genre || "Jeu"))}</p>
+          <p class="etiquette">${estNouveau(j) ? `<span class="badge">${t("carte_nouveau")}</span>` : ""}${echapper(majuscule(j.genre || T("jeu_genre_defaut")))}</p>
           <h1>${echapper(j.titre)}</h1>
-          ${aUneDate(j) ? `<p class="meta">Ajouté le ${formatDate(j)}</p>` : ""}
-          <div class="prose">${paragraphes(j.description) || "<p>Lance la partie : elle s'ouvre directement ici, sans téléchargement et sans compte.</p>"}</div>
+          ${aUneDate(j) ? `<p class="meta">${t("jeu_ajoute")} ${formatDate(j)}</p>` : ""}
+          <div class="prose">${paragraphes(j.description) || `<p>${t("jeu_desc_defaut")}</p>`}</div>
           <div class="boutons">
-            <button class="btn plein grand" type="button" data-jouer="${echapper(j.id)}">${I.jouer}Jouer maintenant</button>
-            <button class="bouton-rond contour grand" type="button" data-favori="${echapper(j.id)}" aria-pressed="${fav}" aria-label="${fav ? "Retirer des" : "Ajouter aux"} favoris">${I.coeur}</button>
+            <button class="btn plein grand" type="button" data-jouer="${echapper(j.id)}">${I.jouer}${t("jeu_jouer")}</button>
+            ${option("favoris") ? `<button class="bouton-rond contour grand" type="button" data-favori="${echapper(j.id)}" aria-pressed="${fav}" aria-label="${fav ? "Retirer des" : "Ajouter aux"} favoris">${I.coeur}</button>` : ""}
             <button class="bouton-rond contour grand" type="button" data-partager="${echapper(j.id)}" aria-label="Copier le lien du jeu">${I.lien}</button>
           </div>
-          <ul class="infos-pratiques">
-            <li>${I.ecran}<span><b>Dans le navigateur</b>Rien à installer</span></li>
-            <li>${I.cadeau}<span><b>Gratuit</b>Sans compte ni pub</span></li>
-            <li>${I.souris}<span><b>Plein écran</b>Bouton en haut à droite</span></li>
-          </ul>
+          ${option("infosJeu") ? `<ul class="infos-pratiques">
+            <li>${I.ecran}<span><b>${t("jeu_info1_titre")}</b>${t("jeu_info1")}</span></li>
+            <li>${I.cadeau}<span><b>${t("jeu_info2_titre")}</b>${t("jeu_info2")}</span></li>
+            <li>${I.souris}<span><b>${t("jeu_info3_titre")}</b>${t("jeu_info3")}</span></li>
+          </ul>` : ""}
         </div>
       </div>
     </div>
-  </section>
-  ${liste.length > 2 ? `
+  </section>`,
+    suite: () => liste.length < 3 ? "" : `
   <section class="section serree">
     <div class="conteneur">
       <div class="suite-jeux">
-        <a class="suite" href="#/jeu/${echapper(prec.id)}">${I.gauche}<span><small>Jeu précédent</small><b>${echapper(prec.titre)}</b></span></a>
-        <a class="suite droite" href="#/jeu/${echapper(suiv.id)}"><span><small>Jeu suivant</small><b>${echapper(suiv.titre)}</b></span>${I.droite}</a>
+        <a class="suite" href="#/jeu/${echapper(prec.id)}">${I.gauche}<span><small>${t("jeu_precedent")}</small><b>${echapper(prec.titre)}</b></span></a>
+        <a class="suite droite" href="#/jeu/${echapper(suiv.id)}"><span><small>${t("jeu_suivant")}</small><b>${echapper(suiv.titre)}</b></span>${I.droite}</a>
       </div>
     </div>
-  </section>` : ""}
-  ${liste.length > 1 ? `
+  </section>`,
+    autres: () => liste.length < 2 ? "" : `
   <section class="section">
     <div class="conteneur">
-      ${enteteSection("À découvrir", "Tu aimeras aussi", `<a class="lien-fleche" href="#/jeux">Tous les jeux ${I.droite}</a>`)}
+      ${enteteSection(t("jeu_autres_etiquette"), t("jeu_autres_titre"), `<a class="lien-fleche" href="#/jeux">${t("jeu_autres_lien")} ${I.droite}</a>`)}
       <div class="grille-jeux">${autres.map((x) => carteJeu(x)).join("")}</div>
     </div>
-  </section>` : ""}`;
+  </section>`,
+    blocs: () => blocsPour("jeu"),
+  });
 };
 
 // ---------- À propos ----------
@@ -461,32 +491,30 @@ PAGES["a-propos"] = () => {
   return `
   <section class="entete-page">
     <div class="conteneur">
-      <p class="etiquette">À propos</p>
+      <p class="etiquette">${t("apropos_etiquette")}</p>
       <h1>${echapper(h.titre || "Mon histoire")}</h1>
     </div>
-  </section>
+  </section>` + assembler("a-propos", {
+    histoire: () => `
   <section class="section serree">
     <div class="conteneur apropos ${h.image ? "" : "sans-image"}">
       ${h.image ? `<figure class="apropos-image"><img src="${echapper(lien(h.image))}" alt=""></figure>` : ""}
-      <div class="apropos-texte">
-        <div class="prose grande">${paragraphes(h.texte)}</div>
-      </div>
+      <div class="apropos-texte"><div class="prose grande">${paragraphes(h.texte)}</div></div>
     </div>
-  </section>
-
-  <!-- Ce n'est que le début -->
+  </section>`,
+    debut: () => `
   <section class="section">
     <div class="conteneur">
       <div class="debut">
         <div class="debut-texte">
-          <p class="etiquette clair">La suite</p>
-          <h2>${echapper(h.suiteTitre || "Ce n'est que le début.")}</h2>
-          <p>${echapper(h.suiteTexte || "De nouveaux jeux arrivent régulièrement. Reviens souvent : la ludothèque grandit à chaque mise à jour.")}</p>
+          <p class="etiquette clair">${t("debut_etiquette")}</p>
+          <h2>${echapper(h.suiteTitre || T("debut_titre"))}</h2>
+          <p>${echapper(h.suiteTexte || T("debut_texte"))}</p>
         </div>
         <div class="debut-compteur">
           <span class="compteur-nb">${jeux.length}</span>
           <span class="compteur-plus">+${prochains.length}</span>
-          <span class="compteur-legende">${pluriel(jeux.length, "jeu en ligne", "jeux en ligne")}<br>${pluriel(prochains.length, "en préparation", "en préparation")}</span>
+          <span class="compteur-legende">${t("debut_en_ligne", { jeux: pluriel(jeux.length, "jeu", "jeux") })}<br>${t("debut_preparation", { prochains: String(prochains.length) })}</span>
         </div>
         <div class="debut-pile" aria-hidden="true">
           ${jeux.slice(0, 3).map((j, i) => `<span class="pile-${i + 1}" ${attrCouleur(j)}>${imageJeu(j)}</span>`).join("")}
@@ -494,19 +522,18 @@ PAGES["a-propos"] = () => {
         </div>
       </div>
     </div>
-  </section>
-
-  <!-- En préparation -->
+  </section>`,
+    prochains: () => `
   <section class="section">
     <div class="conteneur">
-      ${enteteSection("En préparation", "Les prochains jeux", `<a class="lien-fleche" href="#/contact">Propose une idée ${I.droite}</a>`)}
+      ${enteteSection(t("prochains_etiquette"), t("prochains_titre"), `<a class="lien-fleche" href="#/contact">${t("prochains_lien")} ${I.droite}</a>`)}
       <div class="grille-prochains">${prochains.map((p, i) => {
         const c = couleursMystere[(teinteDe(p.nom + p.genre + i)) % couleursMystere.length];
         return `<article class="prochain" style="--c:${c}">
           <div class="prochain-visuel">
             <span class="prochain-forme f1"></span><span class="prochain-forme f2"></span>
             <span class="prochain-cadenas">${I.cadenas}</span>
-            <span class="badge noir">Bientôt</span>
+            <span class="badge noir">${t("prochains_badge")}</span>
           </div>
           <div class="prochain-corps">
             <h3>${echapper(p.nom)}</h3>
@@ -520,30 +547,31 @@ PAGES["a-propos"] = () => {
       }).join("")}
         <a class="prochain idee" href="#/contact">
           <span class="idee-plus">+</span>
-          <b>Et ton idée ?</b>
-          <span>Propose-moi un jeu, il sera peut-être le prochain.</span>
+          <b>${t("idee_titre")}</b>
+          <span>${t("idee_texte")}</span>
         </a>
       </div>
     </div>
-  </section>
-
-  ${chrono.length ? `
+  </section>`,
+    chrono: () => !chrono.length ? "" : `
   <section class="section">
     <div class="conteneur">
-      ${enteteSection("Chronologie", "Les jeux, dans l'ordre")}
+      ${enteteSection(t("chrono_etiquette"), t("chrono_titre"))}
       <ol class="chronologie">${chrono.map((j) => `
         <li ${attrCouleur(j)}>
           <span class="chrono-date">${formatDate(j, { day: "numeric", month: "short", year: "numeric" })}</span>
           <a class="chrono-carte" href="#/jeu/${echapper(j.id)}"><span class="chrono-image">${imageJeu(j)}</span>
-            <span><b>${echapper(j.titre)}</b><small>${echapper(majuscule(j.genre || "Jeu"))}</small></span>${I.droite}</a>
+            <span><b>${echapper(j.titre)}</b><small>${echapper(majuscule(j.genre || T("jeu_genre_defaut")))}</small></span>${I.droite}</a>
         </li>`).join("")}
         <li class="chrono-futur" style="--c:#C9C9D2">
-          <span class="chrono-date">Bientôt</span>
-          <span class="chrono-carte vide-futur"><span class="chrono-image">?</span><span><b>Le prochain jeu</b><small>En préparation</small></span></span>
+          <span class="chrono-date">${t("chrono_bientot")}</span>
+          <span class="chrono-carte vide-futur"><span class="chrono-image">?</span><span><b>${t("chrono_prochain")}</b><small>${t("chrono_preparation")}</small></span></span>
         </li>
       </ol>
     </div>
-  </section>` : ""}`;
+  </section>`,
+    blocs: () => blocsPour("a-propos"),
+  });
 };
 
 // ---------- Contact ----------
@@ -553,53 +581,57 @@ const coordonnee = (icone, titre, valeur, href, action) => `
       <span class="coord-icone">${icone}</span>
       <span class="coord-texte"><small>${titre}</small><b>${echapper(valeur)}</b></span>
       <span class="coord-actions">
-        <button class="bouton-rond contour" type="button" data-copier="${echapper(valeur)}" aria-label="Copier ${titre.toLowerCase()}">${I.copie}</button>
+        <button class="bouton-rond contour" type="button" data-copier="${echapper(valeur)}" aria-label="Copier">${I.copie}</button>
         <a class="btn plein petit" href="${echapper(href)}">${action}</a>
       </span>
     </div>`;
 function cartesCoordonnees() {
   const c = donnees.contact || {}, mail = emailSur(c.email), tel = telLien(c.telephone);
-  return (mail ? coordonnee(I.mail, "E-mail", mail, "mailto:" + mail, "Écrire") : "")
-    + (tel ? coordonnee(I.tel, "Téléphone", c.telephone.trim(), "tel:" + tel, "Appeler") : "");
+  return (mail ? coordonnee(I.mail, t("contact_email"), mail, "mailto:" + mail, t("contact_ecrire")) : "")
+    + (tel ? coordonnee(I.tel, t("contact_telephone"), c.telephone.trim(), "tel:" + tel, t("contact_appeler")) : "");
 }
 
 PAGES.contact = () => {
   const c = donnees.contact || {}, liens = reseaux(), mail = emailSur(c.email), tel = telLien(c.telephone);
-  return `
+  return assembler("contact", {
+    entete: () => `
   <section class="entete-page">
     <div class="conteneur">
-      <p class="etiquette">Contact</p>
+      <p class="etiquette">${t("contact_etiquette")}</p>
       <h1>${echapper(c.titre || "Restons en contact")}</h1>
       <p class="accroche">${echapper(c.texte || "Une idée de jeu, un bug, un record à partager ? Écris-moi.")}</p>
     </div>
-  </section>
+  </section>`,
+    coordonnees: () => !(mail || tel) ? "" : `<section class="section serree"><div class="conteneur"><div class="grille-coord">${cartesCoordonnees()}</div></div></section>`,
+    reseaux: () => !liens.length ? "" : `<section class="section serree"><div class="conteneur"><p class="sous-titre">${t("contact_reseaux")}</p><div class="grille-reseaux grande">${liens.map(carteReseau).join("")}</div></div></section>`,
+    partage: () => `
   <section class="section serree">
     <div class="conteneur">
-      ${mail || tel ? `<div class="grille-coord">${cartesCoordonnees()}</div>` : ""}
-      ${liens.length ? `<p class="sous-titre espace">Réseaux</p><div class="grille-reseaux grande">${liens.map(carteReseau).join("")}</div>` : ""}
-      ${!mail && !tel && !liens.length ? `<div class="vide"><strong>Les coordonnées arrivent bientôt</strong></div>` : ""}
       <div class="carte-partage">
-        <div><h2>Fais découvrir le site</h2><p>Envoie le lien à tes amis : ils peuvent jouer tout de suite, sans compte.</p></div>
-        <button class="btn plein" type="button" data-partager-site>${I.lien}Copier le lien du site</button>
+        <div><h2>${t("partage_titre")}</h2><p>${t("partage_texte")}</p></div>
+        <button class="btn plein" type="button" data-partager-site>${I.lien}${t("partage_bouton")}</button>
       </div>
     </div>
-  </section>`;
+  </section>`,
+    blocs: () => blocsPour("contact"),
+  });
 };
 
 PAGES.introuvable = () => `
   <section class="entete-page centre">
     <div class="conteneur">
-      <p class="etiquette">Erreur 404</p>
-      <h1>Cette page n'existe pas</h1>
-      <p class="accroche">Le jeu a peut-être été retiré. Retourne à la ludothèque pour en choisir un autre.</p>
-      <div class="boutons centre"><a class="btn plein" href="#/jeux">Voir les jeux</a><a class="btn" href="#/">Accueil</a></div>
+      <p class="etiquette">${t("erreur_etiquette")}</p>
+      <h1>${t("erreur_titre")}</h1>
+      <p class="accroche">${t("erreur_texte")}</p>
+      <div class="boutons centre"><a class="btn plein" href="#/jeux">${t("erreur_bouton")}</a><a class="btn" href="#/">${t("nav_accueil")}</a></div>
     </div>
   </section>`;
 
 // =========================================================
 // Navigation entre les pages
 // =========================================================
-const NOMS_PAGES = { accueil: "Accueil", jeux: "Jeux", "a-propos": "À propos", contact: "Contact" };
+const NOMS_PAGES = {};
+const majNomsPages = () => Object.assign(NOMS_PAGES, { accueil: T("nav_accueil"), jeux: T("nav_jeux"), "a-propos": T("nav_apropos"), contact: T("nav_contact") });
 
 function lireAdresse() {
   const h = decodeURIComponent(location.hash || "");
@@ -609,7 +641,11 @@ function lireAdresse() {
   if (h === "#histoire") return { page: "a-propos" };
   if (h === "#une") return { page: "accueil", ancre: "une" };
   let m;
-  if ((m = h.match(/^#bloc-(.+)$/))) return { page: "accueil", ancre: "bloc-" + m[1] };
+  if ((m = h.match(/^#bloc-(.+)$/))) {
+    // Le bloc peut être sur une autre page que l'accueil
+    const b = blocsPerso().find((x) => x.id === m[1]), p = b?.page && b.page !== "jeu" ? b.page : "accueil";
+    return { page: p, ancre: "bloc-" + m[1] };
+  }
   if ((m = h.match(/^#jeu-(.+)$/))) return { page: "jeu", id: m[1] };
   if ((m = h.match(/^#jouer-(.+)$/))) return { page: "jeu", id: m[1], jouer: true };
   if ((m = h.match(/^#\/jeu\/([^?]+)/))) return { page: "jeu", id: m[1] };
@@ -672,6 +708,27 @@ addEventListener("resize", majNav);
 // =========================================================
 function afficherCommun() {
   const s = donnees.site, jeux = jeuxTries(), liens = reseaux();
+  majNomsPages();
+  const txt = (sel, cle) => document.querySelectorAll(sel).forEach((el) => { el.textContent = T(cle); });
+  document.querySelectorAll(".nav a[data-page]").forEach((a) => { a.textContent = NOMS_PAGES[a.dataset.page]; });
+  txt(".entete-cta", "entete_jouer");
+  txt(".menu > div:first-child > .etiquette", "menu_titre");
+  txt(".menu-bas > .etiquette", "menu_derniers");
+  $("paletteTexte").placeholder = T("recherche_placeholder");
+  const titresPied = document.querySelectorAll(".pied-titre");
+  ["pied_site", "pied_jeux", "pied_reseaux"].forEach((k, i) => { if (titresPied[i]) titresPied[i].textContent = T(k); });
+  $("btnHaut").firstChild.textContent = T("pied_haut") + " ";
+  $("btnFermer").lastChild.textContent = T("lecteur_retour");
+  txt("#btnRejouer", "lecteur_recommencer"); txt("#btnPartager", "lecteur_partager"); txt("#btnSuivant", "lecteur_suivant");
+  $("chargement").lastChild.textContent = T("lecteur_chargement");
+  // Options d'affichage (onglet « Mise en page »)
+  const h = document.documentElement;
+  (window.OPTIONS_SITE || []).forEach(([cle]) => h.classList.toggle("sans-" + cle, !option(cle)));
+  const intensite = Number(donnees.miseEnPage?.options?.intensiteDecor);
+  h.style.setProperty("--intensite-decor", Number.isFinite(intensite) && donnees.miseEnPage?.options?.intensiteDecor !== undefined ? intensite / 100 : 1);
+  let css = $("cssPerso");
+  if (!css) { css = document.createElement("style"); css.id = "cssPerso"; document.head.appendChild(css); }
+  css.textContent = donnees.apparence?.css || "";
   $("nomEntete").textContent = s.nom || "";
   $("logoEntete").hidden = !s.logo;
   if (s.logo) $("logoEntete").src = lien(s.logo);
@@ -680,13 +737,13 @@ function afficherCommun() {
   const blocsMenu = blocsPerso().filter((b) => b.dansMenu && b.titre && htmlBloc(b));
   $("menuLiens").innerHTML = pages.map(([p, href], i) => `<li><a href="${href}" data-page="${p}"><span class="menu-num">0${i + 1}</span>${NOMS_PAGES[p]}${p === "jeux" && jeux.length ? `<small>${jeux.length}</small>` : ""}</a></li>`).join("")
     + blocsMenu.map((b, i) => `<li><a href="#bloc-${echapper(b.id)}"><span class="menu-num">0${pages.length + i + 1}</span>${echapper(b.titre.trim())}</a></li>`).join("");
-  $("menuJeux").innerHTML = jeux.slice(0, 3).map((j) => `<a class="menu-jeu" href="#/jeu/${echapper(j.id)}" ${attrCouleur(j)}><span class="menu-jeu-image">${imageJeu(j)}</span><span><b>${echapper(j.titre)}</b><small>${echapper(majuscule(j.genre || "Jeu"))}</small></span></a>`).join("");
+  $("menuJeux").innerHTML = jeux.slice(0, 3).map((j) => `<a class="menu-jeu" href="#/jeu/${echapper(j.id)}" ${attrCouleur(j)}><span class="menu-jeu-image">${imageJeu(j)}</span><span><b>${echapper(j.titre)}</b><small>${echapper(majuscule(j.genre || T("jeu_genre_defaut")))}</small></span></a>`).join("");
   $("menuReseaux").innerHTML = liens.map(pastilleReseau).join("");
   $("piedNom").textContent = s.nom || "";
   $("piedAccroche").textContent = s.accroche || "";
   $("pied").textContent = s.piedDePage || `© ${new Date().getFullYear()} ${s.nom || ""}`;
   $("piedNav").innerHTML = pages.map(([p, href]) => `<li><a href="${href}">${NOMS_PAGES[p]}</a></li>`).join("");
-  $("piedJeux").innerHTML = jeux.slice(0, 6).map((j) => `<li><a href="#/jeu/${echapper(j.id)}">${echapper(j.titre)}</a></li>`).join("") || "<li>Bientôt</li>";
+  $("piedJeux").innerHTML = jeux.slice(0, 6).map((j) => `<li><a href="#/jeu/${echapper(j.id)}">${echapper(j.titre)}</a></li>`).join("") || `<li>${t("chrono_bientot")}</li>`;
   const mail = emailSur(donnees.contact?.email);
   $("piedReseauxCol").hidden = !liens.length && !mail;
   $("piedReseaux").innerHTML = liens.map((l) => `<li><a href="${echapper(l.url)}" target="_blank" rel="noopener">${echapper(l.nom)} ↗</a></li>`).join("")
@@ -724,7 +781,7 @@ function htmlCarte(s) {
     const resume = j.description || [majuscule(j.genre || ""), aUneDate(j) ? "ajouté le " + formatDate(j) : ""].filter(Boolean).join(" · ");
     return `<div class="carte-media" ${attrCouleur(j)}>${j.image ? `<img src="${echapper(lien(j.image))}" alt="" draggable="false">` : ""}</div>
       <div class="carte-corps">
-        <p class="etiquette">${estNouveau(j) ? '<span class="badge">Nouveau</span>' : ""}${echapper(s.surtitre || "Dernière sortie")}</p>
+        <p class="etiquette">${estNouveau(j) ? `<span class="badge">${t("carte_nouveau")}</span>` : ""}${echapper(s.surtitre || "Dernière sortie")}</p>
         <h3>${echapper(j.titre)}</h3>
         ${resume ? `<p class="desc">${echapper(resume)}</p>` : ""}
         <div class="boutons"><button class="btn plein" type="button" data-jouer="${echapper(j.id)}">${I.jouer}${echapper(s.boutonTexte || "Jouer maintenant")}</button><a class="btn" href="#/jeu/${echapper(j.id)}">Voir le jeu</a></div>
@@ -868,7 +925,7 @@ function remplirPalette(q) {
   resultats = [...jeux.map((j) => "#/jeu/" + j.id), ...pages.map(([p]) => (p === "accueil" ? "#/" : "#/" + p))];
   choix = 0;
   let html = "";
-  if (jeux.length) html += `<li class="palette-groupe" role="presentation">Jeux</li>` + jeux.map((j, i) => `<li role="option" data-r="${i}" aria-selected="${i === 0}" ${attrCouleur(j)}><span class="palette-image">${imageJeu(j)}</span><span class="palette-titre">${echapper(j.titre)}</span><small>${echapper(majuscule(j.genre || ""))}</small></li>`).join("");
+  if (jeux.length) html += `<li class="palette-groupe" role="presentation">${t("nav_jeux")}</li>` + jeux.map((j, i) => `<li role="option" data-r="${i}" aria-selected="${i === 0}" ${attrCouleur(j)}><span class="palette-image">${imageJeu(j)}</span><span class="palette-titre">${echapper(j.titre)}</span><small>${echapper(majuscule(j.genre || ""))}</small></li>`).join("");
   if (pages.length) html += `<li class="palette-groupe" role="presentation">Pages</li>` + pages.map(([, n], k) => { const i = jeux.length + k; return `<li role="option" data-r="${i}" aria-selected="${i === 0}"><span class="palette-image icone">${I.page}</span><span class="palette-titre">${n}</span><small>Ouvrir</small></li>`; }).join("");
   $("paletteListe").innerHTML = html || `<li class="palette-vide">Aucun résultat pour « ${echapper(q)} »</li>`;
 }
@@ -962,7 +1019,7 @@ document.addEventListener("keydown", (e) => {
 // Apparition douce au défilement
 let observateur = null;
 function activerRevele() {
-  if (apercu || mouvementReduit || !("IntersectionObserver" in window)) return;
+  if (apercu || mouvementReduit || !option("animations") || !("IntersectionObserver" in window)) return;
   document.documentElement.classList.add("js-revele");
   observateur ??= new IntersectionObserver((l) => l.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("vu"); observateur.unobserve(en.target); } }), { rootMargin: "0px 0px -6% 0px" });
   document.querySelectorAll("#vue .section-tete, #vue .grille-jeux, #vue .grille-genres, #vue .teaser, #vue .bande-contact, #vue .bloc .conteneur, #vue .chronologie, #vue .carrousel-fenetre, #vue .debut, #vue .grille-prochains").forEach((el) => {

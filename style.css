@@ -659,3 +659,12 @@ body { background: var(--fond); isolation: isolate; }
 .chrono-futur .chrono-carte.vide-futur { background: transparent; border: 2px dashed var(--trait-fort); box-shadow: none; }
 .chrono-futur .chrono-image { display: grid; place-items: center; font-family: var(--f-titres); font-weight: 800; font-size: 26px; color: var(--pale); background: var(--creux); }
 .chrono-futur .chrono-carte:hover { transform: none; box-shadow: none; }
+
+/* =========================================================
+   Options de l'onglet « Mise en page » (admin)
+   ========================================================= */
+.sans-navigation .nav, .sans-boutonJouer .entete-cta, .sans-recherche #btnRecherche,
+.sans-favoris .bouton-fav, .sans-favoris [data-favori], .sans-decor .deco, .sans-decor .sphere-deco, .sans-taches .tache { display: none !important; }
+.decor { opacity: var(--intensite-decor, 1); }
+.hero-grille.sans-collage { grid-template-columns: 1fr; }
+.b-html { max-width: 100%; overflow-x: auto; }
