@@ -4,35 +4,31 @@
     "accroche": "Des jeux faits maison, à lancer en un clic. Pas de pièce à glisser dans la fente.",
     "boutonJeux": "Voir les jeux",
     "boutonHistoire": "Mon histoire",
-    "logo": "images/logo-662gr.png",
-    "banniere": "images/banniere-it3fd.jpg",
+    "logo": "images/logo-chrpg.png",
+    "banniere": "images/banniere-q0cus.jpg",
     "piedDePage": "© 2026 BS arcade center · Tous les jeux sont faits maison",
     "boutons": [
       {
         "texte": "Voir les jeux",
-        "cible": "#jeux",
+        "cible": "#/jeux",
         "style": "plein"
       },
       {
         "texte": "Mon histoire",
-        "cible": "#histoire",
-        "style": "contour"
-      },
-      {
-        "texte": "Mes réseaux sociaux",
-        "cible": "#bloc-bmvfd2fo1",
+        "cible": "#/a-propos",
         "style": "contour"
       }
     ]
   },
   "apparence": {
-    "fond": "#F5F4F1",
-    "carte": "#FFFFFF",
-    "texte": "#151515",
-    "accent": "#000000",
+    "fond": "#F5F5F7",
+    "carte": "#ffffff",
+    "texte": "#121214",
+    "accent": "#ff0000",
+    "relief": 4,
+    "v": 3,
     "titres": "Bricolage Grotesque",
-    "corps": "Geist",
-    "relief": 5
+    "corps": "Geist"
   },
   "sectionJeux": {
     "titre": "Jeux",
@@ -41,7 +37,7 @@
   },
   "histoire": {
     "titre": "L'histoire de BS Arcade Center",
-    "image": "images/image-aogv1.jpg",
+    "image": "images/image-dcslm.jpg",
     "texte": "Je mets ici, tous les jeux de merde que j'ai créé pour les répertorier et ne plus devoir les générer n'importe où cliquez sur mes jeux pour voir la liste des jeux que j'ai mis sur cette plateforme."
   },
   "jeux": [
@@ -51,7 +47,7 @@
       "genre": "jeux de chien",
       "description": "",
       "fichier": "jeux/grimpette-3d-scsui.html",
-      "image": "images/grimpette-3d-jaquette-mxpw8.png"
+      "image": "images/grimpette-3d-jaquette-vlkal.png"
     },
     {
       "id": "jmvgdsi5v",
