@@ -54,12 +54,12 @@
       "image": "images/grimpette-3d-jaquette-mxpw8.png"
     },
     {
-      "id": "jmvfcbdla",
+      "id": "jmvgdsi5v",
       "titre": "Golf with TEC3H",
-      "genre": "jeux de sport",
+      "genre": "Jeux de glf",
       "description": "",
-      "fichier": "jeux/golf-with-tec3h-eujqr.html",
-      "image": "images/golf-with-tec3h-jaquette-wfd42.png"
+      "fichier": "jeux/golf-with-tec3h-rxnk6.html",
+      "image": "images/golf-with-tec3h-jaquette-kwf7r.png"
     }
   ],
   "blocs": [
@@ -92,7 +92,7 @@
       "surtitre": "Rejoins-moi",
       "titre": "Suis BS sur les réseaux",
       "texte": "Les coulisses de mes jeux, les prochaines sorties et des défis à relever.",
-      "image": "images/slide-reseaux.jpg",
+      "image": "images/image-pxjbq.png",
       "boutonTexte": "Voir mes réseaux",
       "cible": "#bloc-bmvfd2fo1"
     },
@@ -102,10 +102,11 @@
       "surtitre": "Actu Rocket League",
       "titre": "Mercato RLCS 2027 : ça bouge",
       "texte": "Gentle Mates sur zen, Vatira et Atow ? Vitality déjà sur sa relève. Le point sur les rumeurs du mercato européen.",
-      "image": "images/slide-actu-rl.jpg",
+      "image": "images/image-ma177.jpg",
       "boutonTexte": "Lire l'article",
       "cible": "url",
       "url": "https://www.team-aaa.com/fr/actualite/rlcs-2027-point-sur-les-rumeurs-et-les-pistes-du-mercato-europeen_137272"
     }
-  ]
+  ],
+  "slidesDuree": 4
 }
