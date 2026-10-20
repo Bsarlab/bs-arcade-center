@@ -117,5 +117,43 @@
     "email": "sarrelaboutbaptiste@gmail.com",
     "telephone": "06 75 95 67 19",
     "reseaux": "Instagram | https://www.instagram.com/bapt_srlbt\nLinkedIn | https://www.linkedin.com/in/baptiste-sarrelabout/"
+  },
+  "miseEnPage": {
+    "accueil": [
+      {
+        "id": "hero",
+        "visible": true
+      },
+      {
+        "id": "une",
+        "visible": true
+      },
+      {
+        "id": "derniers",
+        "visible": true
+      },
+      {
+        "id": "genres",
+        "visible": true
+      },
+      {
+        "id": "blocs",
+        "visible": true
+      },
+      {
+        "id": "apropos",
+        "visible": true
+      },
+      {
+        "id": "contact",
+        "visible": true
+      }
+    ]
+  },
+  "textes": {
+    "nav_accueil": "",
+    "accueil_pastille": "{jeux}",
+    "accueil_bulle": "Dernières sorties",
+    "une_titre": "Les actualités"
   }
 }
