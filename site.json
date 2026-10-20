@@ -46,20 +46,20 @@
   },
   "jeux": [
     {
-      "id": "jmvfcbdla",
-      "titre": "Golf with TEC3H",
-      "genre": "jeux de sport",
-      "description": "",
-      "fichier": "jeux/golf-with-tec3h-eujqr.html",
-      "image": "images/golf-with-tec3h-jaquette-wfd42.png"
-    },
-    {
       "id": "jmvfcyu08",
       "titre": "Grimpette 3D",
       "genre": "jeux de chien",
       "description": "",
       "fichier": "jeux/grimpette-3d-scsui.html",
       "image": "images/grimpette-3d-jaquette-mxpw8.png"
+    },
+    {
+      "id": "jmvfcbdla",
+      "titre": "Golf with TEC3H",
+      "genre": "jeux de sport",
+      "description": "",
+      "fichier": "jeux/golf-with-tec3h-eujqr.html",
+      "image": "images/golf-with-tec3h-jaquette-wfd42.png"
     }
   ],
   "blocs": [
@@ -77,6 +77,35 @@
       "dansMenu": true,
       "titre": "Mes réseaux sociaux ",
       "liens": "Instagram | https://www.instagram.com/bapt_srlbt\nLinkedIn | https://www.linkedin.com/in/baptiste-sarrelabout"
+    }
+  ],
+  "slides": [
+    {
+      "id": "s-jeu",
+      "type": "dernier-jeu",
+      "surtitre": "Dernière sortie",
+      "boutonTexte": "Jouer maintenant"
+    },
+    {
+      "id": "s-reseaux",
+      "type": "perso",
+      "surtitre": "Rejoins-moi",
+      "titre": "Suis BS sur les réseaux",
+      "texte": "Les coulisses de mes jeux, les prochaines sorties et des défis à relever.",
+      "image": "images/slide-reseaux.jpg",
+      "boutonTexte": "Voir mes réseaux",
+      "cible": "#bloc-bmvfd2fo1"
+    },
+    {
+      "id": "s-actu",
+      "type": "perso",
+      "surtitre": "Actu Rocket League",
+      "titre": "Mercato RLCS 2027 : ça bouge",
+      "texte": "Gentle Mates sur zen, Vatira et Atow ? Vitality déjà sur sa relève. Le point sur les rumeurs du mercato européen.",
+      "image": "images/slide-actu-rl.jpg",
+      "boutonTexte": "Lire l'article",
+      "cible": "url",
+      "url": "https://www.team-aaa.com/fr/actualite/rlcs-2027-point-sur-les-rumeurs-et-les-pistes-du-mercato-europeen_137272"
     }
   ]
 }
