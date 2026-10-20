@@ -303,15 +303,25 @@ body.menu-ouvert .marque, body.menu-ouvert .nav, body.menu-ouvert #btnRecherche,
 @media (max-width: 760px) { .teaser { grid-template-columns: minmax(0, 1fr); } .teaser-image { min-height: 0; aspect-ratio: 16 / 10; } }
 
 /* Bande contact */
+/* Bandeau contact de l'accueil : fond noir, mêmes cartes que la page Contact */
 .bande-contact {
-  position: relative; overflow: hidden; display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 28px;
-  padding: clamp(36px, 6vw, 72px); border-radius: 36px; background: var(--accent); color: #fff;
+  position: relative; overflow: hidden; display: grid; gap: 28px;
+  padding: clamp(32px, 5vw, 64px); border-radius: 36px; background: #121214; color: #fff;
+  /* Les cartes à l'intérieur gardent leur style clair */
+  --carte: #FFFFFF; --texte: #121214; --pale: #7A7A82; --trait-fort: #D9D9DE; --fond: #F5F5F7;
 }
-.bande-contact::after { content: ""; position: absolute; width: 560px; height: 560px; right: -160px; top: -280px; border-radius: 50%; background: radial-gradient(circle, rgba(255,255,255,.28), transparent 65%); pointer-events: none; }
+.bande-contact::after { content: ""; position: absolute; width: 620px; height: 620px; right: -200px; top: -320px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 38%, transparent), transparent 65%); pointer-events: none; }
 .bande-contact > * { position: relative; z-index: 1; }
-.bande-contact h2 { max-width: 14ch; }
-.bande-contact p { margin: 12px 0 0; opacity: .88; font-size: 17px; }
-.bande-contact .etiquette { margin: 0 0 10px; }
+.bande-tete { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 20px; }
+.bande-contact h2 { max-width: 16ch; color: #fff; }
+.bande-contact .bande-tete p { margin: 12px 0 0; color: rgba(255,255,255,.72); font-size: 17px; }
+.bande-contact .etiquette { margin: 0 0 10px; color: rgba(255,255,255,.7); }
+.bande-contact .grille-coord { margin: 0; }
+.bande-contact .carte-coord, .bande-contact .carte-reseau { color: #121214; box-shadow: none; }
+.bande-contact .carte-reseau:hover, .bande-contact .bouton-rond.contour:hover { box-shadow: 4px 4px 0 var(--accent); }
+.bande-contact .btn.plein { background: #121214; color: #fff; border-color: #121214; }
+.bande-contact .btn.plein:hover { background: var(--accent); border-color: var(--accent); box-shadow: 3px 3px 0 #121214; }
+.bande-contact .btn.blanc:hover { box-shadow: 3px 3px 0 var(--accent); }
 
 /* ===== Page Jeux ===== */
 .outils { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 32px; }
@@ -519,3 +529,4 @@ kbd { font-family: var(--f-corps); font-size: 12px; padding: 3px 8px; border-rad
   .prog.actif span::after { animation: none !important; width: 100%; }
   .js-revele .revele { opacity: 1; transform: none; }
 }
+.bande-contact .coord-texte b { font-size: 18px; }

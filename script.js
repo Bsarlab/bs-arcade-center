@@ -295,12 +295,16 @@ PAGES.accueil = () => {
     </div>
   </section>` : ""}
 
-  ${liens.length && !blocsPerso().some((b) => b.type === "liens" && liensDe(b.liens).length) ? `
+  ${(liens.length || cartesCoordonnees()) && !blocsPerso().some((b) => b.type === "liens" && liensDe(b.liens).length) ? `
   <section class="section">
     <div class="conteneur">
       <div class="bande-contact">
-        <div><p class="etiquette clair">Restons en contact</p><h2>Ne rate pas le prochain jeu</h2><p>Les nouveautés arrivent d'abord sur mes réseaux.</p></div>
-        <div class="boutons">${liens.map((l) => `<a class="btn blanc" href="${echapper(l.url)}" target="_blank" rel="noopener">${echapper(l.nom)}${I.externe}</a>`).join("")}</div>
+        <div class="bande-tete">
+          <div><p class="etiquette clair">Restons en contact</p><h2>Ne rate pas le prochain jeu</h2><p>Les nouveautés arrivent d'abord sur mes réseaux.</p></div>
+          <a class="btn blanc" href="#/contact">Page contact ${I.droite}</a>
+        </div>
+        ${cartesCoordonnees() ? `<div class="grille-coord">${cartesCoordonnees()}</div>` : ""}
+        ${liens.length ? `<div class="grille-reseaux">${liens.map(carteReseau).join("")}</div>` : ""}
       </div>
     </div>
   </section>` : ""}`;
@@ -461,9 +465,8 @@ PAGES["a-propos"] = () => {
 };
 
 // ---------- Contact ----------
-PAGES.contact = () => {
-  const c = donnees.contact || {}, liens = reseaux(), mail = emailSur(c.email), tel = telLien(c.telephone);
-  const coordonnee = (type, icone, titre, valeur, href, action) => `
+// Cartes « mail » et « téléphone » (page Contact et bandeau de l'accueil)
+const coordonnee = (icone, titre, valeur, href, action) => `
     <div class="carte-coord">
       <span class="coord-icone">${icone}</span>
       <span class="coord-texte"><small>${titre}</small><b>${echapper(valeur)}</b></span>
@@ -472,6 +475,14 @@ PAGES.contact = () => {
         <a class="btn plein petit" href="${echapper(href)}">${action}</a>
       </span>
     </div>`;
+function cartesCoordonnees() {
+  const c = donnees.contact || {}, mail = emailSur(c.email), tel = telLien(c.telephone);
+  return (mail ? coordonnee(I.mail, "E-mail", mail, "mailto:" + mail, "Écrire") : "")
+    + (tel ? coordonnee(I.tel, "Téléphone", c.telephone.trim(), "tel:" + tel, "Appeler") : "");
+}
+
+PAGES.contact = () => {
+  const c = donnees.contact || {}, liens = reseaux(), mail = emailSur(c.email), tel = telLien(c.telephone);
   return `
   <section class="entete-page">
     <div class="conteneur">
@@ -482,10 +493,7 @@ PAGES.contact = () => {
   </section>
   <section class="section serree">
     <div class="conteneur">
-      ${mail || tel ? `<div class="grille-coord">
-        ${mail ? coordonnee("mail", I.mail, "E-mail", mail, "mailto:" + mail, "Écrire") : ""}
-        ${tel ? coordonnee("tel", I.tel, "Téléphone", c.telephone.trim(), "tel:" + tel, "Appeler") : ""}
-      </div>` : ""}
+      ${mail || tel ? `<div class="grille-coord">${cartesCoordonnees()}</div>` : ""}
       ${liens.length ? `<p class="sous-titre espace">Réseaux</p><div class="grille-reseaux grande">${liens.map(carteReseau).join("")}</div>` : ""}
       ${!mail && !tel && !liens.length ? `<div class="vide"><strong>Les coordonnées arrivent bientôt</strong></div>` : ""}
       <div class="carte-partage">
