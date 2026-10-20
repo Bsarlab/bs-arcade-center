@@ -443,33 +443,20 @@ PAGES.jeu = (id) => {
 };
 
 // ---------- À propos ----------
-// Prochains jeux et feuille de route : réglés dans l'admin (onglet Histoire), sinon exemples
+// Prochains jeux : réglés dans l'admin (onglet Histoire), sinon exemples
 const PROCHAINS_DEFAUT = [
   { nom: "Jeu mystère", genre: "Course", avancement: 70 },
   { nom: "Jeu mystère", genre: "Puzzle", avancement: 40 },
   { nom: "Jeu mystère", genre: "Aventure", avancement: 15 },
-];
-const ROUTE_DEFAUT = [
-  { etape: "Lancement du site", etat: "fait" },
-  { etape: "Les premiers jeux en ligne", etat: "fait" },
-  { etape: "Un nouveau jeu régulièrement", etat: "en cours" },
-  { etape: "Records et classements", etat: "à venir" },
-  { etape: "Des jeux à plusieurs", etat: "à venir" },
 ];
 function prochainsJeux(h) {
   const l = String(h.prochains || "").split("\n").map((x) => x.split("|").map((y) => y.trim())).filter((x) => x[0])
     .map(([nom, genre, av]) => ({ nom, genre: genre || "", avancement: Math.max(0, Math.min(100, parseInt(av, 10) || 0)) }));
   return l.length ? l : PROCHAINS_DEFAUT;
 }
-function feuilleDeRoute(h) {
-  const l = String(h.feuilleDeRoute || "").split("\n").map((x) => x.split("|").map((y) => y.trim())).filter((x) => x[0])
-    .map(([etape, etat]) => ({ etape, etat: /fait|termin|ok/i.test(etat || "") ? "fait" : /cours/i.test(etat || "") ? "en cours" : "à venir" }));
-  return l.length ? l : ROUTE_DEFAUT;
-}
-
 PAGES["a-propos"] = () => {
   const h = donnees.histoire || {}, jeux = jeuxTries(), chrono = [...jeux].reverse().filter(aUneDate);
-  const prochains = prochainsJeux(h), route = feuilleDeRoute(h);
+  const prochains = prochainsJeux(h);
   const couleursMystere = ["#FF6B4A", "#6A4CFF", "#1DB97A", "#3B82F6", "#FFC93C", "#FF5C8A"];
   return `
   <section class="entete-page">
@@ -483,7 +470,6 @@ PAGES["a-propos"] = () => {
       ${h.image ? `<figure class="apropos-image"><img src="${echapper(lien(h.image))}" alt=""></figure>` : ""}
       <div class="apropos-texte">
         <div class="prose grande">${paragraphes(h.texte)}</div>
-        <a class="lien-fleche" href="#/jeux">Voir les ${pluriel(jeux.length, "jeu", "jeux")} déjà en ligne ${I.droite}</a>
       </div>
     </div>
   </section>
@@ -538,19 +524,6 @@ PAGES["a-propos"] = () => {
           <span>Propose-moi un jeu, il sera peut-être le prochain.</span>
         </a>
       </div>
-    </div>
-  </section>
-
-  <!-- Feuille de route -->
-  <section class="section">
-    <div class="conteneur">
-      ${enteteSection("Feuille de route", "Ce qui arrive sur le site")}
-      <ol class="route">${route.map((r) => `
-        <li class="etat-${r.etat.replace(" ", "-").replace("à", "a")}">
-          <span class="route-pastille">${r.etat === "fait" ? I.coche : ""}</span>
-          <span class="route-texte"><b>${echapper(r.etape)}</b><small>${r.etat === "fait" ? "Fait" : r.etat === "en cours" ? "En cours" : "À venir"}</small></span>
-        </li>`).join("")}
-      </ol>
     </div>
   </section>
 
@@ -992,7 +965,7 @@ function activerRevele() {
   if (apercu || mouvementReduit || !("IntersectionObserver" in window)) return;
   document.documentElement.classList.add("js-revele");
   observateur ??= new IntersectionObserver((l) => l.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("vu"); observateur.unobserve(en.target); } }), { rootMargin: "0px 0px -6% 0px" });
-  document.querySelectorAll("#vue .section-tete, #vue .grille-jeux, #vue .grille-genres, #vue .teaser, #vue .bande-contact, #vue .bloc .conteneur, #vue .chronologie, #vue .carrousel-fenetre, #vue .debut, #vue .grille-prochains, #vue .route").forEach((el) => {
+  document.querySelectorAll("#vue .section-tete, #vue .grille-jeux, #vue .grille-genres, #vue .teaser, #vue .bande-contact, #vue .bloc .conteneur, #vue .chronologie, #vue .carrousel-fenetre, #vue .debut, #vue .grille-prochains").forEach((el) => {
     el.classList.add("revele");
     if (el.getBoundingClientRect().top < innerHeight) el.classList.add("vu"); else observateur.observe(el);
   });
