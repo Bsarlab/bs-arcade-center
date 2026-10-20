@@ -208,9 +208,24 @@ function htmlBloc(b) {
   }
   return "";
 }
-const carteReseau = (l) => `<a class="carte-reseau" href="${echapper(l.url)}" target="_blank" rel="noopener" style="--c:hsl(${teinteDe(l.nom)} 70% 58%)">
-  <span class="carte-reseau-initiale">${echapper(l.nom.charAt(0).toUpperCase())}</span>
+// Logo du réseau (icônes Font Awesome) d'après l'adresse ; sinon l'initiale
+const ICONES_RESEAUX = { instagram: "instagram", linkedin: "linkedin-in", youtube: "youtube", youtu: "youtube", tiktok: "tiktok", twitter: "x-twitter", x: "x-twitter",
+  discord: "discord", twitch: "twitch", facebook: "facebook-f", github: "github", itch: "itch-io", snapchat: "snapchat", threads: "threads", reddit: "reddit-alien", spotify: "spotify", steampowered: "steam", steamcommunity: "steam" };
+function iconeReseau(url) {
+  try {
+    const morceaux = new URL(url).hostname.replace(/^www\./, "").split(".");
+    const cle = morceaux.find((m) => ICONES_RESEAUX[m]);
+    return cle ? ICONES_RESEAUX[cle] : "";
+  } catch { return ""; }
+}
+const carteReseau = (l) => {
+  const icone = iconeReseau(l.url);
+  return `<a class="carte-reseau" href="${echapper(l.url)}" target="_blank" rel="noopener" style="--c:hsl(${teinteDe(l.nom)} 70% 58%)">
+  ${icone
+    ? `<span class="carte-reseau-initiale logo-reseau logo-${icone}"><i class="fa-brands fa-${icone}" aria-hidden="true"></i><b class="lettre" aria-hidden="true">${echapper(l.nom.charAt(0).toUpperCase())}</b></span>`
+    : `<span class="carte-reseau-initiale">${echapper(l.nom.charAt(0).toUpperCase())}</span>`}
   <span class="carte-reseau-texte"><b>${echapper(l.nom)}</b><small>${echapper(adresseCourte(l.url))}</small></span>${I.externe}</a>`;
+};
 const blocsDe = () => (donnees.blocs && donnees.blocs.length ? donnees.blocs : [{ id: "jeux", type: "jeux" }, { id: "histoire", type: "histoire" }]);
 const blocsPerso = () => blocsDe().filter((b) => b.type !== "jeux" && b.type !== "histoire");
 
@@ -888,6 +903,13 @@ function activerRevele() {
     if (el.getBoundingClientRect().top < innerHeight) el.classList.add("vu"); else observateur.observe(el);
   });
 }
+
+// Si les icônes des réseaux ne se chargent pas, on affiche l'initiale à la place
+addEventListener("load", () => {
+  if (!document.fonts?.load) return;
+  document.fonts.load('16px "Font Awesome 6 Brands"').then((l) => { if (!l.length) document.documentElement.classList.add("sans-icones"); })
+    .catch(() => document.documentElement.classList.add("sans-icones"));
+});
 
 // =========================================================
 // Démarrage
