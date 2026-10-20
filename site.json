@@ -30,8 +30,8 @@
     "carte": "#121212",
     "texte": "#FFFFFF",
     "accent": "#E3121B",
-    "titres": "Black Ops One",
-    "corps": "IBM Plex Sans",
+    "titres": "Bricolage Grotesque",
+    "corps": "Geist",
     "relief": 5
   },
   "sectionJeux": {
@@ -56,7 +56,7 @@
     {
       "id": "jmvgdsi5v",
       "titre": "Golf with TEC3H",
-      "genre": "Jeux de glf",
+      "genre": "Jeux de golf",
       "description": "",
       "fichier": "jeux/golf-with-tec3h-rxnk6.html",
       "image": "images/golf-with-tec3h-jaquette-kwf7r.png"
