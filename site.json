@@ -97,5 +97,12 @@
       "url": "https://www.team-aaa.com/fr/actualite/rlcs-2027-point-sur-les-rumeurs-et-les-pistes-du-mercato-europeen_137272"
     }
   ],
-  "slidesDuree": 4
+  "slidesDuree": 4,
+  "contact": {
+    "titre": "Restons en contact",
+    "texte": "Une idée de jeu, un bug, un record à partager ? Écris-moi, je réponds vite.",
+    "email": "sarrelaboutbaptiste@gmail.com",
+    "telephone": "06 75 95 67 19",
+    "reseaux": "Instagram | https://www.instagram.com/bapt_srlbt\nLinkedIn | https://www.linkedin.com/in/baptiste-sarrelabout/"
+  }
 }
