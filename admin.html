@@ -153,13 +153,15 @@
   const slug = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40) || "fichier";
   const hasard = () => Math.random().toString(36).slice(2, 7);
   const EXT = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/svg+xml": "svg" };
-  const POLICES_TITRES = ["Anton", "Bebas Neue", "Russo One", "Black Ops One", "Bungee"];
-  const POLICES_CORPS = ["Barlow", "Rubik", "Atkinson Hyperlegible", "IBM Plex Sans"];
+  // Mêmes listes que dans script.js (le site remplace toute autre police par celles par défaut)
+  const POLICES_TITRES = ["Bricolage Grotesque", "Familjen Grotesk", "Syne", "Unbounded", "Instrument Serif", "DM Serif Display"];
+  const POLICES_CORPS = ["Geist", "Manrope", "DM Sans", "Figtree"];
   const PALETTES = [
-    { nom: "Rouge", c: { fond: "#050505", carte: "#121212", texte: "#FFFFFF", accent: "#E3121B" } },
-    { nom: "Néon", c: { fond: "#05040C", carte: "#110F1F", texte: "#F2F0FF", accent: "#20E3B2" } },
-    { nom: "Or", c: { fond: "#0A0907", carte: "#16130E", texte: "#FFF8EA", accent: "#F2B705" } },
-    { nom: "Violet", c: { fond: "#07050C", carte: "#14101E", texte: "#FFFFFF", accent: "#9B4DFF" } },
+    { nom: "Nuit rouge", c: { fond: "#0A0A0B", carte: "#141416", texte: "#F4F4F5", accent: "#E3121B" } },
+    { nom: "Encre bleue", c: { fond: "#0A0D14", carte: "#121826", texte: "#EEF2FA", accent: "#4C7DFF" } },
+    { nom: "Forêt", c: { fond: "#0B0F0D", carte: "#131A16", texte: "#EEF3EF", accent: "#3DD68C" } },
+    { nom: "Ambre", c: { fond: "#0D0B09", carte: "#181410", texte: "#F7F2EA", accent: "#F2A93B" } },
+    { nom: "Papier", c: { fond: "#F5F4F1", carte: "#FFFFFF", texte: "#151515", accent: "#E3121B" } },
   ];
 
   let config = null;          // { pseudo, depot, cle, branche }
@@ -216,6 +218,10 @@
     if (!texte) { const r = await fetch("site.json"); texte = await r.text(); }
     donnees = JSON.parse(texte);
     donnees.jeux = donnees.jeux || [];
+    // Nouveau design : les anciennes polices « gamer » passent aux nouvelles
+    donnees.apparence = donnees.apparence || {};
+    if (!POLICES_TITRES.includes(donnees.apparence.titres)) donnees.apparence.titres = POLICES_TITRES[0];
+    if (!POLICES_CORPS.includes(donnees.apparence.corps)) donnees.apparence.corps = POLICES_CORPS[0];
     refsPubliees = new Set(references(donnees));
     ecrireConfig(config);
     $("ecranConnexion").hidden = true;
@@ -298,7 +304,7 @@
         ${texte("site.nom", "Nom du site", 60)}
         ${zone("site.accroche", "Phrase d'accroche", "", 70)}
         ${editeurBoutons()}
-        ${image("site.banniere", "Image de fond de l'accueil", "Une grande image horizontale. Elle est assombrie pour garder le texte lisible.")}
+        ${image("site.banniere", "Image de fond de l'accueil", "Facultatif. Elle s'affiche très en transparence derrière le titre, pour l'ambiance.")}
       </div>
       <div class="bloc"><h2>IDENTITÉ</h2>
         ${image("site.logo", "Logo", "Carré de préférence, affiché à côté du nom en haut.")}
