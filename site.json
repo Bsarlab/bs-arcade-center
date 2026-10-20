@@ -17,6 +17,11 @@
         "texte": "Mon histoire",
         "cible": "#/a-propos",
         "style": "contour"
+      },
+      {
+        "texte": "Me suivre",
+        "cible": "#/contact",
+        "style": "contour"
       }
     ]
   },
