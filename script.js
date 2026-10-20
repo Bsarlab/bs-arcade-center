@@ -35,6 +35,8 @@ const I = {
   page: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>',
   mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>',
   tel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
+  cadenas: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="3"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>',
+  coche: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m5 12 5 5 9-10"/></svg>',
   copie: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>',
   souris: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v4"/></svg>',
   ecran: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
@@ -441,9 +443,34 @@ PAGES.jeu = (id) => {
 };
 
 // ---------- À propos ----------
+// Prochains jeux et feuille de route : réglés dans l'admin (onglet Histoire), sinon exemples
+const PROCHAINS_DEFAUT = [
+  { nom: "Jeu mystère", genre: "Course", avancement: 70 },
+  { nom: "Jeu mystère", genre: "Puzzle", avancement: 40 },
+  { nom: "Jeu mystère", genre: "Aventure", avancement: 15 },
+];
+const ROUTE_DEFAUT = [
+  { etape: "Lancement du site", etat: "fait" },
+  { etape: "Les premiers jeux en ligne", etat: "fait" },
+  { etape: "Un nouveau jeu régulièrement", etat: "en cours" },
+  { etape: "Records et classements", etat: "à venir" },
+  { etape: "Des jeux à plusieurs", etat: "à venir" },
+];
+function prochainsJeux(h) {
+  const l = String(h.prochains || "").split("\n").map((x) => x.split("|").map((y) => y.trim())).filter((x) => x[0])
+    .map(([nom, genre, av]) => ({ nom, genre: genre || "", avancement: Math.max(0, Math.min(100, parseInt(av, 10) || 0)) }));
+  return l.length ? l : PROCHAINS_DEFAUT;
+}
+function feuilleDeRoute(h) {
+  const l = String(h.feuilleDeRoute || "").split("\n").map((x) => x.split("|").map((y) => y.trim())).filter((x) => x[0])
+    .map(([etape, etat]) => ({ etape, etat: /fait|termin|ok/i.test(etat || "") ? "fait" : /cours/i.test(etat || "") ? "en cours" : "à venir" }));
+  return l.length ? l : ROUTE_DEFAUT;
+}
+
 PAGES["a-propos"] = () => {
   const h = donnees.histoire || {}, jeux = jeuxTries(), chrono = [...jeux].reverse().filter(aUneDate);
-  const genres = new Set(jeux.map((j) => (j.genre || "").trim().toLowerCase()).filter(Boolean));
+  const prochains = prochainsJeux(h), route = feuilleDeRoute(h);
+  const couleursMystere = ["#FF6B4A", "#6A4CFF", "#1DB97A", "#3B82F6", "#FFC93C", "#FF5C8A"];
   return `
   <section class="entete-page">
     <div class="conteneur">
@@ -456,14 +483,77 @@ PAGES["a-propos"] = () => {
       ${h.image ? `<figure class="apropos-image"><img src="${echapper(lien(h.image))}" alt=""></figure>` : ""}
       <div class="apropos-texte">
         <div class="prose grande">${paragraphes(h.texte)}</div>
-        <dl class="chiffres">
-          <div><dd>${jeux.length}</dd><dt>${jeux.length > 1 ? "jeux créés" : "jeu créé"}</dt></div>
-          <div><dd>${genres.size}</dd><dt>${genres.size > 1 ? "genres" : "genre"}</dt></div>
-          <div><dd>0 €</dd><dt>pour jouer</dt></div>
-        </dl>
+        <a class="lien-fleche" href="#/jeux">Voir les ${pluriel(jeux.length, "jeu", "jeux")} déjà en ligne ${I.droite}</a>
       </div>
     </div>
   </section>
+
+  <!-- Ce n'est que le début -->
+  <section class="section">
+    <div class="conteneur">
+      <div class="debut">
+        <div class="debut-texte">
+          <p class="etiquette clair">La suite</p>
+          <h2>${echapper(h.suiteTitre || "Ce n'est que le début.")}</h2>
+          <p>${echapper(h.suiteTexte || "De nouveaux jeux arrivent régulièrement. Reviens souvent : la ludothèque grandit à chaque mise à jour.")}</p>
+        </div>
+        <div class="debut-compteur">
+          <span class="compteur-nb">${jeux.length}</span>
+          <span class="compteur-plus">+${prochains.length}</span>
+          <span class="compteur-legende">${pluriel(jeux.length, "jeu en ligne", "jeux en ligne")}<br>${pluriel(prochains.length, "en préparation", "en préparation")}</span>
+        </div>
+        <div class="debut-pile" aria-hidden="true">
+          ${jeux.slice(0, 3).map((j, i) => `<span class="pile-${i + 1}" ${attrCouleur(j)}>${imageJeu(j)}</span>`).join("")}
+          <span class="pile-mystere">?</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- En préparation -->
+  <section class="section">
+    <div class="conteneur">
+      ${enteteSection("En préparation", "Les prochains jeux", `<a class="lien-fleche" href="#/contact">Propose une idée ${I.droite}</a>`)}
+      <div class="grille-prochains">${prochains.map((p, i) => {
+        const c = couleursMystere[(teinteDe(p.nom + p.genre + i)) % couleursMystere.length];
+        return `<article class="prochain" style="--c:${c}">
+          <div class="prochain-visuel">
+            <span class="prochain-forme f1"></span><span class="prochain-forme f2"></span>
+            <span class="prochain-cadenas">${I.cadenas}</span>
+            <span class="badge noir">Bientôt</span>
+          </div>
+          <div class="prochain-corps">
+            <h3>${echapper(p.nom)}</h3>
+            ${p.genre ? `<p class="meta">${echapper(p.genre)}</p>` : ""}
+            <div class="avancement" role="img" aria-label="Avancement : ${p.avancement} %">
+              <span class="avancement-barre"><span style="--v:${p.avancement}%"></span></span>
+              <span class="avancement-nb">${p.avancement} %</span>
+            </div>
+          </div>
+        </article>`;
+      }).join("")}
+        <a class="prochain idee" href="#/contact">
+          <span class="idee-plus">+</span>
+          <b>Et ton idée ?</b>
+          <span>Propose-moi un jeu, il sera peut-être le prochain.</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Feuille de route -->
+  <section class="section">
+    <div class="conteneur">
+      ${enteteSection("Feuille de route", "Ce qui arrive sur le site")}
+      <ol class="route">${route.map((r) => `
+        <li class="etat-${r.etat.replace(" ", "-").replace("à", "a")}">
+          <span class="route-pastille">${r.etat === "fait" ? I.coche : ""}</span>
+          <span class="route-texte"><b>${echapper(r.etape)}</b><small>${r.etat === "fait" ? "Fait" : r.etat === "en cours" ? "En cours" : "À venir"}</small></span>
+        </li>`).join("")}
+      </ol>
+    </div>
+  </section>
+
   ${chrono.length ? `
   <section class="section">
     <div class="conteneur">
@@ -474,6 +564,10 @@ PAGES["a-propos"] = () => {
           <a class="chrono-carte" href="#/jeu/${echapper(j.id)}"><span class="chrono-image">${imageJeu(j)}</span>
             <span><b>${echapper(j.titre)}</b><small>${echapper(majuscule(j.genre || "Jeu"))}</small></span>${I.droite}</a>
         </li>`).join("")}
+        <li class="chrono-futur" style="--c:#C9C9D2">
+          <span class="chrono-date">Bientôt</span>
+          <span class="chrono-carte vide-futur"><span class="chrono-image">?</span><span><b>Le prochain jeu</b><small>En préparation</small></span></span>
+        </li>
       </ol>
     </div>
   </section>` : ""}`;
@@ -898,7 +992,7 @@ function activerRevele() {
   if (apercu || mouvementReduit || !("IntersectionObserver" in window)) return;
   document.documentElement.classList.add("js-revele");
   observateur ??= new IntersectionObserver((l) => l.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("vu"); observateur.unobserve(en.target); } }), { rootMargin: "0px 0px -6% 0px" });
-  document.querySelectorAll("#vue .section-tete, #vue .grille-jeux, #vue .grille-genres, #vue .teaser, #vue .bande-contact, #vue .bloc .conteneur, #vue .chronologie, #vue .carrousel-fenetre").forEach((el) => {
+  document.querySelectorAll("#vue .section-tete, #vue .grille-jeux, #vue .grille-genres, #vue .teaser, #vue .bande-contact, #vue .bloc .conteneur, #vue .chronologie, #vue .carrousel-fenetre, #vue .debut, #vue .grille-prochains, #vue .route").forEach((el) => {
     el.classList.add("revele");
     if (el.getBoundingClientRect().top < innerHeight) el.classList.add("vu"); else observateur.observe(el);
   });

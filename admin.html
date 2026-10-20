@@ -444,6 +444,16 @@
         ${texte("histoire.titre", "Titre", 80)}
         ${image("histoire.image", "Image (photo, dessin…)", "Facultatif. Elle s'affiche à côté du texte.")}
         ${zone("histoire.texte", "Texte", "Laisse une ligne vide entre deux paragraphes.", 340)}
+      </div>
+      <div class="bloc"><h2>LA SUITE</h2>
+        ${texte("histoire.suiteTitre", "Titre du bandeau", 60)}
+        ${zone("histoire.suiteTexte", "Texte du bandeau", "Par défaut : « De nouveaux jeux arrivent régulièrement… »", 70)}
+      </div>
+      <div class="bloc"><h2>PROCHAINS JEUX</h2>
+        ${zone("histoire.prochains", "Un jeu par ligne", "Format : Nom | Genre | Avancement en %. Exemple : Jeu mystère | Course | 70. Laisse vide pour afficher 3 jeux mystère.", 110)}
+      </div>
+      <div class="bloc"><h2>FEUILLE DE ROUTE</h2>
+        ${zone("histoire.feuilleDeRoute", "Une étape par ligne", "Format : Étape | fait, en cours ou à venir. Exemple : Records et classements | à venir. Laisse vide pour la feuille de route par défaut.", 130)}
       </div>`;
     }
     const pos = $("corps").scrollTop;

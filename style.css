@@ -579,3 +579,83 @@ body { background: var(--fond); isolation: isolate; }
 .coord-texte { flex: 1 1 auto; min-width: auto; max-width: 100%; }
 .coord-texte b { overflow-wrap: break-word; }
 @media (max-width: 440px) { .coord-texte b, .bande-contact .coord-texte b { font-size: 16px; letter-spacing: -.01em; } }
+
+/* =========================================================
+   À propos : « Ce n'est que le début », prochains jeux, feuille de route
+   ========================================================= */
+.apropos-texte .lien-fleche { margin-top: 18px; }
+
+.debut {
+  position: relative; overflow: hidden; display: grid; grid-template-columns: minmax(0, 1.2fr) auto minmax(0, .9fr); align-items: center; gap: 40px;
+  padding: clamp(32px, 5vw, 64px); border-radius: 36px; background: #121214; color: #fff;
+}
+.debut::before { content: ""; position: absolute; width: 560px; height: 560px; left: -180px; bottom: -320px; border-radius: 50%; background: radial-gradient(circle, color-mix(in srgb, var(--accent) 40%, transparent), transparent 65%); }
+.debut::after { content: ""; position: absolute; inset: 0; background-image: radial-gradient(rgba(255,255,255,.12) 1px, transparent 1.5px); background-size: 22px 22px; mask-image: linear-gradient(90deg, transparent, #000 60%); pointer-events: none; }
+.debut > * { position: relative; z-index: 1; }
+.debut h2 { color: #fff; font-size: clamp(36px, 5vw, 64px); }
+.debut .etiquette { color: rgba(255,255,255,.7); }
+.debut-texte p { margin: 16px 0 0; color: rgba(255,255,255,.72); font-size: 18px; max-width: 40ch; }
+.debut-compteur { display: grid; justify-items: start; line-height: 1; }
+.compteur-nb { font-family: var(--f-titres); font-weight: 800; font-size: clamp(80px, 10vw, 140px); letter-spacing: -.06em; }
+.compteur-plus { margin-top: -6px; padding: 6px 14px; border-radius: 999px; background: var(--accent); font-weight: 700; font-size: 22px; transform: rotate(-4deg); }
+.compteur-legende { margin-top: 14px; color: rgba(255,255,255,.6); font-size: 14px; line-height: 1.4; }
+.debut-pile { position: relative; height: 220px; }
+.debut-pile > span { position: absolute; width: 62%; aspect-ratio: 4 / 3; border-radius: 18px; overflow: hidden; border: 4px solid #fff; box-shadow: 0 20px 40px -18px rgba(0,0,0,.7); background: color-mix(in srgb, var(--c) 40%, #fff); }
+.debut-pile img, .debut-pile .sans-image { width: 100%; height: 100%; object-fit: cover; }
+.debut-pile .pile-1 { left: 0; top: 20px; transform: rotate(-8deg); }
+.debut-pile .pile-2 { left: 20%; top: 0; transform: rotate(3deg); }
+.debut-pile .pile-3 { left: 10%; top: 60px; transform: rotate(-2deg); }
+.debut-pile .pile-mystere { right: 0; bottom: 0; width: 52%; display: grid; place-items: center; background: repeating-linear-gradient(135deg, #2A2A30 0 12px, #222227 12px 24px); border: 3px dashed rgba(255,255,255,.5); font-family: var(--f-titres); font-weight: 800; font-size: 64px; color: rgba(255,255,255,.85); transform: rotate(6deg); animation: flotte 5s ease-in-out infinite; }
+@media (max-width: 960px) { .debut { grid-template-columns: minmax(0, 1fr) auto; } .debut-pile { display: none; } }
+@media (max-width: 560px) { .debut { grid-template-columns: minmax(0, 1fr); gap: 24px; } }
+
+.grille-prochains { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr)); gap: 20px; }
+.prochain { display: grid; grid-template-rows: auto 1fr; border-radius: var(--r); overflow: hidden; background: var(--carte); box-shadow: var(--ombre); transition: transform .3s cubic-bezier(.3,.9,.2,1), box-shadow .3s; }
+.prochain:hover { transform: translate(-3px, -3px); box-shadow: 5px 5px 0 var(--accent); }
+.prochain-visuel { position: relative; aspect-ratio: 4 / 3; overflow: hidden; display: grid; place-items: center; background: color-mix(in srgb, var(--c) 22%, var(--carte)); }
+.prochain-forme { position: absolute; border-radius: 50%; filter: blur(14px); opacity: .85; }
+.prochain-forme.f1 { width: 55%; aspect-ratio: 1; left: 8%; top: 12%; background: var(--c); animation: deriver 9s ease-in-out infinite; }
+.prochain-forme.f2 { width: 38%; aspect-ratio: 1; right: 6%; bottom: 4%; background: color-mix(in srgb, var(--c) 50%, #fff); animation: deriver 11s ease-in-out infinite reverse; }
+.prochain-cadenas { position: relative; width: 74px; height: 74px; border-radius: 22px; display: grid; place-items: center; background: rgba(255,255,255,.75); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); color: #121214; box-shadow: 0 12px 30px -12px rgba(0,0,0,.35); }
+.prochain-cadenas svg { width: 30px; height: 30px; }
+.prochain-visuel .badge { position: absolute; top: 14px; left: 14px; }
+.badge.noir { background: #121214; }
+.prochain-corps { padding: 18px 20px 20px; display: grid; gap: 6px; align-content: start; }
+.prochain-corps h3 { font-size: 22px; }
+.avancement { display: flex; align-items: center; gap: 12px; margin-top: 8px; }
+.avancement-barre { flex: 1; height: 8px; border-radius: 8px; background: var(--creux); overflow: hidden; }
+.avancement-barre span { display: block; height: 100%; width: var(--v); border-radius: inherit; background: linear-gradient(90deg, color-mix(in srgb, var(--c) 70%, #fff), var(--c)); }
+.vu .avancement-barre span, .js-revele .vu .avancement-barre span { animation: remplir-av 1.4s cubic-bezier(.3,.9,.2,1) both; }
+@keyframes remplir-av { from { width: 0; } }
+.avancement-nb { font-weight: 700; font-size: 14px; font-variant-numeric: tabular-nums; }
+.prochain.idee { display: flex; flex-direction: column; align-items: flex-start; justify-content: center; gap: 8px; padding: 28px; background: transparent; border: 2px dashed var(--trait-fort); box-shadow: none; min-height: 260px; }
+.prochain.idee:hover { border-color: var(--accent); }
+.idee-plus { width: 56px; height: 56px; border-radius: 18px; display: grid; place-items: center; background: var(--accent); color: #fff; font-size: 32px; font-weight: 300; margin-bottom: 8px; }
+.prochain.idee b { font-family: var(--f-titres); font-size: 24px; letter-spacing: -.02em; }
+.prochain.idee span:last-child { color: var(--doux); }
+
+.route { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(min(180px, 100%), 1fr)); gap: 0; position: relative; }
+.route li { position: relative; display: grid; gap: 14px; padding: 0 16px 0 0; }
+.route li::before { content: ""; position: absolute; left: 22px; right: 0; top: 21px; height: 3px; border-radius: 3px; background: var(--trait-fort); }
+.route li:last-child::before { display: none; }
+.route li.etat-fait::before { background: var(--accent); }
+.route li.etat-en-cours::before { background: linear-gradient(90deg, var(--accent), var(--trait-fort)); }
+.route-pastille { position: relative; z-index: 1; width: 44px; height: 44px; border-radius: 50%; display: grid; place-items: center; background: var(--carte); border: 3px solid var(--trait-fort); color: #fff; }
+.route-pastille svg { width: 20px; height: 20px; stroke-width: 2.6; }
+.etat-fait .route-pastille { background: var(--accent); border-color: var(--accent); }
+.etat-en-cours .route-pastille { border-color: var(--accent); }
+.etat-en-cours .route-pastille::after { content: ""; width: 14px; height: 14px; border-radius: 50%; background: var(--accent); animation: pouls-route 1.6s ease-in-out infinite; }
+@keyframes pouls-route { 50% { transform: scale(.6); opacity: .5; } }
+.route-texte b { display: block; font-family: var(--f-titres); font-size: 19px; letter-spacing: -.02em; line-height: 1.2; }
+.route-texte small { color: var(--pale); font-size: 13px; font-weight: 600; }
+.etat-fait .route-texte small, .etat-en-cours .route-texte small { color: var(--accent); }
+.etat-a-venir .route-texte b { color: var(--doux); }
+@media (max-width: 700px) {
+  .route { grid-template-columns: minmax(0, 1fr); gap: 22px; }
+  .route li { grid-template-columns: auto minmax(0, 1fr); align-items: center; padding: 0; }
+  .route li::before { left: 20px; right: auto; top: 44px; width: 3px; height: calc(100% - 22px); }
+}
+
+.chrono-futur .chrono-carte.vide-futur { background: transparent; border: 2px dashed var(--trait-fort); box-shadow: none; }
+.chrono-futur .chrono-image { display: grid; place-items: center; font-family: var(--f-titres); font-weight: 800; font-size: 26px; color: var(--pale); background: var(--creux); }
+.chrono-futur .chrono-carte:hover { transform: none; box-shadow: none; }
