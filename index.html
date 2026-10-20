@@ -12,10 +12,29 @@
   <!-- Icônes officielles des réseaux sociaux (Font Awesome) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/fontawesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/brands.min.css">
-  <link rel="stylesheet" href="style.css?v=23">
+  <link rel="stylesheet" href="style.css?v=24">
 </head>
 <body>
   <a class="lien-evitement" href="#contenu">Aller au contenu</a>
+
+  <!-- ===== Décor de fond : formes grises floutées + taches de couleur douces ===== -->
+  <div class="decor" aria-hidden="true">
+    <span class="tache tache-1"></span><span class="tache tache-2"></span><span class="tache tache-3"></span>
+    <span class="sphere-deco s1" data-vitesse=".12"></span><span class="sphere-deco s2" data-vitesse=".2"></span>
+    <span class="deco" data-vitesse="0.1" style="left:6%;top:14%;--taille:150px;--flou:1.5px;--rot:-12deg;--delai:-0.0s"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="6"/><ellipse cx="12" cy="12" rx="11" ry="3.6" transform="rotate(-20 12 12)"/></svg></span>
+    <span class="deco" data-vitesse="0.22" style="left:88%;top:10%;--taille:70px;--flou:1px;--rot:14deg;--delai:-1.7s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span>
+    <span class="deco bureau" data-vitesse="0.06" style="left:80%;top:46%;--taille:170px;--flou:2px;--rot:-8deg;--delai:-3.4s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01M17.3 5H6.7a4 4 0 0 0-4 3.6L2 15a3 3 0 0 0 5.2 2.4L9 15h6l1.8 2.4A3 3 0 0 0 22 15l-.7-6.4A4 4 0 0 0 17.3 5z"/></svg></span>
+    <span class="deco bureau" data-vitesse="0.18" style="left:3%;top:62%;--taille:80px;--flou:1.5px;--rot:-10deg;--delai:-5.1s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 5c-2.3 4.6-9.3 9-9.3 9z"/></svg></span>
+    <span class="deco bureau" data-vitesse="0.08" style="left:46%;top:84%;--taille:110px;--flou:2px;--rot:6deg;--delai:-6.8s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 21h8M12 17v4M7 4h10v5a5 5 0 0 1-10 0zM7 6H4a3 3 0 0 0 3 4M17 6h3a3 3 0 0 1-3 4"/></svg></span>
+    <span class="deco" data-vitesse="0.16" style="left:92%;top:78%;--taille:90px;--flou:1.5px;--rot:10deg;--delai:-8.5s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a8 8 0 0 1-11.6 7.1L4 20l1-4.6A8 8 0 1 1 21 12z"/></svg></span>
+    <span class="deco bureau" data-vitesse="0.26" style="left:30%;top:6%;--taille:60px;--flou:1px;--rot:18deg;--delai:-10.2s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2 4 14h7l-1 8 9-12h-7z"/></svg></span>
+    <span class="deco bureau" data-vitesse="0.3" style="left:64%;top:22%;--taille:40px;--flou:0.5px;--rot:0deg;--delai:-11.9s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+    <span class="deco bureau" data-vitesse="0.2" style="left:18%;top:36%;--taille:56px;--flou:1px;--rot:0deg;--delai:-13.6s"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="9"/></svg></span>
+    <span class="deco bureau" data-vitesse="0.14" style="left:58%;top:64%;--taille:64px;--flou:1.5px;--rot:-6deg;--delai:-15.3s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 4v16l13-8z"/></svg></span>
+    <span class="deco" data-vitesse="0.24" style="left:12%;top:90%;--taille:34px;--flou:0.5px;--rot:0deg;--delai:-17.0s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg></span>
+    <span class="deco bureau" data-vitesse="0.32" style="left:40%;top:40%;--taille:36px;--flou:0.8px;--rot:-20deg;--delai:-18.7s"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3l2.7 5.6 6.1.9-4.4 4.3 1 6.1L12 17l-5.4 2.9 1-6.1-4.4-4.3 6.1-.9z"/></svg></span>
+  </div>
+
 
   <!-- ===== En-tête ===== -->
   <header class="entete" id="entete">
@@ -115,6 +134,6 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="script.js?v=23"></script>
+  <script src="script.js?v=24"></script>
 </body>
 </html>

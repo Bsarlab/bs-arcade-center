@@ -904,6 +904,21 @@ function activerRevele() {
   });
 }
 
+// Décor de fond : chaque forme glisse à sa propre vitesse quand on fait défiler (effet de profondeur)
+const formesDecor = [...document.querySelectorAll(".decor [data-vitesse]")];
+let decorPrevu = false;
+function bougerDecor() {
+  decorPrevu = false;
+  const y = scrollY, H = innerHeight;
+  formesDecor.forEach((f) => {
+    // Position de départ (en pixels), puis on remonte ; une forme sortie par le haut revient par le bas
+    const taille = f.offsetHeight, depart = f.offsetTop, tour = H + taille * 2;
+    const p = ((((depart + taille - y * Number(f.dataset.vitesse)) % tour) + tour) % tour) - taille;
+    f.style.transform = `translate3d(0, ${(p - depart).toFixed(1)}px, 0)`;
+  });
+}
+if (!mouvementReduit) addEventListener("scroll", () => { if (!decorPrevu) { decorPrevu = true; requestAnimationFrame(bougerDecor); } }, { passive: true });
+
 // Si les icônes des réseaux ne se chargent pas, on affiche l'initiale à la place
 addEventListener("load", () => {
   if (!document.fonts?.load) return;
