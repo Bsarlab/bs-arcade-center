@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link id="polices" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Anton&family=Barlow:wght@400;500;700&family=Silkscreen&display=swap">
-  <link rel="stylesheet" href="style.css?v=6">
+  <link rel="stylesheet" href="style.css?v=9">
 </head>
 <body>
 
@@ -36,29 +36,34 @@
 
   <main>
     <!-- ===== Accueil ===== -->
-    <!-- Carrousel de slides : réglé dans l'admin, onglet Slides -->
-    <section class="hero" id="accueil" aria-roledescription="carrousel" aria-label="À la une">
-      <div class="slides" id="slides" aria-live="polite">
-        <!-- Slide « Accueil » : nom du site, accroche et boutons (onglet Général) -->
-        <article class="slide actif" id="slideAccueil" aria-roledescription="slide">
-          <img class="hero-fond" id="heroFond" alt="" hidden>
-          <div class="hero-contenu">
-            <p class="surtitre">Salle d'arcade · ouverte 24 h / 24</p>
-            <h1 class="relief" id="titreSite">BS arcade center</h1>
-            <p class="accroche" id="accroche"></p>
-            <div class="hero-boutons" id="heroBoutons">
-              <a class="bouton plein" href="#jeux">Voir les jeux</a>
-              <a class="bouton" href="#histoire">Mon histoire</a>
-            </div>
-          </div>
-        </article>
+    <section class="hero" id="accueil">
+      <img class="hero-fond" id="heroFond" alt="" hidden>
+      <div class="hero-contenu">
+        <p class="surtitre">Salle d'arcade · ouverte 24 h / 24</p>
+        <h1 class="relief" id="titreSite">BS arcade center</h1>
+        <p class="accroche" id="accroche"></p>
+        <!-- Boutons : réglés dans l'admin, onglet Général -->
+        <div class="hero-boutons" id="heroBoutons">
+          <a class="bouton plein" href="#jeux">Voir les jeux</a>
+          <a class="bouton" href="#histoire">Mon histoire</a>
+        </div>
       </div>
-      <div class="slides-nav" id="slidesNav" hidden>
-        <button class="fleche-slide" type="button" id="slidePrec" aria-label="Slide précédente">←</button>
-        <div class="progs" id="progs"></div>
-        <span class="numero" id="numeroSlide" aria-hidden="true"></span>
-        <button class="fleche-slide" type="button" id="slideSuiv" aria-label="Slide suivante">→</button>
+    </section>
+
+    <!-- ===== Carrousel « À la une » : réglé dans l'admin, onglet Carrousel ===== -->
+    <section class="carrousel" id="carrousel" aria-roledescription="carrousel" aria-label="À la une" hidden>
+      <div class="carrousel-tete">
+        <p class="surtitre">À la une</p>
+        <div class="carrousel-nav">
+          <span class="numero" id="numeroSlide" aria-hidden="true"></span>
+          <button class="fleche-slide" type="button" id="slidePrec" aria-label="Carte précédente">←</button>
+          <button class="fleche-slide" type="button" id="slideSuiv" aria-label="Carte suivante">→</button>
+        </div>
       </div>
+      <div class="carrousel-fenetre" id="fenetre">
+        <div class="piste" id="piste"></div>
+      </div>
+      <div class="progs" id="progs"></div>
     </section>
 
     <!-- Les sections ci-dessous sont remises dans l'ordre choisi dans l'admin (onglet Blocs) -->
@@ -99,6 +104,6 @@
     <div class="lecteur-scene" id="scene"><p class="chargement" id="chargement">CHARGEMENT…</p></div>
   </div>
 
-  <script src="script.js?v=6"></script>
+  <script src="script.js?v=9"></script>
 </body>
 </html>

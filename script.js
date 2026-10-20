@@ -83,7 +83,16 @@ function afficher(d) {
   afficherSlides(d);
 }
 
-// ---------- Slides ----------
+// Boutons de l'accueil (anciens sites : on reprend les deux boutons d'origine)
+function boutonsAccueil(s) {
+  if (Array.isArray(s.boutons)) return s.boutons;
+  return [
+    { texte: s.boutonJeux || "Voir les jeux", cible: "#jeux", style: "plein" },
+    { texte: s.boutonHistoire || "Mon histoire", cible: "#histoire", style: "contour" },
+  ];
+}
+
+// ---------- Carrousel « À la une » ----------
 // Le jeu le plus récent : l'identifiant d'un jeu contient sa date d'ajout
 function dernierJeu(d) {
   const jeux = d.jeux || [];
@@ -91,10 +100,10 @@ function dernierJeu(d) {
   const date = (j) => parseInt(String(j.id).slice(1), 36) || 0;
   return jeux.reduce((a, b) => (date(b) >= date(a) ? b : a));
 }
-// Slides proposées tant que tu n'as rien enregistré dans l'onglet Slides
+// Cartes proposées tant que tu n'as rien enregistré dans l'onglet Carrousel
 function slidesParDefaut(d) {
   const reseaux = (d.blocs || []).find((b) => b.type === "liens");
-  const liste = [{ id: "s-accueil", type: "accueil" }, { id: "s-jeu", type: "dernier-jeu", surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" }];
+  const liste = [{ id: "s-jeu", type: "dernier-jeu", surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" }];
   if (reseaux) liste.push({
     id: "s-reseaux", type: "perso", surtitre: "Rejoins-moi", titre: "Suis BS sur les réseaux",
     texte: "Les coulisses de mes jeux, les prochaines sorties et des défis à relever.",
@@ -108,118 +117,171 @@ function slidesParDefaut(d) {
   });
   return liste;
 }
-const slidesDe = (d) => (Array.isArray(d.slides) ? d.slides : slidesParDefaut(d));
+// La carte « accueil » des anciennes versions n'existe plus : le titre est fixe en haut
+const slidesDe = (d) => (Array.isArray(d.slides) ? d.slides : slidesParDefaut(d)).filter((s) => s.type !== "accueil");
 
-function boutonSlide(texte, cible, url, plein = true) {
+function boutonSlide(texte, cible, url) {
   if (!texte) return "";
   const externe = cible === "url", href = externe ? lienSur(url) : cible;
   if (!href) return "";
-  return `<a class="bouton ${plein ? "plein" : ""}" href="${echapper(href)}"${externe ? ' target="_blank" rel="noopener"' : ""}>${echapper(texte)}${externe ? " ↗" : ""}</a>`;
+  return `<a class="bouton plein" href="${echapper(href)}"${externe ? ' target="_blank" rel="noopener"' : ""}>${echapper(texte)}${externe ? " ↗" : ""}</a>`;
 }
+// Image avec fond de secours si le fichier est introuvable
+const imageCarte = (src) => `<span class="carte-secours"></span>${src ? `<img class="carte-image" src="${echapper(lien(src))}" alt="" draggable="false" onerror="this.remove()">` : ""}`;
 
-function htmlSlide(s, d) {
+function htmlCarte(s, d) {
   if (s.type === "dernier-jeu") {
     const j = dernierJeu(d);
     if (!j) return "";
-    const fond = j.image || d.site.banniere;
-    const jaquette = j.image ? `<img src="${echapper(lien(j.image))}" alt="">` : `<span class="initiales">${echapper(initiales(j.titre))}</span>`;
-    return `${fond ? `<img class="hero-fond" src="${echapper(lien(fond))}" alt="" style="filter: blur(6px) saturate(1.2)">` : ""}
-      <div class="hero-contenu">
-        <div class="une-texte">
-          <p class="surtitre"><span class="badge">NEW</span>${echapper(s.surtitre || "Dernière sortie")}</p>
-          <h2 class="titre-slide relief">${echapper(j.titre)}</h2>
-          ${j.description ? `<p class="accroche">${echapper(j.description)}</p>` : ""}
-          <div class="hero-boutons">
-            <button class="bouton plein" type="button" data-jeu="${echapper(j.id)}">▶ ${echapper(s.boutonTexte || "Jouer maintenant")}</button>
-            <a class="bouton" href="#jeux">Tous les jeux</a>
-          </div>
-        </div>
-        <button class="cartouche-une ${j.image ? "" : "jaquette generee"}" type="button" data-jeu="${echapper(j.id)}" aria-label="Jouer à ${echapper(j.titre)}">${jaquette}</button>
+    return `${imageCarte(j.image || d.site.banniere)}
+      <button class="carte-jaquette" type="button" data-jeu="${echapper(j.id)}" aria-label="Jouer à ${echapper(j.titre)}">
+        ${j.image ? `<img src="${echapper(lien(j.image))}" alt="" draggable="false">` : `<span class="jaquette generee"><span class="initiales">${echapper(initiales(j.titre))}</span></span>`}
+      </button>
+      <div class="carte-texte">
+        <p class="surtitre"><span class="badge">NEW</span>${echapper(s.surtitre || "Dernière sortie")}</p>
+        <h3 class="carte-titre relief">${echapper(j.titre)}</h3>
+        ${j.description ? `<p class="desc">${echapper(j.description)}</p>` : ""}
+        <div class="hero-boutons"><button class="bouton plein" type="button" data-jeu="${echapper(j.id)}">▶ ${echapper(s.boutonTexte || "Jouer maintenant")}</button></div>
       </div>`;
   }
-  if (!s.titre && !s.texte) return "";
-  return `${s.image ? `<img class="hero-fond" src="${echapper(lien(s.image))}" alt="">` : ""}
-    <div class="hero-contenu">
+  if (!s.titre && !s.texte && !s.image) return "";
+  return `${imageCarte(s.image)}
+    <div class="carte-texte">
       ${s.surtitre ? `<p class="surtitre">${echapper(s.surtitre)}</p>` : ""}
-      ${s.titre ? `<h2 class="titre-slide relief">${echapper(s.titre)}</h2>` : ""}
-      ${s.texte ? `<p class="accroche">${echapper(s.texte)}</p>` : ""}
-      <div class="hero-boutons">${boutonSlide(s.boutonTexte, s.cible, s.url)}</div>
+      ${s.titre ? `<h3 class="carte-titre relief">${echapper(s.titre)}</h3>` : ""}
+      ${s.texte ? `<p class="desc">${echapper(s.texte)}</p>` : ""}
+      ${s.boutonTexte ? `<div class="hero-boutons">${boutonSlide(s.boutonTexte, s.cible, s.url)}</div>` : ""}
     </div>`;
 }
 
-let slideActuelle = 0, nbSlides = 0;
+// Carrousel infini : les 2 premières cartes sont recopiées à la fin.
+// Arrivé sur la copie, on revient sans animation sur la vraie carte : la boucle ne se voit pas.
+let slideActuelle = 0, pos = 0, nbCartes = 0;
+const cartes = () => [...$("piste").children];
+
 function afficherSlides(d) {
-  const conteneur = $("slides"), accueil = $("slideAccueil");
-  const noeuds = [];
-  for (const s of slidesDe(d)) {
-    if (s.type === "accueil") { noeuds.push(accueil); continue; }
-    const html = htmlSlide(s, d);
-    if (!html) continue;
-    const a = document.createElement("article");
-    a.className = "slide" + (s.type === "dernier-jeu" ? " slide-jeu" : "");
-    a.setAttribute("aria-roledescription", "slide");
-    a.innerHTML = html;
-    noeuds.push(a);
-  }
-  if (!noeuds.length) noeuds.push(accueil);
-  accueil.hidden = !noeuds.includes(accueil);
-  conteneur.replaceChildren(...noeuds, ...(accueil.hidden ? [accueil] : []));
-  nbSlides = noeuds.length;
-  document.querySelector(".hero").style.setProperty("--duree", (Number(d.slidesDuree) || 7) + "s");
-  $("slidesNav").hidden = nbSlides < 2;
-  $("progs").innerHTML = noeuds.map((_, i) => `<button class="prog" type="button" data-slide="${i}" aria-label="Aller à la slide ${i + 1}"><span></span></button>`).join("");
-  allerA(Math.min(slideActuelle, nbSlides - 1));
+  const html = slidesDe(d).map((s) => htmlCarte(s, d)).filter(Boolean);
+  nbCartes = html.length;
+  $("carrousel").hidden = !nbCartes;
+  const plusieurs = nbCartes > 1;
+  const copies = plusieurs ? [0, 1 % nbCartes] : [];
+  $("piste").innerHTML =
+    html.map((h, i) => `<article class="carte" aria-roledescription="carte" data-i="${i}">${h}</article>`).join("") +
+    copies.map((i) => `<article class="carte copie" aria-hidden="true" data-i="${i}">${html[i]}</article>`).join("");
+  $("carrousel").style.setProperty("--duree", (Number(d.slidesDuree) || 6) + "s");
+  $("progs").hidden = !plusieurs;
+  document.querySelector(".carrousel-nav").hidden = !plusieurs;
+  $("progs").innerHTML = html.map((_, i) => `<button class="prog" type="button" data-slide="${i}" aria-label="Aller à la carte ${i + 1}"><span></span></button>`).join("");
+  placer(Math.min(slideActuelle, Math.max(nbCartes - 1, 0)), false);
 }
 
-function allerA(i) {
-  const slides = [...$("slides").children].filter((s) => !s.hidden);
-  if (!slides.length) return;
-  slideActuelle = (i + slides.length) % slides.length;
-  slides.forEach((s, k) => {
-    s.classList.toggle("actif", k === slideActuelle);
-    s.setAttribute("aria-label", `${k + 1} sur ${slides.length}`);
-    s.inert = k !== slideActuelle;
-  });
+const decalage = (p = pos) => { const c = cartes()[p]; return c ? c.offsetLeft : 0; };
+
+function sansAnimation(f) {
+  $("piste").classList.add("sans-transition");
+  f();
+  void $("piste").offsetWidth; // applique la position avant de réactiver les animations
+  $("piste").classList.remove("sans-transition");
+}
+
+// Place la piste sur la position p (0 … nbCartes, la dernière étant la copie de la 1re carte)
+function placer(p, animer = true) {
+  const L = cartes();
+  if (!L.length) return;
+  const faire = () => {
+    pos = p;
+    slideActuelle = ((p % nbCartes) + nbCartes) % nbCartes;
+    $("piste").style.transform = `translateX(${-decalage()}px)`;
+    L.forEach((c, k) => {
+      const active = k === pos;
+      c.classList.toggle("actif", active);
+      if (!c.classList.contains("copie")) {
+        c.setAttribute("aria-label", `${k + 1} sur ${nbCartes}`);
+        c.setAttribute("aria-hidden", String(!active));
+      }
+      c.querySelectorAll("a, button").forEach((el) => (el.tabIndex = active ? 0 : -1));
+    });
+  };
+  animer ? faire() : sansAnimation(faire);
   [...$("progs").children].forEach((b, k) => {
     b.classList.remove("actif");
     b.classList.toggle("vue", k < slideActuelle);
-    if (k === slideActuelle) { void b.offsetWidth; b.classList.add("actif"); } // relance la barre de progression
+    if (k === slideActuelle && nbCartes > 1) { void b.offsetWidth; b.classList.add("actif"); } // relance la barre
   });
-  $("numeroSlide").textContent = String(slideActuelle + 1).padStart(2, "0") + " / " + String(slides.length).padStart(2, "0");
+  $("numeroSlide").textContent = String(slideActuelle + 1).padStart(2, "0") + " / " + String(nbCartes).padStart(2, "0");
 }
 
-// Défilement automatique : quand la barre active est pleine, on passe à la suivante
-$("progs").addEventListener("animationend", (e) => { if (e.target.closest(".prog.actif")) allerA(slideActuelle + 1); });
+function suivante() {
+  if (nbCartes < 2) return;
+  if (pos >= nbCartes) placer(0, false); // on était sur la copie : retour discret au début
+  placer(pos + 1);
+}
+function precedente() {
+  if (nbCartes < 2) return;
+  if (pos <= 0) placer(nbCartes, false); // saut discret sur la copie de la 1re carte
+  placer(pos - 1);
+}
+function allerA(i) { if (i !== slideActuelle || pos >= nbCartes) placer(i); }
+
+// Une fois arrivé sur la copie, on se replace sur la vraie 1re carte
+$("piste").addEventListener("transitionend", (e) => {
+  if (e.target === $("piste") && e.propertyName === "transform" && pos >= nbCartes && !glisse) placer(0, false);
+});
+window.addEventListener("resize", () => placer(pos, false));
+
+// Défilement automatique : quand la barre est pleine, on passe à la carte suivante
+$("progs").addEventListener("animationend", (e) => { if (e.target.closest(".prog.actif")) suivante(); });
 $("progs").addEventListener("click", (e) => { const b = e.target.closest("[data-slide]"); if (b) allerA(Number(b.dataset.slide)); });
-$("slidePrec").addEventListener("click", () => allerA(slideActuelle - 1));
-$("slideSuiv").addEventListener("click", () => allerA(slideActuelle + 1));
-const hero = document.querySelector(".hero");
-const pause = (oui) => hero.classList.toggle("pause", oui);
-hero.addEventListener("mouseenter", () => pause(true));
-hero.addEventListener("mouseleave", () => pause(hero.contains(document.activeElement)));
-hero.addEventListener("focusin", () => pause(true));
-hero.addEventListener("focusout", (e) => { if (!hero.contains(e.relatedTarget)) pause(hero.matches(":hover")); });
-hero.addEventListener("keydown", (e) => {
-  if (e.key === "ArrowLeft") allerA(slideActuelle - 1);
-  if (e.key === "ArrowRight") allerA(slideActuelle + 1);
-});
-// Glisser du doigt sur mobile
-let departX = null;
-hero.addEventListener("pointerdown", (e) => { if (e.pointerType !== "mouse") departX = e.clientX; });
-hero.addEventListener("pointerup", (e) => {
-  if (departX === null) return;
-  const dx = e.clientX - departX; departX = null;
-  if (Math.abs(dx) > 50) allerA(slideActuelle + (dx < 0 ? 1 : -1));
+$("slidePrec").addEventListener("click", precedente);
+$("slideSuiv").addEventListener("click", suivante);
+
+const zone = $("carrousel");
+const pause = (oui) => zone.classList.toggle("pause", oui);
+zone.addEventListener("mouseenter", () => pause(true));
+zone.addEventListener("mouseleave", () => pause(zone.contains(document.activeElement) && document.activeElement !== document.body));
+zone.addEventListener("focusin", () => pause(true));
+zone.addEventListener("focusout", (e) => { if (!zone.contains(e.relatedTarget)) pause(zone.matches(":hover")); });
+zone.addEventListener("keydown", (e) => {
+  if (e.key === "ArrowLeft") precedente();
+  if (e.key === "ArrowRight") suivante();
 });
 
-// Boutons de l'accueil (anciens sites : on reprend les deux boutons d'origine)
-function boutonsAccueil(s) {
-  if (Array.isArray(s.boutons)) return s.boutons;
-  return [
-    { texte: s.boutonJeux || "Voir les jeux", cible: "#jeux", style: "plein" },
-    { texte: s.boutonHistoire || "Mon histoire", cible: "#histoire", style: "contour" },
-  ];
-}
+// Glisser à la souris ou au doigt : la piste suit le geste
+let glisse = null, aGlisse = false;
+$("fenetre").addEventListener("pointerdown", (e) => {
+  if (e.button !== 0 || nbCartes < 2) return;
+  if (pos >= nbCartes) placer(0, false);
+  if (pos === 0) placer(nbCartes, false); // permet de glisser vers la gauche depuis la 1re carte
+  glisse = { x: e.clientX, y: e.clientY, base: -decalage(), id: e.pointerId, actif: false };
+  aGlisse = false;
+});
+window.addEventListener("pointermove", (e) => {
+  if (!glisse || e.pointerId !== glisse.id) return;
+  const dx = e.clientX - glisse.x, dy = e.clientY - glisse.y;
+  if (!glisse.actif) {
+    if (Math.abs(dx) < 8 || Math.abs(dx) < Math.abs(dy)) return;
+    glisse.actif = true; aGlisse = true;
+    $("piste").classList.add("sans-transition"); $("fenetre").classList.add("tire"); pause(true);
+  }
+  $("piste").style.transform = `translateX(${glisse.base + dx}px)`;
+});
+window.addEventListener("pointerup", (e) => {
+  if (!glisse || e.pointerId !== glisse.id) return;
+  const dx = e.clientX - glisse.x, etait = glisse.actif;
+  glisse = null;
+  $("piste").classList.remove("sans-transition"); $("fenetre").classList.remove("tire");
+  if (!etait) return;
+  const seuil = Math.min(120, $("fenetre").clientWidth * .15);
+  if (dx < -seuil) suivante(); else if (dx > seuil) precedente(); else placer(pos);
+  pause(zone.matches(":hover"));
+});
+$("fenetre").addEventListener("dragstart", (e) => e.preventDefault());
+// Après un glissé, on n'ouvre pas le lien ; un clic sur une carte voisine l'amène au centre
+$("fenetre").addEventListener("click", (e) => {
+  if (aGlisse) { e.preventDefault(); e.stopPropagation(); aGlisse = false; return; }
+  const c = e.target.closest(".carte:not(.actif)");
+  if (c) { e.preventDefault(); e.stopPropagation(); cartes().indexOf(c) > pos ? suivante() : precedente(); }
+}, true);
 
 // ---------- Blocs (ordre des sections + blocs ajoutés) ----------
 const paragraphes = (t) => String(t || "").split(/\n{2,}/).map((p) => p.trim()).filter(Boolean)

@@ -127,7 +127,7 @@
       </div>
     </div>
     <div class="onglets" role="tablist">
-      <button class="onglet" role="tab" data-onglet="slides" aria-selected="false" type="button">Slides</button>
+      <button class="onglet" role="tab" data-onglet="slides" aria-selected="false" type="button">Carrousel</button>
       <button class="onglet" role="tab" data-onglet="general" aria-selected="true" type="button">Général</button>
       <button class="onglet" role="tab" data-onglet="apparence" aria-selected="false" type="button">Apparence</button>
       <button class="onglet" role="tab" data-onglet="jeux" aria-selected="false" type="button">Jeux</button>
@@ -332,17 +332,16 @@
       <span class="aide">Un jeu = un fichier .html (25 Mo maximum).</span></div>`;
     } else if (onglet === "slides") {
       const L = slides();
-      h = `<div class="bloc"><h2>SLIDES EN HAUT DU SITE · ${L.length}</h2>
-        <span class="aide">Elles défilent toutes seules et s'arrêtent quand on passe la souris dessus. Range-les avec les flèches.</span>
+      h = `<div class="bloc"><h2>CARROUSEL « À LA UNE » · ${L.length} CARTE${L.length > 1 ? "S" : ""}</h2>
+        <span class="aide">Il s'affiche sous le titre du site, au-dessus des jeux. Les cartes défilent toutes seules, on peut aussi les faire glisser. Range-les avec les flèches.</span>
         <div class="jeux">${L.map((s, i) => ligneSlide(s, i, L.length)).join("")}</div></div>
-      <div class="bloc"><h2>AJOUTER UNE SLIDE</h2><div class="ajouts">
-        <button type="button" class="ajout" data-slide-ajout="perso"><b>Slide personnalisée</b><span>Image, titre, texte et bouton</span></button>
+      <div class="bloc"><h2>AJOUTER UNE CARTE</h2><div class="ajouts">
+        <button type="button" class="ajout" data-slide-ajout="perso"><b>Carte personnalisée</b><span>Image, titre, texte et bouton</span></button>
         ${L.some((s) => s.type === "dernier-jeu") ? "" : `<button type="button" class="ajout" data-slide-ajout="dernier-jeu"><b>Dernier jeu</b><span>Se met à jour toute seule</span></button>`}
-        ${L.some((s) => s.type === "accueil") ? "" : `<button type="button" class="ajout" data-slide-ajout="accueil"><b>Accueil du site</b><span>Nom, accroche et boutons</span></button>`}
       </div></div>
       <div class="bloc"><h2>DÉFILEMENT</h2>
-        <div class="champ"><label for="f-slidesDuree">Temps par slide · <span id="valDuree">${donnees.slidesDuree || 7}</span> secondes</label>
-        <input type="range" id="f-slidesDuree" data-champ="slidesDuree" data-nombre min="3" max="15" value="${donnees.slidesDuree || 7}"></div></div>`;
+        <div class="champ"><label for="f-slidesDuree">Temps par carte · <span id="valDuree">${donnees.slidesDuree || 6}</span> secondes</label>
+        <input type="range" id="f-slidesDuree" data-champ="slidesDuree" data-nombre min="3" max="15" value="${donnees.slidesDuree || 6}"></div></div>`;
     } else if (onglet === "blocs") {
       const b = blocs();
       h = `<div class="bloc"><h2>ORDRE DE LA PAGE</h2>
@@ -391,7 +390,7 @@
   function slides() {
     if (!Array.isArray(donnees.slides)) {
       const reseaux = blocs().find((b) => b.type === "liens");
-      donnees.slides = [{ id: "s-accueil", type: "accueil" }, { id: "s-jeu", type: "dernier-jeu", surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" }];
+      donnees.slides = [{ id: "s-jeu", type: "dernier-jeu", surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" }];
       if (reseaux) donnees.slides.push({ id: "s-reseaux", type: "perso", surtitre: "Rejoins-moi", titre: "Suis BS sur les réseaux",
         texte: "Les coulisses de mes jeux, les prochaines sorties et des défis à relever.", image: "images/slide-reseaux.jpg",
         boutonTexte: "Voir mes réseaux", cible: "#bloc-" + reseaux.id });
@@ -400,10 +399,11 @@
         image: "images/slide-actu-rl.jpg", boutonTexte: "Lire l'article", cible: "url",
         url: "https://www.team-aaa.com/fr/actualite/rlcs-2027-point-sur-les-rumeurs-et-les-pistes-du-mercato-europeen_137272" });
     }
+    donnees.slides = donnees.slides.filter((s) => s.type !== "accueil"); // le titre est maintenant fixe en haut
     return donnees.slides;
   }
   let slideOuverte = null, slideASupprimer = null;
-  const NOMS_SLIDES = { accueil: "Accueil du site", "dernier-jeu": "Dernier jeu (auto)", perso: "Slide" };
+  const NOMS_SLIDES = { "dernier-jeu": "Dernier jeu (auto)", perso: "Carte" };
   function resumeSlide(s) {
     if (s.type === "accueil") return donnees.site.nom;
     if (s.type === "dernier-jeu") {
@@ -414,11 +414,10 @@
   }
   function formSlide(s, i) {
     const p = "slides." + i;
-    if (s.type === "accueil") return `<span class="aide">Le nom, l'accroche, la bannière et les boutons se règlent dans l'onglet Général.</span>`;
     if (s.type === "dernier-jeu") return `<span class="aide">Affiche automatiquement le dernier jeu que tu as ajouté, avec sa jaquette.</span>`
       + texte(p + ".surtitre", "Petit texte au-dessus", 40) + texte(p + ".boutonTexte", "Texte du bouton", 30);
     const dest = destinations();
-    return image(p + ".image", "Image de fond", "Grande image horizontale (1920 × 1080 idéalement). Le côté gauche est assombri pour le texte.")
+    return image(p + ".image", "Image de la carte", "Image horizontale, 1600 × 800 idéalement. Le côté gauche est assombri pour garder le texte lisible.")
       + texte(p + ".surtitre", "Petit texte au-dessus", 40)
       + texte(p + ".titre", "Titre", 70)
       + zone(p + ".texte", "Texte", "", 70)
@@ -435,8 +434,8 @@
       <button class="ico" type="button" data-sl="descendre" data-i="${i}" ${i === n - 1 ? "disabled" : ""} aria-label="Descendre">↓</button>
       <button class="ico" type="button" data-sl="ouvrir" data-i="${i}" aria-expanded="${ouvert}" aria-label="Modifier">✎</button>
     </div>${ouvert ? `<div class="formulaire">${formSlide(s, i)}${slideASupprimer === s.id
-      ? `<div class="confirmer"><span>Supprimer cette slide ?</span><button class="btn petit danger" type="button" data-sl="supprimer-oui" data-i="${i}">Supprimer</button><button class="btn petit" type="button" data-sl="supprimer-non">Garder</button></div>`
-      : `<div><button class="btn petit danger" type="button" data-sl="supprimer" data-i="${i}">Supprimer cette slide</button></div>`}</div>` : ""}</div>`;
+      ? `<div class="confirmer"><span>Supprimer cette carte ?</span><button class="btn petit danger" type="button" data-sl="supprimer-oui" data-i="${i}">Supprimer</button><button class="btn petit" type="button" data-sl="supprimer-non">Garder</button></div>`
+      : `<div><button class="btn petit danger" type="button" data-sl="supprimer" data-i="${i}">Supprimer cette carte</button></div>`}</div>` : ""}</div>`;
   }
 
   // ---------- Boutons de l'accueil ----------
@@ -558,7 +557,7 @@
     if (sa) {
       const t = sa.dataset.slideAjout;
       const ns = { id: "s" + Date.now().toString(36), type: t };
-      if (t === "perso") Object.assign(ns, { surtitre: "", titre: "Nouvelle slide", texte: "", boutonTexte: "", cible: "#jeux" });
+      if (t === "perso") Object.assign(ns, { surtitre: "", titre: "Nouvelle carte", texte: "", boutonTexte: "", cible: "#jeux" });
       if (t === "dernier-jeu") Object.assign(ns, { surtitre: "Dernière sortie", boutonTexte: "Jouer maintenant" });
       slides().push(ns); slideOuverte = ns.id; changement(); afficherOnglet(); return;
     }
