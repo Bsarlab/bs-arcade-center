@@ -41,9 +41,9 @@
     "vide": "Les premiers jeux arrivent bientôt. Reviens vite !"
   },
   "histoire": {
-    "titre": "L'histoire de BS Arcade Center",
-    "image": "images/image-dcslm.jpg",
-    "texte": "Je mets ici, tous les jeux de merde que j'ai créé pour les répertorier et ne plus devoir les générer n'importe où cliquez sur mes jeux pour voir la liste des jeux que j'ai mis sur cette plateforme."
+    "titre": "",
+    "image": "",
+    "texte": ""
   },
   "jeux": [
     {
