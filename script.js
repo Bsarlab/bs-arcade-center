@@ -33,6 +33,9 @@ const I = {
   chevD: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 18 6-6-6-6"/></svg>',
   lien: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a5 5 0 0 0 7 0l3-3a5 5 0 0 0-7-7l-1 1"/><path d="M14 10a5 5 0 0 0-7 0l-3 3a5 5 0 0 0 7 7l1-1"/></svg>',
   page: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h9l4 4v14H6z"/><path d="M14 3v5h5"/></svg>',
+  mail: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6"/></svg>',
+  tel: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4h4l2 5-2.5 1.5a11 11 0 0 0 5 5L15 13l5 2v4a2 2 0 0 1-2 2A16 16 0 0 1 3 6a2 2 0 0 1 2-2"/></svg>',
+  copie: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>',
   souris: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v4"/></svg>',
   ecran: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
   cadeau: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>',
@@ -102,7 +105,10 @@ function liensDe(texte) {
     return { nom, url: lienSur(url) };
   }).filter((x) => x.nom && x.url);
 }
-const reseaux = () => (donnees.blocs || []).filter((b) => b.type === "liens").flatMap((b) => liensDe(b.liens));
+// Réseaux : ceux de l'onglet Contact, sinon ceux des blocs « Liens »
+const reseaux = () => (donnees.contact?.reseaux?.trim() ? liensDe(donnees.contact.reseaux) : (donnees.blocs || []).filter((b) => b.type === "liens").flatMap((b) => liensDe(b.liens)));
+const emailSur = (e) => (/^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/.test(String(e || "").trim()) ? String(e).trim() : "");
+const telLien = (t) => { const n = String(t || "").replace(/[^\d+]/g, ""); return n.length >= 6 ? (n.startsWith("0") ? "+33" + n.slice(1) : n) : ""; };
 const adresseCourte = (u) => { try { const x = new URL(u); return (x.hostname.replace(/^www\./, "") + x.pathname).replace(/\/$/, ""); } catch { return u; } };
 const pastilleReseau = (l) => `<a class="pastille-reseau" href="${echapper(l.url)}" target="_blank" rel="noopener">${echapper(l.nom)}${I.externe}</a>`;
 
@@ -456,18 +462,32 @@ PAGES["a-propos"] = () => {
 
 // ---------- Contact ----------
 PAGES.contact = () => {
-  const liens = reseaux();
+  const c = donnees.contact || {}, liens = reseaux(), mail = emailSur(c.email), tel = telLien(c.telephone);
+  const coordonnee = (type, icone, titre, valeur, href, action) => `
+    <div class="carte-coord">
+      <span class="coord-icone">${icone}</span>
+      <span class="coord-texte"><small>${titre}</small><b>${echapper(valeur)}</b></span>
+      <span class="coord-actions">
+        <button class="bouton-rond contour" type="button" data-copier="${echapper(valeur)}" aria-label="Copier ${titre.toLowerCase()}">${I.copie}</button>
+        <a class="btn plein petit" href="${echapper(href)}">${action}</a>
+      </span>
+    </div>`;
   return `
   <section class="entete-page">
     <div class="conteneur">
       <p class="etiquette">Contact</p>
-      <h1>Restons en contact</h1>
-      <p class="accroche">Une idée de jeu, un bug, un record à partager ? Écris-moi sur mes réseaux.</p>
+      <h1>${echapper(c.titre || "Restons en contact")}</h1>
+      <p class="accroche">${echapper(c.texte || "Une idée de jeu, un bug, un record à partager ? Écris-moi.")}</p>
     </div>
   </section>
   <section class="section serree">
     <div class="conteneur">
-      ${liens.length ? `<div class="grille-reseaux grande">${liens.map(carteReseau).join("")}</div>` : `<div class="vide"><strong>Les réseaux arrivent bientôt</strong></div>`}
+      ${mail || tel ? `<div class="grille-coord">
+        ${mail ? coordonnee("mail", I.mail, "E-mail", mail, "mailto:" + mail, "Écrire") : ""}
+        ${tel ? coordonnee("tel", I.tel, "Téléphone", c.telephone.trim(), "tel:" + tel, "Appeler") : ""}
+      </div>` : ""}
+      ${liens.length ? `<p class="sous-titre espace">Réseaux</p><div class="grille-reseaux grande">${liens.map(carteReseau).join("")}</div>` : ""}
+      ${!mail && !tel && !liens.length ? `<div class="vide"><strong>Les coordonnées arrivent bientôt</strong></div>` : ""}
       <div class="carte-partage">
         <div><h2>Fais découvrir le site</h2><p>Envoie le lien à tes amis : ils peuvent jouer tout de suite, sans compte.</p></div>
         <button class="btn plein" type="button" data-partager-site>${I.lien}Copier le lien du site</button>
@@ -577,8 +597,10 @@ function afficherCommun() {
   $("pied").textContent = s.piedDePage || `© ${new Date().getFullYear()} ${s.nom || ""}`;
   $("piedNav").innerHTML = pages.map(([p, href]) => `<li><a href="${href}">${NOMS_PAGES[p]}</a></li>`).join("");
   $("piedJeux").innerHTML = jeux.slice(0, 6).map((j) => `<li><a href="#/jeu/${echapper(j.id)}">${echapper(j.titre)}</a></li>`).join("") || "<li>Bientôt</li>";
-  $("piedReseauxCol").hidden = !liens.length;
-  $("piedReseaux").innerHTML = liens.map((l) => `<li><a href="${echapper(l.url)}" target="_blank" rel="noopener">${echapper(l.nom)} ↗</a></li>`).join("");
+  const mail = emailSur(donnees.contact?.email);
+  $("piedReseauxCol").hidden = !liens.length && !mail;
+  $("piedReseaux").innerHTML = liens.map((l) => `<li><a href="${echapper(l.url)}" target="_blank" rel="noopener">${echapper(l.nom)} ↗</a></li>`).join("")
+    + (mail ? `<li><a href="mailto:${echapper(mail)}">${echapper(mail)}</a></li>` : "");
 }
 
 function ouvrirMenu(ouvrir) {
@@ -826,6 +848,8 @@ document.addEventListener("click", (e) => {
   const fav = t.closest("[data-favori]"); if (fav) { e.preventDefault(); basculerFavori(fav.dataset.favori); return; }
   const part = t.closest("[data-partager]"); if (part) { copier(adresseSite() + "#/jeu/" + part.dataset.partager, "Lien du jeu copié !"); return; }
   if (t.closest("[data-partager-site]")) { copier(adresseSite(), "Lien du site copié !"); return; }
+  const cop = t.closest("[data-copier]");
+  if (cop) { navigator.clipboard?.writeText(cop.dataset.copier).then(() => notifier("Copié : " + cop.dataset.copier), () => notifier(cop.dataset.copier)); return; }
   if (t.closest("[data-reinitialiser]")) { Object.assign(filtres, { texte: "", genre: "", favoris: false }); if ($("filtreTexte")) $("filtreTexte").value = ""; majListeJeux(); return; }
   const puce = t.closest(".puce");
   if (puce) {

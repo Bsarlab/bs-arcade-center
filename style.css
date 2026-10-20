@@ -412,6 +412,15 @@ body.menu-ouvert .marque, body.menu-ouvert .nav, body.menu-ouvert #btnRecherche,
 .carte-reseau-texte small { display: block; color: var(--pale); font-size: 13px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .carte-reseau > svg { color: var(--pale); }
 .grille-reseaux.grande .carte-reseau { padding: 24px; }
+.grille-coord { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(380px, 100%), 1fr)); gap: 14px; margin-bottom: 40px; }
+.carte-coord { display: flex; align-items: center; gap: 18px; padding: 22px; border-radius: 24px; background: var(--carte); box-shadow: var(--ombre); flex-wrap: wrap; min-width: 0; }
+.coord-icone { width: 56px; height: 56px; border-radius: 18px; flex: none; display: grid; place-items: center; background: color-mix(in srgb, var(--accent) 12%, var(--carte)); color: var(--accent); }
+.coord-icone svg { width: 24px; height: 24px; }
+.coord-texte { flex: 1 1 180px; min-width: 0; }
+.coord-texte small { display: block; color: var(--pale); font-size: 13px; }
+.coord-texte b { display: block; font-family: var(--f-titres); font-size: 21px; letter-spacing: -.02em; overflow-wrap: anywhere; }
+.coord-actions { display: flex; gap: 8px; align-items: center; }
+.sous-titre.espace { margin-top: 8px; }
 .carte-partage { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 20px; margin-top: 40px; padding: 32px; border-radius: 28px; border: 1.5px dashed var(--trait-fort); }
 .carte-partage h2 { font-size: 28px; }
 .carte-partage p { margin: 6px 0 0; color: var(--doux); }

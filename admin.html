@@ -132,6 +132,7 @@
       <button class="onglet" role="tab" data-onglet="apparence" aria-selected="false" type="button">Apparence</button>
       <button class="onglet" role="tab" data-onglet="jeux" aria-selected="false" type="button">Jeux</button>
       <button class="onglet" role="tab" data-onglet="histoire" aria-selected="false" type="button">Histoire</button>
+      <button class="onglet" role="tab" data-onglet="contact" aria-selected="false" type="button">Contact</button>
       <button class="onglet" role="tab" data-onglet="blocs" aria-selected="false" type="button">Blocs</button>
     </div>
     <div class="corps" id="corps"></div>
@@ -223,6 +224,17 @@
     // Nouveau site clair (v3) : l'ancien thème sombre « gaming » est remplacé, l'accent est gardé
     if (!(donnees.apparence.v >= 3)) donnees.apparence = { ...PALETTES[0].c, accent: donnees.apparence.accent || PALETTES[0].c.accent, relief: 4, v: 3 };
     // Anciennes destinations de boutons → nouvelles pages
+    // Page Contact : créée une première fois avec tes coordonnées et tes réseaux existants
+    if (!donnees.contact) {
+      const anciens = (donnees.blocs || []).filter((x) => x.type === "liens").map((x) => x.liens).join("\n").trim();
+      donnees.contact = {
+        titre: "Restons en contact",
+        texte: "Une idée de jeu, un bug, un record à partager ? Écris-moi, je réponds vite.",
+        email: "sarrelaboutbaptiste@gmail.com",
+        telephone: "06 75 95 67 19",
+        reseaux: anciens || "Instagram | https://www.instagram.com/bapt_srlbt\nLinkedIn | https://www.linkedin.com/in/baptiste-sarrelabout/",
+      };
+    }
     const PAGES_V3 = { "#jeux": "#/jeux", "#histoire": "#/a-propos", "#accueil": "#/" };
     [...(donnees.site?.boutons || []), ...(donnees.slides || [])].forEach((x) => { if (PAGES_V3[x.cible]) x.cible = PAGES_V3[x.cible]; });
     if (!POLICES_TITRES.includes(donnees.apparence.titres)) donnees.apparence.titres = POLICES_TITRES[0];
@@ -341,6 +353,20 @@
       h = `<div class="bloc"><h2>TES JEUX · ${j.length}</h2><div class="jeux">${j.map((x, i) => ligneJeu(x, i, j.length)).join("") || `<p class="aide">Aucun jeu pour l'instant.</p>`}</div></div>
       <div class="bloc"><button class="btn rouge" type="button" data-action="nouveau-jeu">+ Ajouter un jeu</button>
       <span class="aide">Un jeu = un fichier .html (25 Mo maximum).</span></div>`;
+    } else if (onglet === "contact") {
+      h = `<div class="bloc"><h2>PAGE CONTACT</h2>
+        ${texte("contact.titre", "Titre", 60)}
+        ${zone("contact.texte", "Phrase d'introduction", "", 70)}
+      </div>
+      <div class="bloc"><h2>COORDONNÉES</h2>
+        ${texte("contact.email", "Adresse mail", 120)}
+        ${texte("contact.telephone", "Numéro de téléphone", 30)}
+        <span class="aide">Laisse un champ vide pour ne pas l'afficher sur le site.</span>
+      </div>
+      <div class="bloc"><h2>RÉSEAUX</h2>
+        ${zone("contact.reseaux", "Liens", "Un lien par ligne. Tu peux juste coller l'adresse, ou écrire Nom | https://adresse.", 110)}
+        <span class="aide">Ils s'affichent sur la page Contact, dans le menu et en bas de chaque page.</span>
+      </div>`;
     } else if (onglet === "slides") {
       const L = slides();
       h = `<div class="bloc"><h2>CARROUSEL « À LA UNE » · ${L.length} CARTE${L.length > 1 ? "S" : ""}</h2>
