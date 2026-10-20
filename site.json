@@ -26,10 +26,10 @@
     ]
   },
   "apparence": {
-    "fond": "#050505",
-    "carte": "#121212",
-    "texte": "#FFFFFF",
-    "accent": "#E3121B",
+    "fond": "#F5F4F1",
+    "carte": "#FFFFFF",
+    "texte": "#151515",
+    "accent": "#000000",
     "titres": "Bricolage Grotesque",
     "corps": "Geist",
     "relief": 5
