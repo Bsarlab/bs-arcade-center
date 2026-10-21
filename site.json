@@ -67,8 +67,16 @@
       "titre": "BRELAN",
       "genre": "",
       "description": "",
-      "fichier": "jeux/brelan-rrvfr.html",
+      "fichier": "jeux/brelan-erdqo.html",
       "image": "images/brelan-jaquette-jt8bc.png"
+    },
+    {
+      "id": "jmvhuwavm",
+      "titre": "Loup-Garou de Brumeval",
+      "genre": "",
+      "description": "",
+      "fichier": "jeux/loup-garou-de-brumeval-ggbp6.html",
+      "image": "images/loup-garou-de-brumeval-jaquette-tgpei.png"
     }
   ],
   "blocs": [
