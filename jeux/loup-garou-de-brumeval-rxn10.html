@@ -1293,6 +1293,23 @@ body.three #ring .seat{pointer-events:auto}
 body.three .seat:focus-visible{outline:2px solid var(--brass2);outline-offset:4px}
 body.three .seat.sel::after,body.three .seat.wolfsel::after{display:none}
 @media (max-width:760px){ body.three .seat .nm{font-size:11px;padding:1px 7px} body.three .seat .chip{margin-bottom:24px} .lobby{grid-template-columns:1fr} .deckpanel{max-height:none} .comp{max-height:none} .rgrid{grid-template-columns:repeat(auto-fill,minmax(92px,1fr))} }
+
+/* ---------- canaux de discussion ---------- */
+.chat-head{gap:8px}
+.ctabs{display:flex;gap:4px;flex-wrap:wrap;min-width:0}
+.ctab{position:relative;border:1px solid var(--line2);background:rgba(0,0,0,.3);color:var(--mut);border-radius:8px;padding:5px 10px;font-size:12.5px;font-weight:600;cursor:pointer;letter-spacing:.02em}
+.ctab[aria-selected="true"]{color:#1a1006;background:var(--tc,#f3d394);border-color:var(--tc,#f3d394)}
+.ctab .cu{position:absolute;top:-6px;right:-6px;min-width:17px;height:17px;border-radius:9px;background:var(--tc,#ec7a3c);color:#160a06;font-size:10.5px;font-weight:800;display:grid;place-items:center;padding:0 4px;border:2px solid #120c0a}
+.ch-v{--tc:#f3d394}.ch-w{--tc:#ff7a6a}.ch-l{--tc:#ff9ec0}.ch-z{--tc:#d6a2ff}.ch-d{--tc:#a8c4ee}
+.ctab:not([aria-selected="true"]){border-color:color-mix(in oklab,var(--tc) 45%,transparent)}
+.chat[data-ch="w"]{box-shadow:inset 0 0 0 1px rgba(255,106,90,.45),0 0 40px -10px rgba(255,60,40,.6),0 30px 80px -24px rgba(0,0,0,.85)}
+.chat[data-ch="l"]{box-shadow:inset 0 0 0 1px rgba(255,158,192,.45),0 0 40px -10px rgba(255,120,170,.5),0 30px 80px -24px rgba(0,0,0,.85)}
+.chat[data-ch="z"]{box-shadow:inset 0 0 0 1px rgba(214,162,255,.45),0 0 40px -10px rgba(180,120,255,.5),0 30px 80px -24px rgba(0,0,0,.85)}
+.chat[data-ch="d"]{box-shadow:inset 0 0 0 1px rgba(168,196,238,.45),0 0 40px -10px rgba(140,170,230,.5),0 30px 80px -24px rgba(0,0,0,.85)}
+.msg.mine{opacity:.85}
+.chat-toggle.hot{border-color:#ff7a6a;box-shadow:0 0 18px -2px rgba(255,90,70,.8)}
+.seat .bubble.priv{background:rgba(24,12,14,.95);color:#ffe8e2;border:1px solid var(--tc)}
+.seat .bubble.priv::after{border-top-color:rgba(24,12,14,.95)}
 </style>
 
 </head><body>
@@ -1407,7 +1424,7 @@ body.three .seat.sel::after,body.three .seat.wolfsel::after{display:none}
     </button>
   </div>
   <div class="chat panel" id="chat" hidden>
-    <div class="chat-head"><span>Autour du feu</span><button class="btn small" id="chat-close" aria-label="Fermer la discussion">Fermer</button></div>
+    <div class="chat-head"><div class="ctabs" id="chat-tabs" role="tablist" aria-label="Canaux de discussion"></div><button class="icon-btn" id="chat-close" aria-label="Fermer la discussion" style="width:34px;height:34px;flex:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button></div>
     <div class="chat-log" id="chat-log"></div>
     <form id="chat-form"><input class="inp" id="chat-in" maxlength="120" placeholder="Parle au village…" autocomplete="off" aria-label="Message"><button class="btn small" type="submit">Dire</button></form>
   </div>
@@ -2954,6 +2971,7 @@ const K3 = typeof THREE === 'undefined' || !THREE.EffectComposer ? {} : (() => {
 })();
 
 /* =================== le campement en 3D =================== */
+const W3x = {};
 const W3 = typeof THREE === 'undefined' || !THREE.EffectComposer ? { init: () => false, ok: false } : (() => {
   let ok = false, R, scene, cam, composer, bloom, fin, clock, canvas, Q = 2;
   const S = { mode: 'menu', tod: 0, todT: 0, wolf: 0, wolfT: 0, yaw: 0, yawT: 0, drag: null, zoom: 0, pitch: 0 };
@@ -3486,7 +3504,7 @@ const W3 = typeof THREE === 'undefined' || !THREE.EffectComposer ? { init: () =>
     }
     for (const m of menuChars) if (m.grp.visible) { K3.update(m.C, dt); if (Math.random() < dt * .15) { m.C.st.talk = true; setTimeout(() => m.C.st.talk = false, 1500 + Math.random() * 1500); } }
     if (arrows) arrows.children.forEach(o => { if (o.material) o.material.opacity = .55 + .35 * Math.sin(t * 5); });
-    if (S.mode === 'menu') camMenu(t); else camGame(t);
+    if (W3x.cam) W3x.cam(cam, t); else if (S.mode === 'menu') camMenu(t); else camGame(t);
     syncOverlay();
     fin.uniforms.uTime.value = t % 10;
     composer.render(dt);
@@ -3511,6 +3529,7 @@ const W3 = typeof THREE === 'undefined' || !THREE.EffectComposer ? { init: () =>
   }
 
   return {
+    _x: W3x, _scene: () => scene,
     init, setPlayers, setSeat, speak, setArrows, bindSeats: els => { seatEls = els; },
     setMode(m) { S.mode = m === 'menu' ? 'menu' : 'game'; setMenuChars(S.mode === 'menu'); seats.forEach(s => s.grp.visible = S.mode === 'game'); if (arrows) arrows.visible = S.mode === 'game'; if (S.mode === 'game') { S.yawT = 0; S.yaw = 0; S.zoom = 0; S.pitch = 0; } },
     setTime(tod, wolf = 0, now) { S.todT = tod; S.wolfT = wolf; if (now) { S.tod = tod; S.wolf = wolf; } },
@@ -3684,7 +3703,7 @@ class Engine {
   constructor(onChange) {
     this.onChange = onChange; this.players = []; this.ph = 'lobby'; this.st = ''; this.n = 0; this.ps = 0; this.v = 0;
     this.comp = Object.assign({}, PRESETS.classique.comp); this.cfg = { talk: SET.talk, vote: SET.vote, act: SET.act };
-    this.botChat = []; this.bq = []; this.acts = {}; this.actors = []; this.res = null; this.gen = 0; this.dur = 0; this.t0 = Date.now();
+    this.botChat = []; this.botPm = []; this.bq = []; this.acts = {}; this.actors = []; this.res = null; this.gen = 0; this.dur = 0; this.t0 = Date.now();
     this.timer = setInterval(() => this.tick(), 200);
   }
   destroy() { clearInterval(this.timer); this.gen++; this.res = null; }
@@ -3852,7 +3871,7 @@ class Engine {
     const g = ++this.gen; this.cfg = { talk: SET.talk, vote: SET.vote, act: SET.act };
     const deck = shuffle(info.cards.slice());
     this.players.forEach((p, k) => { p.r = deck[k]; p.alive = true; p.t = TEAM[p.r]; p.lost = false; p.noVote = false; p.shown = false; p.charmed = false; p.infected = false; p.life = p.r === 'A' ? 1 : 0; });
-    Object.assign(this, { lovers: null, potion: { life: true, death: true }, guardLast: -1, seen: {}, sus: {}, n: 0, lastVotes: null, victim: -1, hunter: -1, claimed: -1, botChat: [], deaths: [],
+    Object.assign(this, { lovers: null, potion: { life: true, death: true }, guardLast: -1, seen: {}, sus: {}, n: 0, lastVotes: null, victim: -1, hunter: -1, claimed: -1, botChat: [], botPm: [], wolfHint: -1, deaths: [],
       foxRes: [], foxLost: false, glimpses: [], model: -1, dogChose: false, infectUsed: false, wolfDied: false, crowT: -1, rust: false, rustPending: false, angelWin: -1, angelDone: false, bearMsg: null });
     const humans = this.players.filter(p => !p.bot && !p.off).map(p => p.i);
     await this.phase('deal', '', 16000, humans, { min: 3000 });
@@ -3884,7 +3903,7 @@ class Engine {
     }
   }
   async night() {
-    this.n++; Object.assign(this, { guarded: -1, witch: [0, -1], victim: -1, infectNow: false, gmlV: -1, whiteV: -1, crowT: -1, bearMsg: null });
+    this.n++; Object.assign(this, { wolfHint: -1, guarded: -1, witch: [0, -1], victim: -1, infectNow: false, gmlV: -1, whiteV: -1, crowT: -1, bearMsg: null });
     await this.phase('night', 'F_', this.quick() ? 2600 : 4600, []);
     if (this.n === 1) for (const c of NIGHT1) if (this.has(c)) await this.roleStep(c);
     if (this.has('G')) await this.roleStep('G');
@@ -4007,6 +4026,37 @@ class Engine {
     this.players = this.players.filter(p => p.bot || !p.off); this.players.forEach(p => { p.alive = true; p.r = ''; p.t = 'v'; }); this.reindex(); this.changed();
   }
 
+  /* ---------- canaux privés ---------- */
+  members(ch) {
+    const P = this.players;
+    switch (ch) {
+      case 'w': return P.filter(p => p.alive && p.t === 'w').map(p => p.i);
+      case 'l': return this.lovers ? this.lovers.filter(i => P[i].alive) : [];
+      case 'z': return P.filter(p => p.alive && p.r === 'Z').map(p => p.i);
+      case 'd': return this.ph === 'lobby' ? [] : P.filter(p => !p.alive).map(p => p.i);
+    }
+    return [];
+  }
+  pmSay(i, ch, text, delay = 0) {
+    const gen = this.gen;
+    setTimeout(() => { if (gen !== this.gen || !this.members(ch).includes(i)) return; this.botPm.push([Date.now(), ch, i, text]); if (this.botPm.length > 8) this.botPm.shift(); this.changed(); }, delay);
+  }
+  pmHeard(i, ch, text) {
+    if (!this.members(ch).includes(i) || this.ph === 'lobby') return;
+    const low = text.toLowerCase();
+    const named = this.players.filter(p => p.i !== i && p.alive && low.includes(p.nm.toLowerCase()));
+    const bots = this.members(ch).filter(j => j !== i && this.players[j].bot);
+    if (!bots.length) return;
+    const b = pick(bots), nmI = this.players[i].nm;
+    if (ch === 'w') {
+      const t = named.find(p => p.t !== 'w');
+      if (t) { this.wolfHint = t.i; this.pmSay(b, 'w', pick(['D’accord, va pour ' + t.nm + '.', t.nm + ' ? Bonne idée, il nous gêne.', 'Je te suis. ' + t.nm + ' ne verra pas le jour.']), rand(1500, 3500)); if (this.ph === 'night' && this.st === 'L') for (const w of bots) this.bq.push({ at: Date.now() + rand(1800, 4000), fn: () => this.submit(w, { ps: this.ps, t: t.i }) }); }
+      else if (Math.random() < .6) this.pmSay(b, 'w', pick(['Restons discrets demain.', 'Qui te paraît le plus dangereux ?', 'Méfie-toi de la Voyante, elle rôde.', 'Je couvrirai tes arrières au vote.']), rand(1800, 4000));
+    } else if (ch === 'l') this.pmSay(b, 'l', pick(['Je ne laisserai personne te toucher, ' + nmI + '.', 'Toi et moi, jusqu’au bout.', 'Je vote comme toi, mon cœur.', 'Fais attention à toi cette nuit.']), rand(1500, 3500));
+    else if (ch === 'z') { const t = named[0]; this.pmSay(b, 'z', t ? pick(['Tu crois que c’est ' + t.nm + ' ? Je l’ai à l’œil aussi.', 'D’accord, je vote contre ' + t.nm + '.']) : pick(['Je suis avec toi, sœurette.', 'Personne ne nous séparera.', 'Garde ton calme, on y arrivera.']), rand(1500, 3500)); if (t) this.learn(b, t.i, 2); }
+    else if (ch === 'd' && Math.random() < .5) this.pmSay(b, 'd', pick(['Le froid ne passe pas, ici…', 'Regarde-les se déchirer.', 'J’aurais dû me méfier plus tôt.', 'Au moins, on voit toutes les cartes.']), rand(2000, 4500));
+  }
+
   /* ---------- villageois IA ---------- */
   sus_(i) { if (!this.sus[i]) this.sus[i] = this.players.map(() => Math.random() * .6); return this.sus[i]; }
   learn(i, t, v) { if (t >= 0) this.sus_(i)[t] += v; }
@@ -4038,7 +4088,7 @@ class Engine {
       const p = this.players[i]; if (!(p.bot || p.off)) continue;
       let d = this.ph === 'vote' ? rand(dur * .12, dur * .7) : this.ph === 'deal' ? rand(600, 2000) : rand(1500, Math.min(5000, dur * .6));
       if (this.ph === 'night' && this.st === 'L') d = rand(1500, Math.min(dur * .5, 9000));
-      this.bq.push({ at: now + d, fn: () => { const a = this.botDecide(p); if (a) this.submit(i, Object.assign({ ps: this.ps }, a)); } });
+      this.bq.push({ at: now + d, fn: () => { const a = this.botDecide(p); if (a) { this.submit(i, Object.assign({ ps: this.ps }, a)); if (this.ph === 'night' && this.st === 'L' && a.t >= 0 && this.members('w').some(j => !this.players[j].bot)) this.pmSay(i, 'w', pick(['Je propose ' + this.players[a.t].nm + '.', 'Moi, je vais chez ' + this.players[a.t].nm + '.', this.players[a.t].nm + ', ce soir. Qui me suit ?']), 300); } } });
     }
     if (this.ph === 'day' && this.st === 'T') this.planTalk();
     if (this.ph === 'reveal' && this.rv && this.rv[2] === 'n') { const b = this.alive().filter(p => p.bot); if (b.length && Math.random() < .6) this.say(pick(b).i, pick(LINES.death).replace('{D}', this.players[this.rv[0]].nm), rand(1500, 3500)); }
@@ -4046,6 +4096,8 @@ class Engine {
   planTalk() {
     const bots = this.alive().filter(p => p.bot), dur = this.dur, al = this.alive().map(p => p.i);
     if (this.bearMsg && bots.length) this.say(pick(bots).i, pick(LINES.bear), rand(2000, 5000));
+    for (const ch of ['w', 'l', 'z']) { const m = this.members(ch); if (m.length < 2 || !m.some(j => !this.players[j].bot)) continue; const b = m.filter(j => this.players[j].bot); if (!b.length || Math.random() < .4) continue; const me_ = pick(b), others = al.filter(i => !m.includes(i)); const t = others.length ? (ch === 'w' ? this.wolfPick(me_, others) : this.topSus(me_, others)) : -1; const nmT = t >= 0 ? this.players[t].nm : 'quelqu’un';
+      this.pmSay(me_, ch, ch === 'w' ? pick(['Accusons ' + nmT + ', ça détournera les soupçons.', 'Votons tous contre ' + nmT + '.']) : ch === 'l' ? pick(['Je soupçonne ' + nmT + '. Et toi ?', 'Restons ensemble au vote : ' + nmT + ' ?']) : pick(['Ma sœur, je me méfie de ' + nmT + '.', 'On vote ' + nmT + ' ensemble ?']), rand(4000, 15000)); }
     for (const b of bots) {
       const others = al.filter(i => i !== b.i);
       let n = 1 + (Math.random() < .5 ? 1 : 0);
@@ -4086,6 +4138,7 @@ class Engine {
     if (this.ph !== 'night') return null;
     if (this.st === 'L') {
       const nw = al.filter(i => !this.isWolf(i)); if (!nw.length) return null;
+      if (this.wolfHint >= 0 && nw.includes(this.wolfHint) && Math.random() < .85) return { t: this.wolfHint };
       const prev = Object.values(this.acts).map(a => a.t).filter(t => nw.includes(t));
       if (prev.length && Math.random() < .8) return { t: pick(prev) };
       return { t: this.wolfPick(p.i, nw) };
@@ -4159,7 +4212,7 @@ const Net = (() => {
   let room = null, rm = null, unsub = [], hostWatch = null;
   const st = { avail: 'pending', mode: null, code: null, pid: null, hostPk: null, lastHost: 0, seenHost: false };
   let engine = null, myChat = [], seenChat = new Set(), lastAct = new Map(), info = new Map(), privCache = new Map(), pubTimer = null, building = false, dirty = false;
-  let lastPrivStr = null, myAct = null;
+  let lastPrivStr = null, myAct = null, myPm = [], pkBy = new Map(), seenPm = new Set(), sentBpm = [], bpmDone = new Set();
 
   const genCode = () => { const A = 'ABCDEFGHJKLMNPRSTUVWXYZ'; let s = ''; for (let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
   const newPid = () => 'p' + Math.random().toString(36).slice(2, 9);
@@ -4206,6 +4259,8 @@ const Net = (() => {
         Crypt.dec(pr.pk, pr.act).then(d => { if (d) { const i = engine.idx(pr.pid); if (i >= 0) engine.submit(i, d); } });
       }
       takeChat(pr.pid, nm, c, pr.chat, false);
+      pkBy.set(pr.pid, pr.pk);
+      takePm(pr.pid, pr.pk, pr.pm, false);
     }
     for (const pl of engine.players) if (!pl.bot && pl.pid !== st.pid && !present.has(pl.pid) && !pl.off) engine.markOff(pl.pid, true);
   }
@@ -4220,6 +4275,7 @@ const Net = (() => {
     UI.onState(pub, myI >= 0 ? engine.priv(myI) : null);
     // bulles des villageois IA
     for (const [ts, i, text] of engine.botChat) { const p = engine.players[i]; if (p) addChat('b' + i + ':' + ts, p.nm, p.c, text, true, i); }
+    for (const [ts, ch, i, text] of engine.botPm) { const k = 'bp' + i + ':' + ts; if (seenPm.has(k)) continue; const myI = engine.idx(st.pid); if (myI >= 0 && engine.members(ch).includes(myI)) { seenPm.add(k); UI.pmAdd(ch, i, text); } }
     if (st.mode !== 'host' || !rm) return;
     if (building) { dirty = true; return; }
     building = true;
@@ -4233,8 +4289,15 @@ const Net = (() => {
         if (c && c.json === json) priv[p.pid] = c.ct;
         else { const ct = await Crypt.enc(inf.pk, pv); privCache.set(ck, { json, ct }); priv[p.pid] = ct; }
       }
-      const pres = { host: 1, pid: st.pid, nm: me().nm, c: me().c, pk: Crypt.pk, pub: engine.pub(), priv, chat: myChat.slice(-4), bc: engine.botChat.slice(-5) };
-      while (JSON.stringify(pres).length > 3900 && (pres.chat.length || pres.bc.length)) { if (pres.bc.length >= pres.chat.length) pres.bc.shift(); else pres.chat.shift(); }
+      // messages privés des villageois IA, chiffrés pour chaque destinataire humain
+      for (const [ts, ch, i, text] of engine.botPm) {
+        const k = ts + ':' + i; if (bpmDone.has(k)) continue; bpmDone.add(k);
+        const to = {};
+        for (const j of engine.members(ch)) { const q = engine.players[j]; if (!q || q.bot || q.pid === st.pid) continue; const inf = info.get(q.pid); if (inf && inf.pk) to[q.pid] = await Crypt.enc(inf.pk, { ch, i, text }); }
+        if (Object.keys(to).length) { sentBpm.push([ts, to]); if (sentBpm.length > 4) sentBpm.shift(); }
+      }
+      const pres = { host: 1, pid: st.pid, nm: me().nm, c: me().c, pk: Crypt.pk, pub: engine.pub(), priv, chat: myChat.slice(-4), bc: engine.botChat.slice(-5), pm: myPm.slice(-3), bpm: sentBpm.slice(-3) };
+      while (JSON.stringify(pres).length > 3900 && (pres.chat.length || pres.bc.length || pres.bpm.length > 1 || pres.pm.length > 1)) { if (pres.bpm.length > 1) pres.bpm.shift(); else if (pres.pm.length > 1) pres.pm.shift(); else if (pres.bc.length >= pres.chat.length) pres.bc.shift(); else pres.chat.shift(); }
       await rm.presence(pres).catch(() => {});
     } finally {
       building = false; if (dirty) { dirty = false; schedulePub(); }
@@ -4267,6 +4330,8 @@ const Net = (() => {
     for (const p of ch.peers) {
       const pr = p.presence || {}; if (p.sameTab || typeof pr.pid !== 'string') continue;
       takeChat(pr.pid, String(pr.nm || '').slice(0, 16), clamp(parseInt(pr.c) || 0, 0, 15), pr.chat, false);
+      if (typeof pr.pk === 'string') pkBy.set(pr.pid, pr.pk);
+      takePm(pr.pid, pr.pk, pr.pm, false);
     }
     if (!hostP) return;
     st.seenHost = true; st.lastHost = Date.now();
@@ -4275,6 +4340,7 @@ const Net = (() => {
       if (!Array.isArray(b)) continue; const [ts, i, text] = b; const s = pr.pub.s[i]; if (!s) continue;
       addChat('b' + i + ':' + ts, String(s[0]), s[1], String(text).slice(0, 160), true, i);
     }
+    if (Array.isArray(pr.bpm)) for (const e of pr.bpm) { if (!Array.isArray(e) || !e[1] || typeof e[1][st.pid] !== 'string') continue; const k = 'hb' + e[0]; if (seenPm.has(k)) continue; seenPm.add(k); Crypt.dec(st.hostPk, e[1][st.pid]).then(d => { if (d && typeof d.text === 'string' && Number.isInteger(d.i)) UI.pmAdd(String(d.ch), d.i, d.text.slice(0, 160)); }); }
     const ps = pr.priv && pr.priv[st.pid];
     const pub = pr.pub;
     if (ps && ps !== lastPrivStr) {
@@ -4318,6 +4384,36 @@ const Net = (() => {
     else if (rm) rm.presence({ chat: myChat.slice(-4) }).catch(() => {});
   }
 
+  /* ----- canaux privés (meute, amoureux, sœurs, esprits) ----- */
+  function takePm(pid, pk, arr) {
+    if (!Array.isArray(arr) || typeof pk !== 'string' || pid === st.pid) return;
+    for (const e of arr) {
+      if (!e || typeof e !== 'object' || typeof e.to !== 'object' || typeof e.to[st.pid] !== 'string') continue;
+      const k = pid + ':' + e.ts; if (seenPm.has(k)) continue; seenPm.add(k);
+      Crypt.dec(pk, e.to[st.pid]).then(d => {
+        if (!d || typeof d.text !== 'string' || typeof d.ch !== 'string') return;
+        const seat = UI.seatOf(pid); if (seat < 0 || !UI.isMember(d.ch, seat)) return;
+        UI.pmAdd(d.ch, seat, d.text.slice(0, 160));
+        if (engine) engine.pmHeard(seat, d.ch, d.text);
+      });
+    }
+  }
+  async function pmSay(ch, text) {
+    const mySeat = UI.seatOf(st.pid); if (mySeat < 0 || !UI.isMember(ch, mySeat)) return;
+    UI.pmAdd(ch, mySeat, text);
+    if (engine) engine.pmHeard(mySeat, ch, text);
+    if (!rm) return;
+    const to = {}, ts = Date.now();
+    for (const j of UI.membersOf(ch)) {
+      if (j === mySeat) continue; const s = UI.St.pub.s[j]; if (!s || s[2]) continue;
+      const pk = engine ? (info.get(s[6]) || {}).pk : pkBy.get(s[6]); if (!pk) continue;
+      to[s[6]] = await Crypt.enc(pk, { ch, text });
+    }
+    if (!Object.keys(to).length) return;
+    myPm.push({ ts, to }); if (myPm.length > 3) myPm.shift();
+    if (engine) schedulePub(); else rm.presence({ pm: myPm.slice(-3) }).catch(() => {});
+  }
+
   /* ----- actions ----- */
   async function act(data) {
     if (engine) { const i = engine.idx(st.pid); if (i >= 0) engine.submit(i, data); return; }
@@ -4330,13 +4426,13 @@ const Net = (() => {
     clearInterval(hostWatch);
     if (rm) { try { await rm.leave(); } catch (e) {} rm = null; }
     if (engine) { engine.destroy(); engine = null; }
-    st.mode = null; st.code = null; myChat = []; seenChat = new Set(); lastAct = new Map(); info = new Map(); privCache = new Map(); lastPrivStr = null; lastPubV = -1;
+    st.mode = null; st.code = null; myChat = []; seenChat = new Set(); myPm = []; pkBy = new Map(); seenPm = new Set(); sentBpm = []; bpmDone = new Set(); lastAct = new Map(); info = new Map(); privCache = new Map(); lastPrivStr = null; lastPubV = -1;
   }
   function updateMe() {
     if (engine) { const p = engine.players.find(q => q.pid === st.pid); if (p) { p.nm = me().nm; p.c = me().c; engine.changed(); } }
     else if (rm) rm.presence({ nm: me().nm, c: me().c }).catch(() => {});
   }
-  return { boot, host, join, leave, act, say, watchHost, updateMe, st, get engine() { return engine; } };
+  return { boot, host, join, leave, act, say, pmSay, watchHost, updateMe, st, get engine() { return engine; } };
 })();
 
 /* =================== interface =================== */
@@ -4456,14 +4552,14 @@ const UI = (() => {
     if (ph === 'night') {
       Scene.setTime(0, pub.st === 'L' ? 1 : 0); Snd.setMode(pub.st === 'L' ? 'wolves' : 'night');
       if (pub.st === 'F_') { Snd.whoosh(); Snd.howl(.35, .95); chap('Nuit ' + roman(pub.n) + ' — la nuit tombe.'); }
-      if (pub.st === 'L') Snd.pack();
+      if (pub.st === 'L') { Snd.pack(); if (St.priv && St.priv.t === 'w' && St.me >= 0 && alive(St.me) && membersOf('w').length > 1) openChannel('w'); }
     }
-    if (ph === 'day' || ph === 'reveal' || ph === 'hunt') { Scene.setTime(1); Snd.setMode('day'); }
+    if (ph === 'day' || ph === 'reveal' || ph === 'hunt') { Scene.setTime(1); Snd.setMode('day'); if (St.tab === 'w' && ph === 'day') switchTab('v'); }
     if (ph === 'day' && pub.st === 'D') { Snd.bell(392, .16); setTimeout(() => Snd.bell(330, .14), 700); chap('Aube du jour ' + roman(pub.n) + '.'); if (pub.ms && pub.ms[0] === 'none') chap('Personne n’est mort cette nuit.'); }
     if (ph === 'day' && pub.st === 'T') chap('Le débat commence.');
     if (ph === 'day' && pub.st === 'X') chap(pub.ms && pub.ms[0] === 'novote' ? 'Personne n’a voté. Le village se disperse.' : 'Égalité. Personne n’est banni.');
     if (ph === 'vote') { Scene.setTime(.85); Snd.setMode('vote'); Snd.bell(220, .14); chap('Le vote est ouvert.'); }
-    if (ph === 'reveal' && pub.rv) { showReveal(pub.rv); }
+    if (ph === 'reveal' && pub.rv) { showReveal(pub.rv); if (pub.rv[0] === St.me) setTimeout(() => sysChat('Tu as rejoint les esprits : l’onglet Esprits te permet de parler aux autres morts.'), 400); }
     if (ph === 'end') { Scene.setTime(.55); Snd.setMode('end'); showEnd(); }
     if (ph !== 'end') closeOv('ov-end');
   }
@@ -4906,31 +5002,86 @@ const UI = (() => {
     openOv('ov-end'); Snd.sting(team !== 'wolves' && team !== 'white'); sysChat(T[0] + '.');
   }
 
-  /* discussion */
-  const chatLog = [];
-  function sysChat(t) { addMsg({ sys: true, text: t }); }
-  function chatAdd(m) {
-    addMsg(m);
-    if (SET.bubbles && St.pub && St.pub.ph !== 'lobby') {
-      let seat = m.seat >= 0 ? m.seat : St.pub.s.findIndex(s => s[6] === m.pid);
-      if (seat >= 0) speak(seat, m.text);
-      const b = St.seats[seat]; if (b) { b.querySelector('.bubble') && b.querySelector('.bubble').remove(); const d = document.createElement('span'); d.className = 'bubble'; d.textContent = m.text; b.appendChild(d); requestAnimationFrame(() => { const r = d.getBoundingClientRect(); const dx = r.left < 8 ? 8 - r.left : r.right > innerWidth - 8 ? innerWidth - 8 - r.right : 0; if (dx) d.style.marginLeft = (dx / (St.seats[seat] ? seatPos(seat).sc : 1)) + 'px'; }); setTimeout(() => d.remove(), 5600); }
+  /* discussion : le village et les canaux privés */
+  const CH = { v: ['Village', 'Tout le monde, le jour'], w: ['Meute', 'Les loups, en secret'], l: ['Amoureux', 'Ton âme sœur seulement'], z: ['Sœurs', 'Entre sœurs'], d: ['Esprits', 'Les morts entre eux'] };
+  const logs = { v: [], w: [], l: [], z: [], d: [] }, unread = { v: 0, w: 0, l: 0, z: 0, d: 0 };
+  St.tab = 'v';
+  function sysChat(t) { addMsg({ sys: true, text: t }, 'v'); }
+  function seatOf(pid) { return St.pub ? St.pub.s.findIndex(s => s[6] === pid) : -1; }
+  function isMember(ch, seat) {
+    const { pub, priv, me } = St; if (!pub || !priv || me < 0 || seat < 0 || !pub.s[seat]) return false;
+    const al = alive(seat);
+    switch (ch) {
+      case 'w': return al && priv.t === 'w' && (seat === me || (priv.w || []).includes(seat));
+      case 'l': { const lv = priv.lv !== undefined ? [me, priv.lv] : null; return al && !!lv && lv.includes(seat); }
+      case 'z': return al && priv.r === 'Z' && (seat === me || (priv.sis || []).includes(seat));
+      case 'd': return !al && !alive(me);
+      case 'v': return true;
     }
+    return false;
   }
-  function addMsg(m) {
-    const log = $('#chat-log'), d = document.createElement('div'); d.className = 'msg' + (m.sys ? ' sys' : '');
+  function membersOf(ch) { return St.pub ? St.pub.s.map((_, i) => i).filter(i => isMember(ch, i)) : []; }
+  function myChannels() { const me = St.me; return ['v', 'w', 'l', 'z', 'd'].filter(ch => ch === 'v' || (me >= 0 && isMember(ch, me)) || logs[ch].length); }
+  function pmAdd(ch, seat, text) {
+    const s = St.pub && St.pub.s[seat]; if (!s || !logs[ch]) return;
+    addMsg({ nm: s[0], c: s[1], text, ch, mine: seat === St.me }, ch);
+    if (seat !== St.me) { Snd.click(); }
+    if (SET.bubbles && St.pub.ph !== 'lobby' && seat !== St.me) bubble(seat, text, ch);
+  }
+  function bubble(seat, text, ch) {
+    if (seat >= 0) speak(seat, text);
+    const b = St.seats[seat]; if (!b) return;
+    b.querySelector('.bubble') && b.querySelector('.bubble').remove();
+    const d = document.createElement('span'); d.className = 'bubble' + (ch && ch !== 'v' ? ' priv ch-' + ch : ''); d.textContent = (ch && ch !== 'v' ? CH[ch][0] + ' · ' : '') + text; b.appendChild(d);
+    requestAnimationFrame(() => { const r = d.getBoundingClientRect(); const dx = r.left < 8 ? 8 - r.left : r.right > innerWidth - 8 ? innerWidth - 8 - r.right : 0; if (dx) d.style.marginLeft = (dx / (THREE_ON() ? 1 : (St.seats[seat] ? seatPos(seat).sc : 1))) + 'px'; });
+    setTimeout(() => d.remove(), 5600);
+  }
+  function chatAdd(m) {
+    addMsg(m, 'v');
+    if (SET.bubbles && St.pub && St.pub.ph !== 'lobby') { const seat = m.seat >= 0 ? m.seat : St.pub.s.findIndex(s => s[6] === m.pid); if (seat >= 0) bubble(seat, m.text, 'v'); }
+  }
+  function msgEl(m) {
+    const d = document.createElement('div'); d.className = 'msg' + (m.sys ? ' sys' : '') + (m.mine ? ' mine' : '');
     if (m.sys) d.textContent = m.text;
     else { const b = document.createElement('b'); b.style.color = COLORS[m.c] || COLORS[0]; b.textContent = m.nm + ' '; d.append(b, document.createTextNode(m.text)); }
-    log.appendChild(d); while (log.children.length > 80) log.firstChild.remove(); log.scrollTop = log.scrollHeight;
-    if (!St.chatOpen && !m.sys) { St.unread++; const dot = $('#chat-dot'); dot.hidden = false; dot.textContent = St.unread; }
+    return d;
+  }
+  function addMsg(m, ch) {
+    const L = logs[ch]; L.push(m); if (L.length > 80) L.shift();
+    if (St.tab === ch) { const log = $('#chat-log'); log.appendChild(msgEl(m)); while (log.children.length > 80) log.firstChild.remove(); log.scrollTop = log.scrollHeight; }
+    if (!m.sys && !m.mine && (!St.chatOpen || St.tab !== ch)) { unread[ch]++; }
+    if (!m.sys && !m.mine && !St.chatOpen) { St.unread++; const dot = $('#chat-dot'); dot.hidden = false; dot.textContent = St.unread; $('#chat-toggle').classList.toggle('hot', ch !== 'v'); }
+    renderTabs();
+  }
+  function renderTabs() {
+    const box = $('#chat-tabs'); if (!box) return;
+    const chs = myChannels(); if (!chs.includes(St.tab)) St.tab = 'v';
+    const key = chs.join(',') + '|' + St.tab + '|' + chs.map(c => unread[c]).join(',');
+    if (box.dataset.k === key) return; box.dataset.k = key; box.textContent = '';
+    for (const ch of chs) {
+      const b = document.createElement('button'); b.type = 'button'; b.className = 'ctab ch-' + ch; b.setAttribute('role', 'tab'); b.setAttribute('aria-selected', St.tab === ch); b.title = CH[ch][1];
+      b.textContent = CH[ch][0]; if (unread[ch] && St.tab !== ch) { const u = document.createElement('span'); u.className = 'cu'; u.textContent = unread[ch]; b.appendChild(u); }
+      b.onclick = () => { switchTab(ch); Snd.click(); };
+      box.appendChild(b);
+    }
+  }
+  function switchTab(ch) {
+    St.tab = ch; unread[ch] = 0;
+    const log = $('#chat-log'); log.textContent = ''; logs[ch].forEach(m => log.appendChild(msgEl(m))); log.scrollTop = log.scrollHeight;
+    $('#chat').dataset.ch = ch;
+    renderTabs(); syncChat();
   }
   function canTalk() { const { pub, me } = St; if (!pub) return false; if (pub.ph === 'lobby' || pub.ph === 'end') return true; if (me < 0 || !alive(me)) return false; return pub.ph !== 'night' && pub.ph !== 'deal'; }
+  function canSend() { if (St.tab === 'v') return canTalk(); return St.me >= 0 && isMember(St.tab, St.me) && St.pub && St.pub.ph !== 'lobby' && St.pub.ph !== 'end'; }
   function syncChat() {
-    $('#chat').hidden = !St.chatOpen; if (St.chatOpen) { St.unread = 0; $('#chat-dot').hidden = true; }
-    const ok = canTalk(), inp = $('#chat-in'); inp.disabled = !ok;
-    inp.placeholder = ok ? 'Parle au village…' : (St.pub && St.me >= 0 && !alive(St.me) ? 'Les morts se taisent.' : 'Le village dort. Silence.');
+    $('#chat').hidden = !St.chatOpen; if (St.chatOpen) { St.unread = 0; unread[St.tab] = 0; $('#chat-dot').hidden = true; $('#chat-toggle').classList.remove('hot'); }
+    const ok = canSend(), inp = $('#chat-in'); inp.disabled = !ok;
+    const ph = { w: 'Murmure à la meute…', l: 'Murmure à ton amour…', z: 'Murmure à ta sœur…', d: 'Parle aux autres esprits…' };
+    inp.placeholder = ok ? (ph[St.tab] || 'Parle au village…') : (St.tab !== 'v' ? 'Ce canal t’est fermé.' : St.pub && St.me >= 0 && !alive(St.me) ? 'Les morts se taisent. Va voir les Esprits.' : 'Le village dort. Silence.');
     $('#chat-toggle').classList.toggle('docked', St.chatOpen);
+    renderTabs();
   }
+  function openChannel(ch) { if (!myChannels().includes(ch)) return; St.chatOpen = true; switchTab(ch); }
 
   /* minuterie */
   function loop() {
@@ -4949,7 +5100,7 @@ const UI = (() => {
     syncChatLite();
   }
   let lastTalk = null;
-  function syncChatLite() { const c = canTalk(); if (c !== lastTalk) { lastTalk = c; syncChat(); } }
+  function syncChatLite() { const c = canSend() + '|' + myChannels().join(''); if (c !== lastTalk) { lastTalk = c; syncChat(); } }
 
   /* ---------- branchements ---------- */
   function bind() {
@@ -4984,7 +5135,7 @@ const UI = (() => {
     $('#mycard').addEventListener('pointermove', e => { const r = e.currentTarget.getBoundingClientRect(), x = (e.clientX - r.left) / r.width, y = (e.clientY - r.top) / r.height; e.currentTarget.style.setProperty('--ry', ((x - .5) * 18).toFixed(1) + 'deg'); e.currentTarget.style.setProperty('--rx', ((.5 - y) * 14).toFixed(1) + 'deg'); e.currentTarget.style.setProperty('--sx', (100 - x * 100).toFixed(0) + '%'); });
     $('#chat-toggle').onclick = () => { St.chatOpen = !St.chatOpen; syncChat(); if (St.chatOpen) $('#chat-in').focus(); if (St.pub) render(); };
     $('#chat-close').onclick = () => { St.chatOpen = false; syncChat(); if (St.pub) render(); };
-    $('#chat-form').onsubmit = e => { e.preventDefault(); const v = $('#chat-in').value.trim().slice(0, 120); if (!v || !canTalk()) return; Net.say(v); $('#chat-in').value = ''; };
+    $('#chat-form').onsubmit = e => { e.preventDefault(); const v = $('#chat-in').value.trim().slice(0, 120); if (!v || !canSend()) return; if (St.tab === 'v') Net.say(v); else Net.pmSay(St.tab, v); $('#chat-in').value = ''; };
     $$('[data-close]').forEach(b => b.onclick = () => { b.closest('.overlay').hidden = true; });
     $$('.overlay').forEach(o => o.addEventListener('click', e => { if (e.target === o && o.id !== 'ov-end' && o.id !== 'ov-reveal') o.hidden = true; }));
     addEventListener('keydown', e => { if (e.key === 'Escape') for (const id of ['ov-settings', 'ov-rules', 'ov-card', 'ov-confirm']) closeOv(id); });
@@ -5009,14 +5160,14 @@ const UI = (() => {
     openOv('ov-confirm');
   }
   async function leaveNow() {
-    await Net.leave(); St.pub = null; St.priv = null; St.seats = []; $('#ring').textContent = ''; $('#chat-log').textContent = ''; St.done = {};
+    await Net.leave(); St.pub = null; St.priv = null; St.seats = []; $('#ring').textContent = ''; $('#chat-log').textContent = ''; St.done = {}; for (const k in logs) { logs[k].length = 0; unread[k] = 0; } St.tab = 'v';
     for (const id of ['ov-reveal', 'ov-end', 'ov-card']) closeOv(id);
     show('scr-menu'); Scene.setMode('menu'); Scene.setTime(0); Snd.setMode('menu');
   }
   function hostGone() { toast('L’hôte a quitté la veillée. Le feu s’est éteint.'); leaveNow(); }
 
   // bouton quitter en jeu : clic long sur le titre de phase
-  return { bind, onState, avail, chatAdd, hostGone, myName, myColor: () => St.myColor, lastPriv: () => lastPriv, askLeave, St };
+  return { bind, onState, avail, chatAdd, pmAdd, seatOf, isMember, membersOf, hostGone, myName, myColor: () => St.myColor, lastPriv: () => lastPriv, askLeave, St };
 })();
 
 /* les veilleurs du menu, assis près du feu */
