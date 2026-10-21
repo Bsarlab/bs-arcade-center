@@ -360,6 +360,12 @@ input{font:inherit;color:inherit}
 .panel h3{margin:0 0 8px;font-size:12px;letter-spacing:.09em;text-transform:uppercase;color:var(--mut)}
 .lobby .gtitle{font-family:var(--f-disp);font-size:clamp(44px,8vw,68px);color:var(--brass2);margin:0;line-height:.95}
 .codebig{font-weight:800;font-size:34px;letter-spacing:.2em;color:var(--fg)}
+.opts{display:flex;flex-direction:column;gap:10px}
+.opt{display:flex;gap:12px;align-items:flex-start;cursor:pointer}
+.opt input{width:20px;height:20px;accent-color:var(--brass);margin-top:2px;flex:none}
+.opt span{display:flex;flex-direction:column;gap:2px}
+.opt small{color:var(--mut);font-size:13px;line-height:1.45}
+.opt input:disabled+span{opacity:.75}
 .note{color:var(--mut);font-size:13.5px;line-height:1.6}
 
 /* =================== SOLITAIRE =================== */
@@ -571,67 +577,95 @@ const PRES = (() => {
   const DQH = 13 + 10;
   const sortH = h => h.sort((a, b) => pv(a) - pv(b) || S(a) - S(b));
   const ROLE = { '2': 'Président', '1': 'Vice-président', '0': 'Neutre', '-1': 'Vice-trouduc', '-2': 'Trouduc' };
+  const OPTS = [
+    { k: 'ouRien', def: 1, label: 'Règle du « ou rien »', help: 'Quand quelqu’un pose la même valeur que la carte précédente, les suivants doivent poser cette valeur ou passer.' },
+    { k: 'rejoue', def: 1, label: 'Rejouer après avoir passé', help: 'Un joueur qui a passé peut rejouer dans le même pli quand son tour revient.' },
+    { k: 'fin2', def: 1, label: 'Interdit de finir sur un 2', help: 'Celui qui pose un 2 comme dernière carte devient Trouduc.' }
+  ];
   function deal(s){
     const d = shuffle(range(52), rng(s));
     s.h = range(s.n).map(() => []);
     d.forEach((c, i) => s.h[i % s.n].push(c));
     s.h.forEach(sortH);
-    s.pile = []; s.un = []; s.pb = -1; s.passed = Array(s.n).fill(0); s.out = []; s.ph = 'play';
-    if (s.roles && s.roles.length === s.n) {
+    s.pile = []; s.un = []; s.pb = -1; s.run = 0; s.req = -1; s.passed = Array(s.n).fill(0); s.out = []; s.bot2 = []; s.gv = []; s.ph = 'play';
+    if (s.roles && s.roles.length === s.n && s.roles.some(Boolean)) {
       const P = s.roles.indexOf(2), T = s.roles.indexOf(-2), V = s.roles.indexOf(1), VT = s.roles.indexOf(-1);
-      const ex = (a, b, k) => {
-        const best = s.h[b].slice(-k), worst = s.h[a].slice(0, k);
-        s.h[b] = s.h[b].slice(0, -k).concat(worst); s.h[a] = s.h[a].slice(k).concat(best);
-        sortH(s.h[a]); sortH(s.h[b]);
-      };
-      if (P >= 0 && T >= 0) ex(P, T, 2);
-      if (V >= 0 && VT >= 0) ex(V, VT, 1);
+      const take = (from, to, k) => { const best = s.h[from].slice(-k); s.h[from] = s.h[from].slice(0, -k); s.h[to] = sortH(s.h[to].concat(best)); return best; };
+      if (P >= 0 && T >= 0) { take(T, P, 2); s.gv.push([P, T, 2]); }
+      if (V >= 0 && VT >= 0) { take(VT, V, 1); s.gv.push([V, VT, 1]); }
       s.turn = T >= 0 ? T : 0;
-      log(s, `Échange fait : @${T} donne ses 2 meilleures cartes à @${P}. @${s.turn} commence.`);
+      log(s, `@${T} donne ses 2 meilleures cartes à @${P}${V >= 0 ? `, @${VT} sa meilleure à @${V}` : ''}.`);
+      if (s.gv.length) { s.ph = 'give'; log(s, 'Le Président choisit les cartes qu’il rend.'); }
     } else {
       s.turn = s.h.findIndex(h => h.includes(DQH));
       log(s, `@${s.turn} a la dame de cœur et commence.`);
     }
   }
-  function setup(n, seed){ const s = { n, seed, rn: 0, rnd: 1, pts: Array(n).fill(0), roles: [], lg: [0, ''] }; deal(s); return s; }
+  function setup(n, seed, opt){
+    const o = {}; OPTS.forEach(x => o[x.k] = opt && opt[x.k] != null ? (opt[x.k] ? 1 : 0) : x.def);
+    const s = { n, seed, rn: 0, rnd: 1, o, pts: Array(n).fill(0), roles: [], lg: [0, ''] }; deal(s); return s;
+  }
   function next(s){ s = clone(s); s.rnd++; deal(s); return s; }
-  const active = (s, i) => !s.out.includes(i);
+  const active = (s, i) => !s.out.includes(i) && !s.bot2.includes(i);
   function nextExcl(s, p){ for (let k = 1; k < s.n; k++) { const j = (p + k) % s.n; if (active(s, j) && !s.passed[j]) return j; } return -1; }
   function nextAct(s, p){ for (let k = 1; k <= s.n; k++) { const j = (p + k) % s.n; if (active(s, j)) return j; } return -1; }
-  function close(s, w){ s.un = s.pile; s.pile = []; s.passed = s.passed.map(() => 0); s.pb = -1; s.turn = active(s, w) ? w : nextAct(s, w); }
+  function close(s, w){ s.un = s.pile; s.pile = []; s.passed = s.passed.map(() => 0); s.pb = -1; s.run = 0; s.req = -1; s.turn = active(s, w) ? w : nextAct(s, w); }
   function finish(s){
     const n = s.n, roles = Array(n).fill(0);
-    s.out.forEach((p, k) => {
+    const order = s.out.concat(s.bot2.slice().reverse());
+    order.forEach((p, k) => {
       if (k === 0) roles[p] = 2; else if (k === n - 1) roles[p] = -2;
       else if (n >= 4 && k === 1) roles[p] = 1; else if (n >= 4 && k === n - 2) roles[p] = -1;
     });
-    s.roles = roles; roles.forEach((r, i) => s.pts[i] += r);
+    s.fin = order; s.roles = roles; roles.forEach((r, i) => s.pts[i] += r);
     s.ph = 'end'; if (s.pile.length) s.un = s.pile; s.pile = [];
-    log(s, `@${s.out[0]} devient Président !`);
+    log(s, `@${order[0]} devient Président, @${order[n - 1]} Trouduc.`);
   }
   function checkEnd(s){
     const left = range(s.n).filter(i => active(s, i));
     if (left.length <= 1) { if (left.length) s.out.push(left[0]); finish(s); return true; }
     return false;
   }
+  function canPlay(s, cs){
+    if (!s.pile.length) return null;
+    if (cs.length !== s.pile.length) return `Il faut poser ${s.pile.length} carte${s.pile.length > 1 ? 's' : ''}.`;
+    if (s.req >= 0 && R(cs[0]) !== s.req) return `${RK[s.req]} ou rien : pose un ${RK[s.req]} ou passe.`;
+    if (pv(cs[0]) < pv(s.pile[0])) return 'Il faut une valeur égale ou plus forte.';
+    return null;
+  }
   function act(s, p, a){
     s = clone(s);
-    if (s.ph !== 'play') throw E('La manche est terminée.');
+    if (a.t === 'give') {
+      const g = s.gv.find(x => x[0] === p);
+      if (s.ph !== 'give' || !g) throw E('Tu n’as pas de carte à donner.');
+      const cs = Array.isArray(a.cs) ? [...new Set(a.cs.map(Number))] : [];
+      if (cs.length !== g[2] || !cs.every(c => s.h[p].includes(c))) throw E(`Choisis ${g[2]} carte${g[2] > 1 ? 's' : ''} à donner.`);
+      s.h[p] = s.h[p].filter(c => !cs.includes(c)); s.h[g[1]] = sortH(s.h[g[1]].concat(cs));
+      s.gv = s.gv.filter(x => x !== g);
+      if (!s.gv.length) { s.ph = 'play'; log(s, `Échange terminé. @${s.turn} commence.`); }
+      return s;
+    }
+    if (s.ph !== 'play') throw E(s.ph === 'give' ? 'Attends la fin de l’échange.' : 'La manche est terminée.');
     if (p !== s.turn) throw E('Ce n’est pas ton tour.');
     if (a.t === 'play') {
       const cs = Array.isArray(a.cs) ? a.cs.map(Number) : [];
       if (!cs.length || cs.length > 4) throw E('Choisis 1 à 4 cartes.');
       if (new Set(cs).size !== cs.length || !cs.every(c => s.h[p].includes(c))) throw E('Carte invalide.');
       if (!cs.every(c => R(c) === R(cs[0]))) throw E('Les cartes doivent avoir la même valeur.');
-      if (s.pile.length) {
-        if (cs.length !== s.pile.length) throw E(`Il faut poser ${s.pile.length} carte${s.pile.length > 1 ? 's' : ''}.`);
-        if (pv(cs[0]) <= pv(s.pile[0])) throw E('Il faut une valeur plus forte.');
-      }
+      const err = canPlay(s, cs); if (err) throw E(err);
+      const equal = s.pile.length && R(cs[0]) === R(s.pile[0]);
       s.h[p] = s.h[p].filter(c => !cs.includes(c));
       s.un = s.pile; s.pile = cs; s.pb = p;
-      if (!s.h[p].length) { s.out.push(p); log(s, `@${p} a vidé sa main (${s.out.length === 1 ? '1er' : s.out.length + 'e'}).`); }
+      s.run = equal ? s.run + cs.length : cs.length;
+      if (equal && s.o.ouRien && s.run < 4) { s.req = R(cs[0]); log(s, `${RK[s.req]} ou rien !`); }
+      if (s.o.rejoue) s.passed = s.passed.map(() => 0);
+      if (!s.h[p].length) {
+        if (s.o.fin2 && pv(cs[0]) === 12) { s.bot2.push(p); log(s, `@${p} finit sur un 2 : c’est interdit, il sera Trouduc.`); }
+        else { s.out.push(p); log(s, `@${p} a vidé sa main (${s.out.length === 1 ? '1er' : s.out.length + 'e'}).`); }
+      }
       if (checkEnd(s)) return s;
-      if (pv(cs[0]) === 12) { log(s, `@${p} ferme le pli.`); close(s, p); return s; }
+      if (pv(cs[0]) === 12) { log(s, `Un 2 : @${p} ferme le pli.`); close(s, p); return s; }
+      if (s.run >= 4) { log(s, `Carré de ${RK[R(cs[0])]} : @${p} ferme le pli.`); close(s, p); return s; }
       const nx = nextExcl(s, p);
       if (nx < 0) close(s, p); else s.turn = nx;
       return s;
@@ -640,25 +674,28 @@ const PRES = (() => {
       if (!s.pile.length) throw E('Tu ouvres le pli : pose au moins une carte.');
       s.passed[p] = 1;
       const nx = nextExcl(s, p);
-      if (nx < 0 || nx === s.pb) close(s, s.pb); else s.turn = nx;
+      if (nx < 0 || nx === s.pb) { log(s, 'Tout le monde passe.'); close(s, s.pb); } else s.turn = nx;
       return s;
     }
     throw E('Action inconnue.');
   }
   function bot(s, i){
+    if (s.ph === 'give') { const g = s.gv.find(x => x[0] === i); return g ? { t: 'give', cs: s.h[i].slice(0, g[2]) } : null; }
     if (s.ph !== 'play' || s.turn !== i) return null;
     const h = s.h[i], groups = {};
     h.forEach(c => (groups[R(c)] = groups[R(c)] || []).push(c));
     const gs = Object.values(groups).sort((a, b) => pv(a[0]) - pv(b[0]));
-    if (!s.pile.length) { const g = gs.find(g => pv(g[0]) < 12) || gs[0]; return { t: 'play', cs: g }; }
+    const no2 = g => pv(g[0]) < 12 || !s.o.fin2 || h.length > g.length;
+    if (!s.pile.length) { const g = gs.find(g => pv(g[0]) < 12) || gs.find(no2) || gs[0]; return { t: 'play', cs: g }; }
     const k = s.pile.length, top = pv(s.pile[0]);
-    const opts = gs.filter(g => g.length >= k && pv(g[0]) > top);
-    const pick = opts.find(g => g.length === k && pv(g[0]) < 12) || opts.find(g => pv(g[0]) < 12) || (h.length <= 5 ? opts[0] : null);
+    const opts = gs.filter(g => g.length >= k && !canPlay(s, g.slice(0, k)) && no2(g.slice(0, k)));
+    const eq = opts.find(g => pv(g[0]) === top);
+    const pick = eq || opts.find(g => g.length === k && pv(g[0]) < 12) || opts.find(g => pv(g[0]) < 12) || (h.length <= 5 ? opts[0] : null);
     if (!pick) return { t: 'pass' };
     return { t: 'play', cs: pick.slice(0, k) };
   }
-  const turns = s => s.ph === 'play' ? [s.turn] : [];
-  return { id: 'president', name: 'Président', min: 3, max: 8, setup, next, act, bot, turns, pv, ROLE };
+  const turns = s => s.ph === 'play' ? [s.turn] : s.ph === 'give' ? s.gv.map(x => x[0]) : [];
+  return { id: 'president', name: 'Président', min: 3, max: 8, setup, next, act, bot, turns, pv, ROLE, OPTS, canPlay };
 })();
 
 /* =================== MISTIGRI =================== */
@@ -728,18 +765,37 @@ const UNO = (() => {
   const sym = c => { if (c >= 104) return 'w4'; if (c >= 100) return 'w'; const k = c % 25; return k === 0 ? '0' : k <= 18 ? String(1 + ((k - 1) >> 1)) : k <= 20 ? 'd2' : k <= 22 ? 'rv' : 'sk'; };
   const pts = c => { const y = sym(c); return (y === 'w' || y === 'w4') ? 50 : (y === 'd2' || y === 'rv' || y === 'sk') ? 20 : +y; };
   const NAME = { d2: '+2', rv: 'Inversion', sk: 'Passe', w: 'Joker', w4: '+4' };
+  const OPTS = [{ k: 'cumul', def: 0, label: 'Cumul des +2 et +4', help: 'Règle maison : on peut répondre à un +2 par un +2 (ou un +4 sur un +4) et le suivant pioche le total.' }];
   const step = (s, i) => (i + s.dir + s.n) % s.n;
   const top = s => s.ds[s.ds.length - 1];
-  const playable = (s, c) => c >= 100 || col(c) === s.su || sym(c) === sym(top(s));
-  function deal(s){
-    const d = shuffle(range(108), rng(s));
-    s.h = range(s.n).map(() => d.splice(-7));
-    const ti = d.findIndex(c => c < 100 && /^\d$/.test(sym(c)));
-    const t = d.splice(ti, 1)[0];
-    s.ds = [t]; s.dk = d; s.su = col(t); s.dir = 1; s.dr = 0; s.turn = s.st % s.n; s.ph = 'play'; s.win = -1; s.rp = []; s.uno = Array(s.n).fill(0);
-    log(s, `@${s.turn} commence.`);
+  const matches = (s, c) => c >= 100 || s.su < 0 || col(c) === s.su || sym(c) === sym(top(s));
+  function playable(s, c){
+    if (s.pd) return s.o.cumul && sym(c) === s.pk;
+    if (s.dr && c !== s.dc) return false;
+    if (!matches(s, c)) return false;
+    if (sym(c) === 'w4' && s.su >= 0 && s.h[s.turn].some(x => x !== c && x < 100 && col(x) === s.su)) return false;
+    return true;
   }
-  function setup(n, seed){ const s = { n, seed, rn: 0, rnd: 1, sc: Array(n).fill(0), st: 0, lg: [0, ''] }; deal(s); return s; }
+  function deal(s){
+    let d = shuffle(range(108), rng(s));
+    s.h = range(s.n).map(() => d.splice(-7));
+    let t = d.pop();
+    while (sym(t) === 'w4') { d.unshift(t); d = shuffle(d, rng(s)); t = d.pop(); }
+    s.ds = [t]; s.dk = d; s.su = col(t); s.dir = 1; s.dr = 0; s.dc = -1; s.pd = 0; s.pk = ''; s.risk = -1;
+    s.ph = 'play'; s.win = -1; s.rp = []; s.uno = Array(s.n).fill(0);
+    const dealer = (s.st + s.n - 1) % s.n; let first = s.st % s.n;
+    const y = sym(t);
+    if (y === 'w') log(s, `La première carte est un joker : @${first} choisit librement.`);
+    else if (y === 'sk') { log(s, `La première carte est un Passe : @${first} saute son tour.`); first = step(s, first); }
+    else if (y === 'rv') { if (s.n > 2) { s.dir = -1; first = dealer; log(s, `La première carte est une Inversion : @${first} commence dans l’autre sens.`); } else { first = step(s, first); log(s, 'La première carte est une Inversion.'); } }
+    else if (y === 'd2') { give(s, first, 2); log(s, `La première carte est un +2 : @${first} pioche 2 cartes et passe son tour.`); first = step(s, first); }
+    else log(s, `@${first} commence.`);
+    s.turn = first;
+  }
+  function setup(n, seed, opt){
+    const o = {}; OPTS.forEach(x => o[x.k] = opt && opt[x.k] != null ? (opt[x.k] ? 1 : 0) : x.def);
+    const s = { n, seed, rn: 0, rnd: 1, o, sc: Array(n).fill(0), st: 0, lg: [0, ''] }; deal(s); return s;
+  }
   function next(s){ s = clone(s); if (s.ph === 'over') { s.sc = s.sc.map(() => 0); s.rnd = 0; } s.rnd++; s.st = (s.st + 1) % s.n; deal(s); return s; }
   function drawOne(s){
     if (!s.dk.length) { if (s.ds.length <= 1) return -1; const t = s.ds.pop(); s.dk = shuffle(s.ds, rng(s)); s.ds = [t]; }
@@ -751,25 +807,35 @@ const UNO = (() => {
     if (s.ph !== 'play') throw E('La manche est terminée.');
     if (a.t === 'uno') {
       if (s.h[p].length > 2) throw E('Tu as encore trop de cartes pour crier UNO.');
-      if (!s.uno[p]) { s.uno[p] = 1; log(s, `@${p} crie UNO !`); }
+      if (!s.uno[p]) { s.uno[p] = 1; if (s.risk === p) s.risk = -1; log(s, `@${p} crie UNO !`); }
       return s;
     }
     if (a.t === 'catch') {
       const i = a.i | 0;
-      if (i === p || !s.h[i] || s.h[i].length !== 1 || s.uno[i]) throw E('Trop tard !');
-      give(s, i, 2); log(s, `Contre-UNO ! @${i} a oublié de crier et pioche 2 cartes.`);
+      if (i === p || s.risk !== i || s.h[i].length !== 1 || s.uno[i]) throw E('Trop tard !');
+      give(s, i, 2); s.risk = -1; log(s, `Contre-UNO ! @${i} a oublié de crier et pioche 2 cartes.`);
       return s;
     }
     if (p !== s.turn) throw E('Ce n’est pas ton tour.');
     if (a.t === 'play') {
       const c = a.c | 0;
       if (!s.h[p].includes(c)) throw E('Carte invalide.');
-      if (!playable(s, c)) throw E(`Il faut du ${COL[s.su]} ou le même symbole.`);
+      if (!playable(s, c)) {
+        if (s.pd) throw E(`Tu dois répondre par un ${NAME[s.pk]} ou piocher ${s.pd} cartes.`);
+        if (s.dr) throw E('Après une pioche, seule la carte piochée peut être jouée.');
+        if (sym(c) === 'w4' && matches(s, c)) throw E(`Le +4 n’est permis que si tu n’as aucune carte ${COL[s.su]}.`);
+        throw E(`Il faut du ${COL[s.su]} ou le même symbole.`);
+      }
       if (c >= 100 && !(a.su >= 0 && a.su <= 3)) throw E('Choisis une couleur.');
+      if (s.risk >= 0 && s.risk !== p) s.risk = -1;
       s.h[p] = s.h[p].filter(x => x !== c); s.ds.push(c);
-      s.su = c >= 100 ? (a.su | 0) : col(c); s.dr = 0;
+      s.su = c >= 100 ? (a.su | 0) : col(c); s.dr = 0; s.dc = -1;
       if (s.h[p].length > 1) s.uno[p] = 0;
+      if (s.h[p].length === 1 && !s.uno[p]) s.risk = p;
+      const y = sym(c); let nx = step(s, p);
       if (!s.h[p].length) {
+        if (y === 'd2' || y === 'w4') { const k = (y === 'd2' ? 2 : 4) + s.pd; give(s, nx, k); log(s, `@${nx} pioche quand même ${k} cartes.`); }
+        s.pd = 0; s.risk = -1;
         s.rp = s.h.map(h => h.reduce((t, x) => t + pts(x), 0));
         const gain = s.rp.reduce((a2, b) => a2 + b, 0);
         s.sc[p] += gain; s.win = p;
@@ -777,50 +843,56 @@ const UNO = (() => {
         log(s, `@${p} pose sa dernière carte et marque ${gain} points !`);
         return s;
       }
-      const y = sym(c); let nx = step(s, p);
-      if (y === 'd2') { give(s, nx, 2); log(s, `@${nx} pioche 2 cartes et passe son tour.`); nx = step(s, nx); }
-      else if (y === 'w4') { give(s, nx, 4); log(s, `@${nx} pioche 4 cartes et passe son tour. Couleur : ${COL[s.su]}.`); nx = step(s, nx); }
+      if (y === 'd2' || y === 'w4') {
+        const k = (y === 'd2' ? 2 : 4) + s.pd;
+        if (s.o.cumul && s.h[nx].some(x => sym(x) === y)) { s.pd = k; s.pk = y; log(s, `${NAME[y]} ! @${nx} doit répondre ou piocher ${k} cartes.`); s.turn = nx; return s; }
+        give(s, nx, k); s.pd = 0; log(s, `@${nx} pioche ${k} cartes et passe son tour.${y === 'w4' ? ` Couleur : ${COL[s.su]}.` : ''}`); nx = step(s, nx);
+      }
       else if (y === 'sk') { log(s, `@${nx} passe son tour.`); nx = step(s, nx); }
       else if (y === 'rv') { if (s.n === 2) { nx = p; log(s, `@${p} rejoue.`); } else { s.dir *= -1; nx = step(s, p); log(s, 'Changement de sens !'); } }
       else if (y === 'w') log(s, `@${p} choisit le ${COL[s.su]}.`);
       s.turn = nx; return s;
     }
     if (a.t === 'draw') {
+      if (s.risk >= 0 && s.risk !== p) s.risk = -1;
+      if (s.pd) { const k = s.pd; give(s, p, k); s.pd = 0; log(s, `@${p} pioche ${k} cartes et passe son tour.`); s.turn = step(s, p); return s; }
       if (s.dr) throw E('Tu as déjà pioché.');
-      const c = drawOne(s); s.dr = 1; s.uno[p] = 0;
+      const c = drawOne(s); s.uno[p] = 0;
       if (c >= 0) s.h[p].push(c);
+      if (c >= 0 && playable(s, c)) { s.dr = 1; s.dc = c; return s; }
+      s.dr = 0; s.dc = -1; s.turn = step(s, p);
       return s;
     }
     if (a.t === 'pass') {
       if (!s.dr) throw E('Pioche d’abord une carte.');
-      s.dr = 0; s.turn = step(s, p); return s;
+      s.dr = 0; s.dc = -1; s.turn = step(s, p); return s;
     }
     throw E('Action inconnue.');
   }
   function bot(s, i){
-    if (s.ph !== 'play' || s.turn !== i) return null;
-    const victim = range(s.n).find(j => j !== i && s.h[j].length === 1 && !s.uno[j]);
-    if (victim != null && Math.random() < .7) return { t: 'catch', i: victim };
+    if (s.ph !== 'play') return null;
+    if (s.risk >= 0 && s.risk !== i && s.h[s.risk].length === 1 && !s.uno[s.risk] && Math.random() < .5) return { t: 'catch', i: s.risk };
+    if (s.turn !== i) return null;
     const h = s.h[i], ok = h.filter(c => playable(s, c));
     if (h.length === 2 && !s.uno[i] && ok.length && Math.random() < .85) return { t: 'uno' };
+    if (s.pd) return ok.length ? { t: 'play', c: ok[0], su: s.su } : { t: 'draw' };
     const plain = ok.filter(c => c < 100);
     const nx = step(s, i);
+    const cnt = [0, 0, 0, 0]; h.forEach(c => { if (c < 100) cnt[col(c)]++; });
+    const best = cnt.indexOf(Math.max(...cnt));
     if (plain.length) {
       const attack = s.h[nx].length <= 2 ? plain.filter(c => ['d2', 'sk', 'rv'].includes(sym(c))) : [];
       if (attack.length) return { t: 'play', c: attack[0] };
       plain.sort((a, b) => pts(b) - pts(a)); return { t: 'play', c: plain[0] };
     }
-    if (ok.length) {
-      const cnt = [0, 0, 0, 0]; h.forEach(c => { if (c < 100) cnt[col(c)]++; });
-      const pick = ok.find(c => sym(c) === 'w') ?? ok[0];
-      return { t: 'play', c: pick, su: cnt.indexOf(Math.max(...cnt)) };
-    }
-    if (!s.dr) return { t: 'draw' };
-    return { t: 'pass' };
+    if (ok.length) { const pick = ok.find(c => sym(c) === 'w') ?? ok[0]; return { t: 'play', c: pick, su: best }; }
+    if (s.dr) return { t: 'pass' };
+    return { t: 'draw' };
   }
   const turns = s => s.ph === 'play' ? [s.turn] : [];
-  return { id: 'uno', name: 'Uno', min: 2, max: 10, setup, next, act, bot, turns, playable, pts, col, sym, COL, NAME };
+  return { id: 'uno', name: 'Uno', min: 2, max: 10, setup, next, act, bot, turns, playable, pts, col, sym, COL, NAME, OPTS };
 })();
+
 
 /* =================== FLIP 7 =================== */
 const FLIP7 = (() => {
@@ -1610,7 +1682,12 @@ function applyAction(T, pid, a){
     case 'start':
       if (!isH || T.ph !== 'lobby') return;
       if (T.seats.length < g.min) throw E(`Il faut au moins ${g.min} joueurs.`);
-      T.s = g.setup(T.seats.length, seed()); T.ph = 'play'; return;
+      T.s = g.setup(T.seats.length, seed(), optsOf(T)); T.ph = 'play'; return;
+    case 'opt': {
+      if (!isH || T.ph !== 'lobby' || !g.OPTS) return;
+      const o = g.OPTS.find(x => x.k === a.k); if (!o) return;
+      T.opt = Object.assign({}, T.opt, { [o.k]: a.v ? 1 : 0 }); return;
+    }
     case 'next': if (!isH || T.ph !== 'play') return; T.s = g.next(T.s, seed()); return;
     case 'lobby': if (!isH) return; T.ph = 'lobby'; T.s = {}; T.seats = T.seats.filter(s => !s.rb); return;
     case 'g':
@@ -1709,9 +1786,18 @@ function onState(){
 function fmt(T, m){ return m.replace(/@(-?\d+)/g, (_, i) => { const s = T.seats[+i]; return s ? (s.id === Me.id ? Me.name : s.n) : '?'; }); }
 
 /* =================== table lifecycle =================== */
+function optsOf(T){
+  const g = LOGIC[T.gm], o = {};
+  (g.OPTS || []).forEach(x => { const v = T.opt && T.opt[x.k]; o[x.k] = v == null ? x.def : (v ? 1 : 0); });
+  return o;
+}
+function optsHTML(g, o, host){
+  if (!g.OPTS) return '';
+  return `<div class="panel"><h3>Règles de la table</h3><div class="opts">${g.OPTS.map(x => `<label class="opt"><input type="checkbox" id="opt-${x.k}" data-opt="${x.k}" ${o[x.k] ? 'checked' : ''} ${host ? '' : 'disabled'}><span><b>${x.label}</b><small>${x.help}</small></span></label>`).join('')}</div>${host ? '' : '<p class="note" style="margin:8px 0 0">Seul l’hôte peut changer ces règles.</p>'}</div>`;
+}
 function createTable(gm){
   const code = randCode();
-  const T = { v: 1, code, gm, ph: 'lobby', seats: [{ id: Me.id, n: Me.name, av: Me.av }], ack: {}, s: {} };
+  const T = { v: 1, code, gm, ph: 'lobby', seats: [{ id: Me.id, n: Me.name, av: Me.av }], ack: {}, s: {}, opt: optsOf({ gm, opt: LS.get('brelan.opt.' + gm, {}) }) };
   enterTable(code, T);
 }
 function enterTable(code, T){
@@ -1901,6 +1987,7 @@ function lobbyHTML(ctx){
   return `<div class="lobby"><div class="lobby-in">
     <div><p class="gtitle">${g.name}</p><p class="note">${GAMES_UI[g.id].blurb}</p><button class="btn sm" data-a="rules" data-g="${g.id}">${svgI.info}Lire les règles</button></div>
     <div class="panel"><h3>Joueurs · ${seats.length}/${g.max}</h3><div class="seats">${rows}${freeRows}</div></div>
+    ${optsHTML(g, optsOf(T), ctx.host)}
     <div class="panel"><h3>Lancer</h3>${acts}</div>
     <div class="panel"><h3>Inviter</h3>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span class="codebig">${esc(T.code)}</span><button class="btn sm" data-a="copycode">Copier le code</button></div>
@@ -2012,30 +2099,41 @@ VIEWS.skyjo = ctx => {
 VIEWS.president = ctx => {
   const s = ctx.s, me = ctx.me, pv = PRES.pv;
   const roleTag = i => { const r = s.roles && s.roles.length === ctx.n ? s.roles[i] : null; return r ? `<span class="tag ${r > 0 ? 'gold' : 'red'}">${PRES.ROLE[r]}</span>` : ''; };
-  const outRank = i => { const k = s.out.indexOf(i); return k >= 0 ? `<span class="tag green">sorti ${k + 1}${k ? 'e' : 'er'}</span>` : ''; };
+  const outRank = i => { const k = s.out.indexOf(i); return k >= 0 ? `<span class="tag green">sorti ${k + 1}${k ? 'e' : 'er'}</span>` : s.bot2.includes(i) ? '<span class="tag red">fini sur un 2</span>' : ''; };
   const opps = ctx.others.map(i => pod(ctx, i, miniBacks(s.h[i], 9), `${s.h[i].length} carte${s.h[i].length > 1 ? 's' : ''} · ${s.pts[i] > 0 ? '+' : ''}${s.pts[i]} pts`,
-    (s.ph === 'play' ? roleTag(i) : '') + outRank(i) + (s.passed[i] ? '<span class="tag">passe</span>' : ''))).join('');
+    roleTag(i) + outRank(i) + (s.passed[i] && s.ph === 'play' ? '<span class="tag">passe</span>' : '') + (s.ph === 'give' && s.gv.some(x => x[0] === i) ? '<span class="tag gold">choisit</span>' : ''))).join('');
   const pileHTML = s.pile.length ? `<div class="fanpile" style="display:flex">${s.pile.map((c, k) => `<div style="margin-left:${k ? 'calc(var(--cw)*-.55)' : 0};rotate:${(k - (s.pile.length - 1) / 2) * 6}deg">${face(c)}</div>`).join('')}</div>` : '<div class="card slotph"></div>';
   const underHTML = s.un && s.un.length ? `<div style="display:flex;opacity:.45">${s.un.map((c, k) => `<div style="margin-left:${k ? 'calc(var(--cw)*-.7)' : 0}">${face(c, { cls: 'sm' })}</div>`).join('')}</div>` : '';
-  const need = s.pile.length ? `${s.pile.length} × plus fort que ${RK[R(s.pile[0])]}` : 'Pli libre';
+  let need = 'Pli libre';
+  if (s.pile.length) {
+    const v = RK[R(s.pile[0])], k = s.pile.length;
+    need = s.req >= 0 ? `${RK[s.req]} ou rien · ${s.run}/4` : `${k} × ${v} ou plus fort${s.run > k ? ` · ${s.run}/4` : ''}`;
+  }
   const center = `${underHTML ? `<div class="pilebox under"><span class="lbl">Avant</span>${underHTML}</div>` : ''}
-    <div class="pilebox"><span class="lbl">${s.pb >= 0 ? `Posé par <b>${ctx.name(s.pb)}</b>` : s.ph === 'play' ? `<b>${ctx.name(s.turn)}</b> ouvre` : 'Fin de manche'}</span>${pileHTML}<span class="lbl">${s.ph === 'play' ? need : ''}</span></div>`;
+    <div class="pilebox"><span class="lbl">${s.ph === 'give' ? 'Échange de cartes' : s.pb >= 0 ? `Posé par <b>${ctx.name(s.pb)}</b>` : s.ph === 'play' ? `<b>${ctx.name(s.turn)}</b> ouvre` : 'Fin de manche'}</span>${pileHTML}<span class="lbl">${s.ph === 'play' ? need : ''}</span></div>`;
   let mine = '', bar = '';
   if (me >= 0) {
     const myTurn = s.ph === 'play' && s.turn === me;
+    const myGive = s.ph === 'give' ? s.gv.find(x => x[0] === me) : null;
     let sel = (App.ui.sel || []).filter(c => s.h[me].includes(c));
-    const okSel = sel.length && (!s.pile.length ? sel.length <= 4 : sel.length === s.pile.length && pv(sel[0]) > pv(s.pile[0]));
-    const playableRank = c => !s.pile.length || (pv(c) > pv(s.pile[0]) && s.h[me].filter(x => R(x) === R(c)).length >= s.pile.length);
-    mine = handHTML(s.h[me], { card: c => face(c, { cls: `can ${sel.includes(c) ? 'sel' : ''} ${myTurn && !playableRank(c) ? 'no' : ''}`, attr: `data-a="pr-sel" data-c="${c}" role="button" tabindex="0"` }) });
+    let okSel;
+    if (myGive) okSel = sel.length === myGive[2];
+    else okSel = sel.length && sel.every(c => R(c) === R(sel[0])) && (!s.pile.length ? sel.length <= 4 : !PRES.canPlay(s, sel));
+    const playableRank = c => { if (!s.pile.length) return true; const same = s.h[me].filter(x => R(x) === R(c)); return same.length >= s.pile.length && !PRES.canPlay(s, same.slice(0, s.pile.length)); };
+    mine = handHTML(s.h[me], { card: c => face(c, { cls: `can ${sel.includes(c) ? 'sel' : ''} ${myTurn && !playableRank(c) ? 'no' : ''}`, attr: `data-a="${myGive ? 'pr-gsel' : 'pr-sel'}" data-c="${c}" role="button" tabindex="0"` }) });
     let p;
-    if (s.ph !== 'play') p = `<p class="prompt">Manche terminée</p>`;
-    else if (s.out.includes(me)) p = `<p class="prompt">Tu es sorti${s.out.indexOf(me) === 0 ? ' en premier !' : '.'} Les autres continuent.</p>`;
-    else if (!myTurn) p = `<p class="prompt">${ctx.name(s.turn)} réfléchit…${s.passed[me] ? ' (tu as passé)' : ''}</p>`;
-    else p = `<p class="prompt me">${s.pile.length ? `À toi : ${s.pile.length} carte${s.pile.length > 1 ? 's' : ''} plus forte${s.pile.length > 1 ? 's' : ''} que ${RK[R(s.pile[0])]}, ou passe` : 'À toi d’ouvrir : pose 1 à 4 cartes identiques'}</p>`;
+    if (myGive) p = `<p class="prompt me">Choisis ${myGive[2]} carte${myGive[2] > 1 ? 's' : ''} à donner à ${ctx.name(myGive[1])}</p><div class="btns"><button class="btn pri" data-a="pr-give" ${okSel ? '' : 'disabled'}>Donner${sel.length ? ' ' + sel.length : ''}</button></div>`;
+    else if (s.ph === 'give') p = `<p class="prompt">Le Président choisit les cartes qu’il rend…</p>`;
+    else if (s.ph !== 'play') p = `<p class="prompt">Manche terminée</p>`;
+    else if (s.out.includes(me) || s.bot2.includes(me)) p = `<p class="prompt">${s.bot2.includes(me) ? 'Tu as fini sur un 2 : tu seras Trouduc.' : `Tu es sorti${s.out.indexOf(me) === 0 ? ' en premier !' : '.'}`} Les autres continuent.</p>`;
+    else if (!myTurn) p = `<p class="prompt">${ctx.name(s.turn)} réfléchit…</p>`;
+    else if (!s.pile.length) p = `<p class="prompt me">À toi d’ouvrir : pose 1 à 4 cartes de même valeur</p>`;
+    else if (s.req >= 0) p = `<p class="prompt me">${RK[s.req]} ou rien : pose ${s.pile.length > 1 ? s.pile.length + ' ' : 'un '}${RK[s.req]} ou passe</p>`;
+    else p = `<p class="prompt me">À toi : ${s.pile.length} carte${s.pile.length > 1 ? 's' : ''} de valeur égale ou plus forte que ${RK[R(s.pile[0])]}, ou passe</p>`;
     bar = p + (myTurn ? `<div class="btns">${s.pile.length ? '<button class="btn" data-a="pr-pass">Passer</button>' : ''}<button class="btn pri" data-a="pr-play" ${okSel ? '' : 'disabled'}>Jouer${sel.length ? ' ' + sel.length : ''}</button></div>` : '');
   } else bar = `<p class="prompt">Tu regardes la partie</p>`;
-  const order = s.out.length ? s.out : range(ctx.n);
-  const over = `<h2>${ctx.subj(s.out[0])} ${s.out[0] === me ? 'deviens' : 'devient'} Président</h2><p>Manche ${s.rnd}. Le Trouduc donnera ses 2 meilleures cartes au Président à la prochaine donne.</p>
+  const order = s.fin || range(ctx.n);
+  const over = `<h2>${ctx.subj(order[0])} ${order[0] === me ? 'deviens' : 'devient'} Président</h2><p>Manche ${s.rnd}. À la prochaine donne, le Trouduc donne ses 2 meilleures cartes au Président, qui lui en rend 2 de son choix.</p>
     <table class="score"><thead><tr><th>Ordre</th><th>Rôle</th><th class="n">Points</th></tr></thead><tbody>
     ${order.map((i, k) => `<tr class="${k === 0 ? 'lead' : ''}"><td><span class="pn">${avatar(ctx.T.seats[i])}${ctx.name(i)}</span></td><td>${PRES.ROLE[s.roles[i] || 0]}</td><td class="n">${s.pts[i] > 0 ? '+' : ''}${s.pts[i]}</td></tr>`).join('')}
     </tbody></table>`;
@@ -2082,7 +2180,7 @@ VIEWS.uno = ctx => {
   const opps = ctx.others.map(i => {
     const one = s.h[i].length === 1 && s.ph === 'play';
     const b = (s.uno[i] && s.h[i].length <= 2 && s.ph === 'play' ? '<span class="tag gold">UNO</span>' : '')
-      + (one && !s.uno[i] && me >= 0 ? `<button class="btn sm pri" data-a="un-catch" data-i="${i}">Contre-UNO</button>` : '');
+      + (one && !s.uno[i] && s.risk === i && me >= 0 ? `<button class="btn sm pri" data-a="un-catch" data-i="${i}">Contre-UNO</button>` : '');
     return pod(ctx, i, miniBacks(s.h[i], 9), `${s.h[i].length} carte${s.h[i].length > 1 ? 's' : ''} · ${s.sc[i]} pts`, b);
   }).join('');
   const myTurn = me >= 0 && s.ph === 'play' && s.turn === me;
@@ -2090,19 +2188,22 @@ VIEWS.uno = ctx => {
   const canDraw = myTurn && !s.dr;
   const center = `
     <div class="pilebox"><span class="lbl">Pioche · ${s.dk.length}</span><div class="stack">${s.dk.length > 1 ? back('') : ''}${s.dk.length ? back('u' + s.dk[s.dk.length - 1], { cls: canDraw ? 'can' : '', attr: canDraw ? 'data-a="un-draw" role="button" tabindex="0" aria-label="Piocher"' : '' }) : '<div class="card slotph"></div>'}</div></div>
-    <div class="pilebox"><span class="lbl"><span class="udot u${s.su}"></span> ${UNO.COL[s.su]} · sens ${s.dir > 0 ? '↻' : '↺'}</span><div class="stack">${under != null ? uno(under) : ''}${uno(top, { cls: 'ring k' + s.su })}</div></div>`;
+    <div class="pilebox"><span class="lbl">${s.su >= 0 ? `<span class="udot u${s.su}"></span> ${UNO.COL[s.su]}` : 'couleur libre'} · sens ${s.dir > 0 ? '↻' : '↺'}${s.pd ? ` · <b>+${s.pd} en attente</b>` : ''}</span><div class="stack">${under != null ? uno(under) : ''}${uno(top, { cls: 'ring k' + s.su })}</div></div>`;
   let mine = '', bar = '';
   if (me >= 0) {
     mine = handHTML(s.h[me], { card: c => { const ok = myTurn && UNO.playable(s, c); return uno(c, { cls: ok ? 'can' : myTurn ? 'no' : '', attr: ok ? `data-a="un-play" data-c="${c}" role="button" tabindex="0"` : '' }); } });
     let p;
     const t = UNO.sym(top);
     const what = /^\d$/.test(t) ? `un ${t}` : t === 'w' || t === 'w4' ? 'un joker' : `un ${UNO.NAME[t]}`;
+    const canAny = myTurn && s.h[me].some(c => UNO.playable(s, c));
     if (s.ph !== 'play') p = `<p class="prompt">Manche terminée</p>`;
     else if (!myTurn) p = `<p class="prompt">${ctx.name(s.turn)} joue…</p>`;
-    else if (s.h[me].some(c => UNO.playable(s, c))) p = `<p class="prompt me">À toi : du ${UNO.COL[s.su]}, ${what} ou un joker${s.dr ? ', ou passe' : ''}</p>`;
-    else p = s.dr ? `<p class="prompt me">Toujours rien à poser : passe</p>` : `<p class="prompt me">Rien à poser : pioche une carte</p>`;
+    else if (s.pd) p = `<p class="prompt me">${canAny ? `Réponds par un ${UNO.NAME[s.pk]} ou pioche ${s.pd} cartes` : `Pas de ${UNO.NAME[s.pk]} : pioche ${s.pd} cartes`}</p>`;
+    else if (s.dr) p = `<p class="prompt me">La carte piochée peut se jouer : pose-la ou passe</p>`;
+    else if (canAny) p = `<p class="prompt me">À toi : ${s.su >= 0 ? `du ${UNO.COL[s.su]}, ` : ''}${what} ou un joker</p>`;
+    else p = `<p class="prompt me">Rien à poser : pioche une carte</p>`;
     const unoBtn = s.ph === 'play' && s.h[me].length <= 2 && !s.uno[me] ? `<button class="btn pri" data-a="un-uno">UNO !</button>` : '';
-    bar = p + `<div class="btns">${unoBtn}${myTurn ? (!s.dr ? `<button class="btn" data-a="un-draw">Piocher</button>` : `<button class="btn pri" data-a="un-pass">Passer</button>`) : ''}</div>`;
+    bar = p + `<div class="btns">${unoBtn}${myTurn ? (s.pd ? `<button class="btn" data-a="un-draw">Piocher ${s.pd}</button>` : !s.dr ? `<button class="btn" data-a="un-draw">Piocher</button>` : `<button class="btn pri" data-a="un-pass">Passer</button>`) : ''}</div>`;
   } else bar = `<p class="prompt">Tu regardes la partie</p>`;
   if (App.ui.pickW != null && myTurn) {
     bar = `<p class="prompt me">Quelle couleur choisis-tu ?</p><div class="btns">${[0, 1, 2, 3].map(k => `<button class="btn" data-a="un-col" data-su="${k}" style="display:inline-flex;gap:8px;align-items:center"><span class="udot u${k}"></span>${UNO.COL[k]}</button>`).join('')}<button class="btn ghost" data-a="un-cancel">Annuler</button></div>`;
@@ -2509,17 +2610,22 @@ const RULES = {
   flip7: ['Le paquet : des numéros de 0 à 12 (un seul 0, un 1, deux 2… jusqu’à douze 12), des cartes bonus (+2 à +10 et ×2) et des cartes action.', 'À ton tour, prends une carte de plus ou arrête-toi pour garder tes points.', 'Si tu tires un numéro que tu as déjà, tu es éliminé de la manche et tu marques 0.', 'Gel : le joueur visé s’arrête tout de suite et garde ses points. Trois cartes : le joueur visé pioche 3 cartes d’affilée. Seconde chance : annule ton prochain doublon.', 'Quand tu tires une carte Gel ou Trois cartes, tu choisis qui la subit (toi compris).', 'Sept numéros différents : Flip 7 ! La manche s’arrête et tu gagnes 15 points de bonus.', 'Score : somme des numéros, doublée par le ×2, plus les bonus. Premier à 200 points.'],
   trio: ['36 cartes, trois exemplaires de chaque nombre de 1 à 12. Une partie des cartes est en main, triée, le reste au centre face cachée.', 'À ton tour, révèle une carte à la fois : la plus petite ou la plus grande carte de la main d’un joueur (toi compris), ou une carte du centre.', 'Tant que les cartes révélées sont identiques, continue. Dès qu’une carte diffère, ton tour s’arrête et tout redevient caché : mémorise bien !', 'Trois cartes identiques : tu gagnes ce trio.', 'Victoire avec 3 trios, ou immédiatement avec le trio de 7.'],
   dekal: ['100 cartes de 1 à 10. Chacun a 16 cartes cachées en grille de 4 × 4.', 'Chaque tour, tout le monde retourne en même temps une carte cachée de sa grille vers le centre, ce qui laisse un trou.', 'Puis, chacun son tour, on reprend une carte du centre et on la pousse dans sa grille par le bord d’une ligne ou d’une colonne qui contient le trou. Les cartes glissent pour le reboucher.', 'On ne peut pas poser la carte directement dans le trou.', 'Après 16 tours, toutes les cartes sont visibles. Les cartes identiques côte à côte (horizontalement ou verticalement) valent 0. Le reste s’additionne.', 'Le plus petit total gagne. La partie s’arrête quand quelqu’un atteint 100 points.'],
-  skyjo: ['Chaque joueur a 12 cartes face cachée en grille de 4 × 3 et en retourne 2 au départ.', 'À ton tour : pioche une carte ou prends celle de la défausse.', 'Une carte piochée peut remplacer une de tes cartes, ou être jetée : tu retournes alors une de tes cartes cachées.', 'Une carte prise dans la défausse doit remplacer une de tes cartes.', 'Trois cartes identiques dans une colonne disparaissent.', 'Quand quelqu’un a tout retourné, chacun joue un dernier tour. S’il n’a pas le plus petit score de la manche, ses points sont doublés.', 'La partie s’arrête quand un joueur atteint 100 points. Le plus petit total gagne.'],
-  uno: ['7 cartes chacun. Pose une carte de la même couleur ou du même chiffre ou symbole que la défausse.', '+2 : le suivant pioche 2 cartes et passe son tour. Passe : le suivant saute son tour. Inversion : le sens change (à deux, tu rejoues).', 'Joker : se pose sur tout, tu choisis la couleur. Joker +4 : pareil, et le suivant pioche 4 cartes et passe son tour.', 'Rien à poser : pioche une carte, pose-la si elle va, sinon passe.', 'Quand il te reste 2 cartes, appuie sur « UNO ! ». Si tu oublies et qu’on te prend avec « Contre-UNO », tu pioches 2 cartes.', 'Le premier sans carte marque les cartes des autres : chiffres à leur valeur, +2, Inversion et Passe = 20, jokers = 50. Premier à 500 points.'],
+  skyjo: ['150 cartes de −2 à 12. Chacun a 12 cartes cachées en grille de 4 colonnes × 3 rangées et en retourne 2 au départ.', 'Celui qui a la plus forte somme visible commence. Aux manches suivantes, c’est celui qui a terminé la manche précédente.', 'À ton tour : prends la carte de la défausse et échange-la avec une de tes cartes (visible ou cachée), ou pioche une carte.', 'Une carte piochée peut être échangée avec une de tes cartes, ou jetée sur la défausse : tu retournes alors une de tes cartes cachées.', 'Trois cartes identiques dans une même colonne sont défaussées.', 'Quand un joueur a retourné toutes ses cartes, chacun des autres joue un dernier tour, puis on retourne tout et on compte.', 'Si celui qui a terminé n’a pas strictement le plus petit score de la manche, et que son score est positif, ses points sont doublés.', 'La partie s’arrête quand un joueur atteint 100 points. Le plus petit total gagne.'],
+  uno: ['108 cartes : 4 couleurs de 0 à 9, des +2, Inversion et Passe, 4 jokers et 4 jokers +4. 7 cartes chacun.', 'Pose une carte de la même couleur, du même chiffre ou du même symbole que la défausse, ou un joker.', 'Si tu ne peux pas ou ne veux pas jouer, pioche une carte. Si elle peut se poser, tu peux la jouer tout de suite ; sinon ton tour s’arrête.', '+2 : le suivant pioche 2 cartes et passe son tour. Passe : le suivant saute son tour. Inversion : le sens change (à deux, elle fait rejouer).', 'Joker : tu choisis la couleur. Joker +4 : tu choisis la couleur et le suivant pioche 4 cartes et passe son tour. Le +4 n’est permis que si tu n’as aucune carte de la couleur demandée (la partie le vérifie pour toi).', 'Première carte retournée : un +2 fait piocher le premier joueur, un Passe le fait sauter, une Inversion change le sens, un joker laisse la couleur libre, un +4 est remis dans la pioche.', 'Crie « UNO ! » quand tu poses ton avant-dernière carte. Si tu oublies et qu’un joueur appuie sur « Contre-UNO » avant le coup suivant, tu pioches 2 cartes.', 'Option (règle maison) : cumul des +2 et des +4. Le joueur visé peut répondre avec la même carte et le suivant pioche le total.', 'Le premier sans carte marque les cartes restées chez les autres : chiffres à leur valeur, +2, Inversion et Passe = 20, jokers = 50. Si la dernière carte est un +2 ou un +4, le suivant pioche quand même. Premier à 500 points.'],
   dobble: ['Chaque joueur a une carte devant lui, la pioche est au centre.', 'Entre n’importe quelles deux cartes, il y a toujours un et un seul symbole en commun.', 'Trouve le symbole commun entre ta carte et celle du centre, et touche-le : tu gagnes la carte du centre, qui devient ta nouvelle carte.', 'Une erreur te bloque une seconde.', 'Quand la pioche est vide, celui qui a le plus de cartes gagne la manche.'],
-  sixq: ['104 cartes numérotées. Chaque carte porte des têtes de bœuf : ce sont des points de pénalité.', 'Quatre rangées sont ouvertes au centre. Chacun reçoit 10 cartes.', 'Tout le monde choisit une carte en secret, puis on les révèle et on les pose de la plus petite à la plus grande.', 'Une carte va au bout de la rangée qui se termine par le nombre le plus proche en dessous d’elle.', 'Si c’est la sixième carte de la rangée, tu ramasses les cinq premières et ta carte démarre la rangée.', 'Si ta carte est plus petite que toutes les fins de rangée, tu choisis une rangée à ramasser.', 'Dès qu’un joueur dépasse 66 têtes, la partie s’arrête. Le moins de têtes gagne.'],
-  president: ['Ordre des cartes : 3, 4, 5 … roi, as, et le 2 au sommet.', 'Le premier joueur pose 1 à 4 cartes de même valeur.', 'Les suivants posent le même nombre de cartes, de valeur plus forte, ou passent. Qui passe ne rejoue pas dans ce pli.', 'Un 2 ferme le pli. Quand tout le monde passe, le dernier à avoir posé relance.', 'Le premier à vider sa main devient Président, le dernier Trouduc (et Vice-président, Vice-trouduc dès 4 joueurs).', 'Donne suivante : le Trouduc donne ses 2 meilleures cartes au Président qui lui rend ses 2 plus faibles, 1 carte entre les vices. Le Trouduc commence.'],
-  mistigri: ['31 cartes du 7 à l’as : le valet de trèfle est retiré, le valet de pique devient le Mistigri.', 'Les paires (même valeur et même teinte, rouge ou noire) sont défaussées automatiquement.', 'À ton tour, tire une carte au hasard dans la main du joueur suivant. Si elle forme une paire, elle part.', 'Celui qui n’a plus de cartes sort. Le dernier joueur garde le Mistigri et perd la manche.', 'Tu peux mélanger ta main à tout moment pour brouiller les pistes.'],
+  sixq: ['104 cartes numérotées. Chaque carte porte des têtes de bœuf : ce sont des points de pénalité.', 'Quatre rangées sont ouvertes au centre. Chacun reçoit 10 cartes.', 'Tout le monde choisit une carte en secret, puis on les révèle et on les pose de la plus petite à la plus grande.', 'Une carte va au bout de la rangée qui se termine par le nombre le plus proche en dessous d’elle.', 'Si c’est la sixième carte de la rangée, tu ramasses les cinq premières et ta carte démarre la rangée.', 'Si ta carte est plus petite que toutes les fins de rangée, tu choisis une rangée à ramasser.', 'Quand un joueur atteint 66 têtes ou plus, la partie s’arrête à la fin de la manche. Le moins de têtes gagne.'],
+  president: ['Jeu de 52 cartes, toutes distribuées. Ordre : 3, 4, 5, 6, 7, 8, 9, 10, V, D, R, As, et le 2 au sommet.', 'Le joueur qui a la dame de cœur ouvre la première manche. Il pose 1, 2, 3 ou 4 cartes de même valeur.', 'Chacun son tour, on pose le même nombre de cartes, de valeur égale ou plus forte, ou on passe.', '« Ou rien » (option) : si quelqu’un pose la même valeur que la carte d’avant, les suivants doivent poser cette valeur ou passer. Exemple : 6, puis 6, « 6 ou rien ! ».', 'Le pli se ferme quand les 4 cartes d’une même valeur ont été posées (le carré), quand quelqu’un pose un 2, ou quand tout le monde a passé. Celui qui a posé en dernier ouvre le pli suivant.', 'Option : un joueur qui a passé peut rejouer dans le même pli quand son tour revient.', 'Le premier à vider sa main est Président, puis Vice-président ; l’avant-dernier est Vice-trouduc et le dernier Trouduc (Vice dès 4 joueurs).', 'Option : il est interdit de finir sur un 2. Celui qui pose un 2 comme dernière carte devient Trouduc.', 'Manche suivante : le Trouduc donne ses 2 meilleures cartes au Président, qui lui rend 2 cartes de son choix ; le Vice-trouduc donne sa meilleure carte au Vice-président, qui lui en rend 1. Le Trouduc commence.', 'Points : Président +2, Vice +1, Vice-trouduc −1, Trouduc −2.'],
+  mistigri: ['31 cartes du 7 à l’as : le valet de trèfle est retiré, le valet de pique reste seul et devient le Mistigri.', 'Toutes les cartes sont distribuées. Chacun pose d’abord les paires qu’il a en main : même valeur et même couleur (rouge avec rouge, noir avec noir).', 'À ton tour, tire une carte au hasard dans la main de ton voisin. Si elle forme une paire, elle part. C’est ensuite à ce voisin de tirer chez le sien.', 'Celui qui n’a plus de cartes sort. Le dernier joueur qui garde le Mistigri perd la manche.', 'Tu peux mélanger ta main à tout moment pour brouiller les pistes.'],
   sol: ['Range toutes les cartes sur les quatre piles, de l’as au roi, par couleur.', 'Dans les colonnes, empile en descendant et en alternant rouge et noir. Seul un roi va sur une colonne vide.', 'Touche la pioche pour retourner des cartes. Touche une carte pour qu’elle se range toute seule, ou fais-la glisser.', 'Chaque donne est vérifiée par un solveur : elle a toujours une solution.', 'Niveaux : pioche 1 puis pioche 3, passages de pioche limités, annulations limitées, donnes de plus en plus retorses.', 'Gagne pour monter d’un niveau. Si plus aucun coup n’est possible, ou si tu abandonnes, tu repars au niveau 1.']
 };
 function showRules(g){
   const name = g === 'sol' ? 'Solitaire' : LOGIC[g].name;
-  modal(`<h2>${name}</h2><ul class="rules">${RULES[g].map(r => `<li>${r}</li>`).join('')}</ul><div class="btns"><button class="btn pri" data-a="modal-close">Compris</button></div>`);
+  let tbl = '';
+  if (g !== 'sol' && LOGIC[g].OPTS && App.view === 'table' && App.T && App.T.gm === g) {
+    const o = App.T.ph === 'play' && App.T.s.o ? App.T.s.o : optsOf(App.T);
+    tbl = `<p style="margin-top:16px"><b style="color:var(--fg)">Sur cette table :</b></p><ul class="rules">${LOGIC[g].OPTS.map(x => `<li>${x.label} : <b>${o[x.k] ? 'oui' : 'non'}</b></li>`).join('')}</ul>`;
+  }
+  modal(`<h2>${name}</h2><ul class="rules">${RULES[g].map(r => `<li>${r}</li>`).join('')}</ul>${tbl}<div class="btns"><button class="btn pri" data-a="modal-close">Compris</button></div>`);
 }
 
 /* =================== main render + events =================== */
@@ -2581,6 +2687,8 @@ document.addEventListener('click', e => {
     }
     case 'pr-play': { const cs = App.ui.sel || []; App.ui.sel = []; g({ t: 'play', cs }); break; }
     case 'pr-pass': App.ui.sel = []; g({ t: 'pass' }); break;
+    case 'pr-gsel': { const c = +el.dataset.c, s = viewT().s, gv = s.gv.find(x => x[0] === me); let sel = (App.ui.sel || []).filter(x => s.h[me].includes(x)); sel = sel.includes(c) ? sel.filter(x => x !== c) : [...sel, c].slice(-(gv ? gv[2] : 1)); App.ui.sel = sel; renderTable(); break; }
+    case 'pr-give': { const cs = App.ui.sel || []; App.ui.sel = []; g({ t: 'give', cs }); break; }
     // mistigri
     case 'mi-draw': g({ t: 'draw', k: +el.dataset.ix }); break;
     case 'mi-shuf': g({ t: 'shuf' }); break;
@@ -2633,6 +2741,10 @@ document.addEventListener('click', e => {
 document.addEventListener('keydown', e => {
   if ((e.key === 'Enter' || e.key === ' ') && e.target.matches('[role="button"][data-a]')) { e.preventDefault(); e.target.click(); }
   if (e.key === 'Escape' && $('#modal .sheet') && !$('#modal [data-over]')) modal('');
+});
+document.addEventListener('change', e => {
+  const k = e.target.dataset && e.target.dataset.opt;
+  if (k && App.T) { const v = e.target.checked ? 1 : 0; LS.set('brelan.opt.' + App.T.gm, Object.assign({}, LS.get('brelan.opt.' + App.T.gm, {}), { [k]: v })); send({ t: 'opt', k, v }); }
 });
 document.addEventListener('input', e => {
   if (e.target.id === 'nm') { Me.name = cleanName(e.target.value); LS.set('brelan.name', Me.name); Net.set({ n: Me.name }); $('#meav').innerHTML = avatar(Me, 'lg'); }
