@@ -170,10 +170,10 @@ input{font:inherit;color:inherit}
 @keyframes flash{0%{box-shadow:0 0 0 6px var(--bad)}100%{box-shadow:inset 0 0 0 calc(var(--dw)*.026) var(--brass)}}
 
 /* ---------- toasts / sheets ---------- */
-#toasts{position:fixed;left:50%;bottom:calc(16px + env(safe-area-inset-bottom,0px));translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:100;pointer-events:none;width:min(92vw,480px)}
+#toasts{position:fixed;left:50%;top:calc(62px + env(safe-area-inset-top,0px));translate:-50% 0;display:flex;flex-direction:column;align-items:center;gap:8px;z-index:100;pointer-events:none;width:min(92vw,480px)}
 .toast{background:var(--night2);border:1px solid var(--line2);padding:10px 16px;border-radius:12px;box-shadow:0 10px 30px color-mix(in srgb,var(--ink) 60%,transparent);font-weight:550;text-align:center;animation:tin .25s ease-out}
 .toast.big{font-family:var(--f-disp);font-size:22px;color:var(--brass2);border-color:var(--brass)}
-@keyframes tin{from{opacity:0;translate:0 10px}to{opacity:1;translate:0 0}}
+@keyframes tin{from{opacity:0;translate:0 -10px}to{opacity:1;translate:0 0}}
 .modal{position:fixed;inset:0;z-index:90;background:color-mix(in srgb,var(--ink) 72%,transparent);display:grid;place-items:center;padding:16px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
 .sheet{background:var(--night);border:1px solid var(--line2);border-radius:20px;padding:24px;width:min(100%,540px);max-height:calc(100% - 20px);overflow:auto;box-shadow:0 30px 80px color-mix(in srgb,var(--ink) 70%,transparent);animation:tin .25s ease-out}
 .sheet h2{font-family:var(--f-disp);font-weight:400;font-size:32px;margin:0 0 4px;color:var(--brass2);text-wrap:balance;line-height:1.05}
@@ -305,7 +305,7 @@ input{font:inherit;color:inherit}
 .mini.loose .card:first-child{margin-left:0}
 .mini .more{font-size:11px;color:var(--mut);align-self:center;margin-left:4px}
 .mg{display:grid;grid-template-columns:repeat(4,var(--cw));gap:2px}
-.center{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;gap:clamp(12px,4vw,30px);position:relative;--cw:clamp(56px,min(14vw,10.5vh),92px);flex-wrap:wrap;align-content:center}
+.center{flex:1;min-height:0;overflow-y:auto;overflow-x:hidden;display:flex;align-items:safe center;justify-content:safe center;padding-block:4px;gap:clamp(12px,4vw,30px);position:relative;--cw:clamp(56px,min(14vw,10.5vh),92px);flex-wrap:wrap;align-content:safe center}
 .pilebox{display:flex;flex-direction:column;align-items:center;gap:6px}
 .pilebox .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:650;white-space:nowrap}
 .pilebox .lbl b{color:var(--fg)}
@@ -317,8 +317,8 @@ input{font:inherit;color:inherit}
 .btns{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .waiting{flex:1;display:grid;place-items:center;text-align:center;color:var(--mut)}
 .waiting h2{font-family:var(--f-disp);font-weight:400;color:var(--fg);font-size:28px;margin:0 0 8px}
-.hand{display:flex;justify-content:center;width:100%;max-width:calc(var(--n) * var(--cw) * .8 + var(--cw) * .4);padding-top:18px;margin-inline:auto}
-.hand .slot{flex:0 1 calc(var(--cw)*.8);min-width:0;display:flex;transform-origin:50% 140%;transform:rotate(calc(var(--d)*1.5deg)) translateY(calc(var(--d)*var(--d)*.8px))}
+.hand{display:flex;justify-content:center;width:100%;max-width:calc(var(--n) * var(--cw) * .8 + var(--cw) * .4);padding-top:18px;padding-bottom:14px;margin-inline:auto}
+.hand .slot{flex:0 1 calc(var(--cw)*.8);min-width:0;display:flex;transform-origin:50% 140%;transform:rotate(calc(var(--d)*1.1deg)) translateY(calc(var(--d)*var(--d)*.35px))}
 .hand .slot:last-child{flex:0 0 var(--cw)}
 .hand .card{top:0;transition:top .15s ease}
 .hand .card.sel{top:-20px}
@@ -401,6 +401,30 @@ input{font:inherit;color:inherit}
 @keyframes deal{0%,100%{translate:0 0}50%{translate:0 -14px}}
 @media (max-width:560px){.solbar .hide-s{display:none}}
 
+/* Trio */
+.trow-h{display:flex;gap:2px;--cw:16px;min-height:calc(var(--cw)*1.4)}
+.trow-h .card.up{--cw:16px;translate:0 -3px}
+.trow-h .card.end{outline:2px solid var(--brass2);outline-offset:1px;border-radius:3px}
+.trbtns{display:flex;gap:6px;justify-content:center}
+.trbtns .btn.sm{padding:.3em .6em;font-size:12px}
+.center.trio{flex-wrap:nowrap}
+.trzone{display:flex;gap:clamp(14px,4vw,40px);align-items:center;justify-content:center;flex-wrap:wrap;max-width:100%}
+.trsearch,.trmid{display:flex;flex-direction:column;align-items:center;gap:8px}
+.trsearch .lbl,.trmid .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:650;white-space:nowrap}
+.trsearch .lbl b,.trmid .lbl b{color:var(--fg)}
+.trslots{display:flex;gap:8px;padding:10px;border-radius:16px;background:color-mix(in srgb,var(--ink) 40%,transparent);border:1px solid color-mix(in srgb,var(--paper) 10%,transparent);--cw:clamp(46px,min(13vw,9.5vh),78px);transition:border-color .2s,box-shadow .2s}
+.trslots.win{border-color:var(--ok);box-shadow:0 0 0 3px color-mix(in srgb,var(--ok) 25%,transparent)}
+.trslots.fail{border-color:var(--bad)}
+.card.bad .cf{box-shadow:inset 0 0 0 2px var(--bad),0 0 16px color-mix(in srgb,var(--bad) 50%,transparent)}
+.trgrid{display:grid;grid-template-columns:repeat(var(--cols),var(--cw));gap:5px;--cw:clamp(28px,min(8.5vw,6vh),48px)}
+.trgrid .card.gone{border:1px dashed color-mix(in srgb,var(--paper) 12%,transparent);border-radius:calc(var(--cw)*.09)}
+.mine.trio{--cw:clamp(34px,min(10.5vw,8vh),64px);gap:8px}
+.trme{display:flex;align-items:center;justify-content:center;gap:10px 16px;flex-wrap:wrap}
+.tchips{display:inline-flex;gap:4px}
+.trhand{display:flex;justify-content:center;max-width:100%;padding-top:10px}
+.trhand .card{margin-left:calc(var(--cw)*-.18);transition:translate .15s}
+.trhand .card:first-child{margin-left:0}
+.trhand .card.up{translate:0 -10px}
 @media (max-width:420px){.hide-xs{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -2360,31 +2384,49 @@ VIEWS.trio = ctx => {
   const myTurn = me >= 0 && s.ph === 'play' && s.turn === me;
   const revP = (i, k) => s.rev.some(r => r.w === 'p' && r.i === i && r.k === k);
   const revC = k => s.rev.some(r => r.w === 'c' && r.k === k);
-  const trios = i => s.tr[i].map(v => `<span class="tchip r${v}">${v}</span>`).join('');
+  const chips = i => s.tr[i].length ? `<span class="tchips">${s.tr[i].map(v => `<span class="tchip r${v}">${v}</span>`).join('')}</span>` : '';
+  const ends = i => { const av = TRIO.avail(s, i); return av.length ? [av[0], av[av.length - 1]] : [-1, -1]; };
+  const handRow = (i, cls) => {
+    const [lo, hi] = ends(i);
+    return s.h[i].map((id, k) => {
+      if (revP(i, k)) return trioC(id, { cls: cls + ' up' });
+      const end = myTurn && (k === lo || k === hi);
+      const attr = end ? `data-a="tr-p" data-i="${i}" data-e="${k === lo ? 'lo' : 'hi'}" role="button" tabindex="0" aria-label="${k === lo ? 'Plus petite' : 'Plus grande'} carte de ${i === me ? 'ta main' : esc(ctx.T.seats[i].n)}"` : '';
+      return back('t' + id, { cls: cls + (end ? ' can end' : ''), attr });
+    }).join('');
+  };
   const opps = ctx.others.map(i => {
     const av = TRIO.avail(s, i).length;
-    const hand = `<div class="mini">${s.h[i].map((id, k) => revP(i, k) ? trioC(id, { cls: 'xs' }) : back('t' + id, { cls: 'xs' })).join('')}</div>`;
-    const btn = myTurn && av ? `<div class="btns"><button class="btn sm" data-a="tr-p" data-i="${i}" data-e="lo">Min</button><button class="btn sm" data-a="tr-p" data-i="${i}" data-e="hi">Max</button></div>` : '';
-    return pod(ctx, i, hand + btn, `${s.h[i].length} carte${s.h[i].length > 1 ? 's' : ''} · ${s.tr[i].length} trio${s.tr[i].length > 1 ? 's' : ''}`, trios(i));
+    const inner = `<div class="trow-h">${handRow(i, 'xs')}</div>`
+      + (myTurn && av ? `<div class="trbtns"><button class="btn sm" data-a="tr-p" data-i="${i}" data-e="lo">− Min</button><button class="btn sm" data-a="tr-p" data-i="${i}" data-e="hi">Max +</button></div>` : '');
+    return pod(ctx, i, inner, `${s.h[i].length} carte${s.h[i].length > 1 ? 's' : ''}`, chips(i));
   }).join('');
-  const ctrCells = s.cv.map((id, k) => id < 0 ? '<div class="card slotph" style="opacity:.3"></div>' : revC(k) ? trioC(id, { cls: 'glow' }) : back('t' + id, { cls: myTurn ? 'can' : '', attr: myTurn ? `data-a="tr-c" data-k="${k}" role="button" tabindex="0" aria-label="Carte du centre ${k + 1}"` : '' })).join('');
   const revVals = s.rev.map(r => val(r.c));
-  const status = s.ph === 'fail' ? `Raté : ${revVals.join(' puis ')}` : s.ph === 'won' ? `Trio de ${revVals[0]} !` : s.rev.length ? `Révélé : ${revVals.join(', ')}` : `Au tour de <b>${ctx.name(s.turn)}</b>`;
-  const center = `<div class="pilebox"><span class="lbl">${status}</span><div class="ctrgrid">${ctrCells}</div></div>`;
+  const slots = [0, 1, 2].map(k => s.rev[k] ? trioC(s.rev[k].c, { cls: s.ph === 'fail' && k === s.rev.length - 1 ? 'bad' : 'glow' }) : '<div class="card slotph"></div>').join('');
+  const status = s.ph === 'fail' ? `Raté : ${revVals.join(' puis ')}` : s.ph === 'won' ? `Trio de ${revVals[0]} !` : s.rev.length ? `Il faut un autre ${revVals[0]}` : s.ph === 'play' ? `Au tour de <b>${ctx.name(s.turn)}</b>` : 'Partie terminée';
+  const ctrCells = s.cv.map((id, k) => id < 0 ? '<div class="card gone"></div>' : revC(k) ? trioC(id, { cls: 'up' }) : back('t' + id, { cls: myTurn ? 'can' : '', attr: myTurn ? `data-a="tr-c" data-k="${k}" role="button" tabindex="0" aria-label="Carte du centre ${k + 1}"` : '' })).join('');
+  const cols = s.cv.length > 8 ? 5 : 4;
+  const center = `<div class="trzone">
+      <div class="trsearch"><span class="lbl">${status}</span><div class="trslots ${s.ph === 'fail' ? 'fail' : s.ph === 'won' ? 'win' : ''}">${slots}</div></div>
+      <div class="trmid"><span class="lbl">Centre · ${s.cv.filter(x => x >= 0).length} cartes</span><div class="trgrid" style="--cols:${cols}">${ctrCells}</div></div>
+    </div>`;
   let mine = '', bar = '';
   if (me >= 0) {
-    mine = (s.h[me].length ? handHTML(s.h[me], { cls: 'solo', card: (id, k) => trioC(id, { cls: revP(me, k) ? 'sel glow' : '' }) }) : '<p class="note">Plus de cartes en main.</p>')
-      + `<div class="who" style="max-width:none">${avatar(ctx.T.seats[me])}<div class="nm"><span>Toi · ${s.tr[me].length} trio${s.tr[me].length > 1 ? 's' : ''} ${trios(me)}</span><small>3 trios ou le trio de 7 pour gagner</small></div></div>`;
     const av = TRIO.avail(s, me).length;
-    if (myTurn) bar = `<p class="prompt me">${s.rev.length ? `Trouve un autre ${revVals[0]}` : 'Révèle une carte : la plus petite ou la plus grande d’un joueur, ou une carte du centre'}</p>${av ? `<div class="btns"><button class="btn sm" data-a="tr-p" data-i="${me}" data-e="lo">Ma plus petite</button><button class="btn sm" data-a="tr-p" data-i="${me}" data-e="hi">Ma plus grande</button></div>` : ''}`;
+    mine = `<div class="trme">
+        <div class="who" style="max-width:none">${avatar(ctx.T.seats[me])}<div class="nm"><span>Toi · ${s.tr[me].length} trio${s.tr[me].length > 1 ? 's' : ''}</span><small>3 trios ou le trio de 7 pour gagner</small></div>${chips(me)}</div>
+        ${myTurn && av ? `<div class="trbtns"><button class="btn sm" data-a="tr-p" data-i="${me}" data-e="lo">− Ma plus petite</button><button class="btn sm" data-a="tr-p" data-i="${me}" data-e="hi">Ma plus grande +</button></div>` : ''}
+      </div>
+      <div class="trhand">${s.h[me].map((id, k) => trioC(id, { cls: revP(me, k) ? 'up glow' : '' })).join('') || '<p class="note">Plus de cartes en main.</p>'}</div>`;
+    if (myTurn) bar = `<p class="prompt me">${s.rev.length ? `Trouve un autre ${revVals[0]} : la plus petite ou la plus grande carte d’un joueur, ou une carte du centre` : 'Révèle une carte : la plus petite ou la plus grande d’un joueur, ou une carte du centre'}</p>`;
     else bar = `<p class="prompt">${s.ph === 'play' ? `${ctx.name(s.turn)} cherche un trio… retiens bien les cartes révélées.` : s.ph === 'end' ? 'Partie terminée' : status}</p>`;
   } else bar = `<p class="prompt">Tu regardes la partie</p>`;
   const order = range(ctx.n).sort((a, b) => s.tr[b].length - s.tr[a].length);
   const over = `<h2>${s.win >= 0 ? `${ctx.subj(s.win)} ${s.win === me ? 'gagnes' : 'gagne'} !` : 'Partie terminée'}</h2><p>Manche ${s.rnd}. Victoire avec 3 trios, ou tout de suite avec le trio de 7.</p>
     <table class="score"><thead><tr><th>Joueur</th><th>Trios</th><th class="n">Victoires</th></tr></thead><tbody>
-    ${order.map((i, k) => `<tr class="${i === s.win ? 'lead' : ''}"><td><span class="pn">${avatar(ctx.T.seats[i])}${ctx.name(i)}</span></td><td>${trios(i) || '—'}</td><td class="n">${s.wins[i]}</td></tr>`).join('')}
+    ${order.map(i => `<tr class="${i === s.win ? 'lead' : ''}"><td><span class="pn">${avatar(ctx.T.seats[i])}${ctx.name(i)}</span></td><td>${chips(i) || '—'}</td><td class="n">${s.wins[i]}</td></tr>`).join('')}
     </tbody></table>`;
-  return { opps, center, mine, bar, over };
+  return { opps, center, centerCls: 'trio', mine, mineCls: 'trio', bar, over };
 };
 
 /* =================== SOLITAIRE (levels, solvable deals) =================== */
