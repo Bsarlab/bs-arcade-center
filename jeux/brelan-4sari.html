@@ -326,11 +326,6 @@ input{font:inherit;color:inherit}
 .hand .card.sel.can:hover{top:-22px}
 .hand .card.no .cf{filter:saturate(.45) brightness(.8)}
 .f7mine{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;max-width:100%}
-.mine.dek{--cw:clamp(38px,min(12.5vw,8vh),68px)}
-.dkgrid{display:grid;grid-template-columns:28px repeat(4,var(--cw)) 28px;grid-template-rows:28px repeat(4,calc(var(--cw)*1.4)) 28px;gap:4px;align-items:center;justify-items:center}
-.dkarrow{appearance:none;width:28px;height:28px;border-radius:50%;border:1px solid var(--brass);background:color-mix(in srgb,var(--brass) 22%,transparent);color:var(--brass2);display:grid;place-items:center;padding:0;animation:pulse 1.4s ease-in-out infinite}
-.dkarrow svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
-.dkarrow:hover{background:var(--brass);color:var(--ink)}
 @keyframes pulse{50%{box-shadow:0 0 0 5px color-mix(in srgb,var(--brass) 20%,transparent)}}
 .ctrrow{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
 .ctrrow .card.sel{translate:0 -10px}
@@ -425,6 +420,30 @@ input{font:inherit;color:inherit}
 .trhand .card{margin-left:calc(var(--cw)*-.18);transition:translate .15s}
 .trhand .card:first-child{margin-left:0}
 .trhand .card.up{translate:0 -10px}
+/* Dékal */
+.center.dek{flex-wrap:nowrap}
+.dkplay{display:flex;align-items:center;justify-content:center;gap:clamp(14px,4vw,56px);flex-wrap:wrap;max-width:100%}
+.dkpick{display:flex;flex-direction:column;align-items:center;gap:8px;--cw:clamp(40px,min(11vw,8vh),66px);max-width:min(100%,360px)}
+.dkpick .lbl{font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--mut);font-weight:650;white-space:nowrap}
+.dkpick .lbl b{color:var(--fg)}
+.dkinfo{max-width:30ch;text-align:center;color:var(--mut);font-size:13.5px;padding:12px 14px;border-radius:14px;border:1px dashed color-mix(in srgb,var(--paper) 14%,transparent)}
+.dkorder{font-size:12px;color:var(--mut);text-align:center}
+.dkboard{display:flex;flex-direction:column;align-items:center;gap:6px;--cw:clamp(30px,min(11.5vw,calc((100vh - 430px) / 6)),64px)}
+.dkgrid{display:grid;grid-template-columns:24px repeat(4,var(--cw)) 24px;grid-template-rows:24px repeat(4,calc(var(--cw)*1.4)) 24px;gap:4px;align-items:center;justify-items:center}
+.dkgrid .card.dkhole{border:2px dashed var(--brass);border-radius:calc(var(--cw)*.09);background:color-mix(in srgb,var(--brass) 10%,transparent)}
+.dkgrid .card.inline .cf{box-shadow:inset 0 0 0 1px var(--paperline),0 0 0 2px color-mix(in srgb,var(--brass) 45%,transparent)}
+.dkarrow{appearance:none;width:24px;height:24px;border-radius:50%;border:1px solid var(--brass);background:color-mix(in srgb,var(--brass) 18%,transparent);color:var(--brass2);display:grid;place-items:center;padding:0;opacity:.6}
+.dkarrow.ready{opacity:1;background:var(--brass);color:var(--ink);animation:pulse 1.4s ease-in-out infinite}
+.dkarrow svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+.dkarrow:hover{opacity:1;background:var(--brass);color:var(--ink)}
+@media (min-width:700px){
+  .dkplay{flex-wrap:nowrap}
+  .dkboard{--cw:clamp(34px,calc((100vh - 330px) / 6.2),74px)}
+  .dkgrid{grid-template-columns:28px repeat(4,var(--cw)) 28px;grid-template-rows:28px repeat(4,calc(var(--cw)*1.4)) 28px}
+  .dkarrow{width:28px;height:28px}
+  .dkpick{--cw:clamp(48px,9vh,76px)}
+  .dkpick .ctrrow{display:grid;grid-template-columns:repeat(2,var(--cw));gap:8px}
+}
 @media (max-width:420px){.hide-xs{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -2053,6 +2072,7 @@ function renderTable(force){
   const prev = snap(root);
   root.innerHTML = `<div class="tv">${topBar(T)}${body}</div>`;
   const o2 = $('.opps'); if (o2) o2.scrollLeft = sl;
+  if (typeof fitBoards === 'function') fitBoards();
   if (flip(root, prev)) Snd.play('card');
 }
 function overSheet(ctx, inner){
@@ -2334,49 +2354,61 @@ VIEWS.dekal = ctx => {
   const visScore = i => { const g = s.g[i].map((x, k) => s.u[i][k] ? x : -1); return DEKAL.score(g); };
   const cell = (i, k, cls, attr = '') => {
     const id = s.g[i][k];
-    if (id < 0) return `<div class="card slotph ${cls}"></div>`;
+    if (id < 0) return `<div class="card dkhole ${cls}"></div>`;
     const z = end && s.zero[i] && s.zero[i][k] ? ' dim' : '';
     return s.u[i][k] ? dekC(id, { cls: cls + z, attr }) : back('e' + id, { cls, attr });
   };
-  const opps = ctx.others.map(i => pod(ctx, i, `<div class="mg" style="--cw:15px">${range(16).map(k => cell(i, k, 'xs')).join('')}</div>`,
+  const opps = ctx.others.map(i => pod(ctx, i, `<div class="mg" style="--cw:14px">${range(16).map(k => cell(i, k, 'xs')).join('')}</div>`,
     `${end ? s.rs[i] : visScore(i)} ${end ? 'pts' : 'visibles'} · total ${s.tot[i]}`,
-    s.ph === 'pick' ? (s.sel[i] >= 0 ? '<span class="tag green">a choisi</span>' : '<span class="tag">choisit…</span>') : '')).join('');
+    s.ph === 'pick' ? (s.sel[i] >= 0 ? '<span class="tag green">a choisi</span>' : '<span class="tag">choisit…</span>') : s.ph === 'take' && s.tq[0] === i ? '<span class="tag gold">prend</span>' : '')).join('');
   const myTake = me >= 0 && s.ph === 'take' && s.tq[0] === me;
-  let selC = s.ctr.includes(App.ui.dkc) ? App.ui.dkc : (myTake && s.ctr.length === 1 ? s.ctr[0] : -1);
-  const center = s.ph === 'take'
-    ? `<div class="pilebox"><span class="lbl">${myTake ? 'Prends une carte' : `<b>${ctx.name(s.tq[0])}</b> reprend une carte`}</span><div class="ctrrow">${s.ctr.map(id => dekC(id, { cls: myTake ? 'can' + (id === selC ? ' glow sel' : '') : '', attr: myTake ? `data-a="dk-c" data-c="${id}" role="button" tabindex="0"` : '' })).join('')}</div></div>`
-    : s.ph === 'pick' ? `<div class="pilebox"><span class="lbl">Tour ${s.tn + 1} sur 16</span><p class="note" style="margin:0;text-align:center">Chacun retourne une carte cachée en même temps.</p></div>`
-    : `<div class="pilebox"><span class="lbl">Manche ${s.rnd} terminée</span></div>`;
-  let mine = '', bar = '';
+  const selC = s.ctr.includes(App.ui.dkc) ? App.ui.dkc : (myTake && s.ctr.length === 1 ? s.ctr[0] : -1);
+  // left / top: the cards to take
+  let pick;
+  if (s.ph === 'take') {
+    const order = s.tq.map(i => i === me ? 'toi' : esc(ctx.T.seats[i].n)).join(' → ');
+    pick = `<div class="dkpick"><span class="lbl">${myTake ? 'À toi de prendre une carte' : `<b>${ctx.name(s.tq[0])}</b> prend une carte`}</span>
+      <div class="ctrrow">${s.ctr.map(id => dekC(id, { cls: myTake ? 'can' + (id === selC ? ' glow sel' : '') : '', attr: myTake ? `data-a="dk-c" data-c="${id}" role="button" tabindex="0"` : '' })).join('')}</div>
+      <span class="dkorder">Ordre : ${order}</span></div>`;
+  } else if (s.ph === 'pick') {
+    pick = `<div class="dkpick"><span class="lbl">Tour ${s.tn + 1} sur 16</span><div class="dkinfo">Chacun retourne en même temps une carte cachée de sa grille. Elles iront au centre.</div></div>`;
+  } else pick = `<div class="dkpick"><span class="lbl">Manche ${s.rnd} terminée</span></div>`;
+  let board = '', bar = '';
   if (me >= 0) {
     const hole = s.hole[me], sides = myTake ? DEKAL.sides(hole) : [];
     const r = hole >> 2, c = hole & 3;
-    const arrow = side => `<button class="dkarrow" data-a="dk-ins" data-side="${side}" aria-label="Pousser par ${{ L: 'la gauche', R: 'la droite', T: 'le haut', B: 'le bas' }[side]}"><svg viewBox="0 0 24 24"><path d="${{ L: 'M5 12h14M13 6l6 6-6 6', R: 'M19 12H5M11 6l-6 6 6 6', T: 'M12 5v14M6 13l6 6 6-6', B: 'M12 19V5M6 11l6-6 6 6' }[side]}"/></svg></button>`;
+    const NAMES = { L: 'la gauche', R: 'la droite', T: 'le haut', B: 'le bas' };
+    const arrow = side => `<button class="dkarrow ${selC >= 0 ? 'ready' : ''}" data-a="dk-ins" data-side="${side}" aria-label="Pousser par ${NAMES[side]}"><svg viewBox="0 0 24 24"><path d="${{ L: 'M5 12h14M13 6l6 6-6 6', R: 'M19 12H5M11 6l-6 6 6 6', T: 'M12 5v14M6 13l6 6 6-6', B: 'M12 19V5M6 11l6-6 6 6' }[side]}"/></svg></button>`;
     const cells = [];
     for (let y = -1; y <= 4; y++) for (let x = -1; x <= 4; x++) {
-      if ((y === -1 || y === 4) && (x === -1 || x === 4)) { cells.push('<span></span>'); continue; }
-      if (y === -1 || y === 4 || x === -1 || x === 4) {
-        let side = null;
-        if (myTake && hole >= 0) { if (x === -1 && y === r && sides.includes('L')) side = 'L'; if (x === 4 && y === r && sides.includes('R')) side = 'R'; if (y === -1 && x === c && sides.includes('T')) side = 'T'; if (y === 4 && x === c && sides.includes('B')) side = 'B'; }
-        cells.push(side ? arrow(side) : '<span></span>'); continue;
+      const edge = y === -1 || y === 4 || x === -1 || x === 4;
+      if (!edge) {
+        const k = y * 4 + x;
+        const can = s.ph === 'pick' && !s.u[me][k] && s.g[me][k] >= 0;
+        const inLine = myTake && hole >= 0 && (y === r || x === c) && s.g[me][k] >= 0;
+        cells.push(cell(me, k, (can ? 'can' + (s.sel[me] === k ? ' glow' : '') : '') + (inLine ? ' inline' : ''), can ? `data-a="dk-pick" data-cell="${k}" role="button" tabindex="0"` : ''));
+        continue;
       }
-      const k = y * 4 + x;
-      const can = s.ph === 'pick' && !s.u[me][k] && s.g[me][k] >= 0;
-      cells.push(cell(me, k, can ? 'can' + (s.sel[me] === k ? ' glow' : '') : '', can ? `data-a="dk-pick" data-k="${k}" role="button" tabindex="0"` : ''));
+      let side = null;
+      if (myTake && hole >= 0) { if (x === -1 && y === r && sides.includes('L')) side = 'L'; if (x === 4 && y === r && sides.includes('R')) side = 'R'; if (y === -1 && x === c && sides.includes('T')) side = 'T'; if (y === 4 && x === c && sides.includes('B')) side = 'B'; }
+      cells.push(side ? arrow(side) : '<span></span>');
     }
-    mine = `<div class="dkgrid">${cells.join('')}</div><div class="who" style="max-width:none">${avatar(ctx.T.seats[me])}<div class="nm"><span>Toi · ${end ? s.rs[me] + ' points' : visScore(me) + ' points visibles'}</span><small>Total ${s.tot[me]} · les paires côte à côte comptent 0</small></div></div>`;
-    if (s.ph === 'pick') bar = s.sel[me] >= 0 ? `<p class="prompt">Carte choisie. Tu peux encore changer en attendant les autres…</p>` : `<p class="prompt me">Touche une carte cachée de ta grille pour la retourner au centre.</p>`;
-    else if (myTake) bar = `<p class="prompt me">${selC < 0 ? 'Choisis une carte au centre, puis une flèche pour la pousser dans ta grille.' : 'Touche une flèche : la carte entre par ce côté et pousse la ligne vers le trou.'}</p>`;
+    board = `<div class="dkboard">
+      <div class="who" style="max-width:none">${avatar(ctx.T.seats[me])}<div class="nm"><span>Toi · ${end ? s.rs[me] + ' points' : visScore(me) + ' points visibles'}</span><small>Total ${s.tot[me]} · deux cartes identiques côte à côte valent 0</small></div></div>
+      <div class="dkgrid">${cells.join('')}</div></div>`;
+    if (s.ph === 'pick') bar = s.sel[me] >= 0 ? `<p class="prompt">Carte choisie. Tu peux encore changer en attendant les autres…</p>` : `<p class="prompt me">Touche une carte cachée de ta grille pour la retourner.</p>`;
+    else if (myTake) bar = `<p class="prompt me">${selC < 0 ? 'Choisis une carte, puis une flèche dorée pour la faire entrer dans ta grille.' : 'Touche une flèche : la carte entre par ce bord et la ligne glisse pour boucher le trou.'}</p>`;
     else if (s.ph === 'take') bar = `<p class="prompt">${ctx.name(s.tq[0])} reprend une carte…</p>`;
     else bar = `<p class="prompt">Manche terminée</p>`;
   } else bar = `<p class="prompt">Tu regardes la partie</p>`;
+  const center = `<div class="dkplay">${pick}${board}</div>`;
   const order = range(ctx.n).sort((a, b) => s.tot[a] - s.tot[b]);
   const over = `<h2>${s.ph === 'over' ? `${ctx.subj(order[0])} ${order[0] === me ? 'gagnes' : 'gagne'} la partie !` : `Fin de la manche ${s.rnd}`}</h2>
     <p>Les cartes identiques côte à côte (pas en diagonale) valent 0. Le reste s’additionne. La partie s’arrête à 100 points : le plus petit total gagne.</p>
     <table class="score"><thead><tr><th>Joueur</th><th class="n">Manche</th><th class="n">Total</th></tr></thead><tbody>
     ${order.map((i, k) => `<tr class="${k === 0 ? 'lead' : ''}"><td><span class="pn">${avatar(ctx.T.seats[i])}${ctx.name(i)}</span></td><td class="n">${s.rs[i] ?? ''}</td><td class="n">${s.tot[i]}</td></tr>`).join('')}
     </tbody></table>`;
-  return { opps, center, mine, mineCls: 'dek', bar, over };
+  return { opps, center, centerCls: 'dek', mine: '', bar, over };
 };
 
 VIEWS.trio = ctx => {
@@ -2404,7 +2436,7 @@ VIEWS.trio = ctx => {
   const revVals = s.rev.map(r => val(r.c));
   const slots = [0, 1, 2].map(k => s.rev[k] ? trioC(s.rev[k].c, { cls: s.ph === 'fail' && k === s.rev.length - 1 ? 'bad' : 'glow' }) : '<div class="card slotph"></div>').join('');
   const status = s.ph === 'fail' ? `Raté : ${revVals.join(' puis ')}` : s.ph === 'won' ? `Trio de ${revVals[0]} !` : s.rev.length ? `Il faut un autre ${revVals[0]}` : s.ph === 'play' ? `Au tour de <b>${ctx.name(s.turn)}</b>` : 'Partie terminée';
-  const ctrCells = s.cv.map((id, k) => id < 0 ? '<div class="card gone"></div>' : revC(k) ? trioC(id, { cls: 'up' }) : back('t' + id, { cls: myTurn ? 'can' : '', attr: myTurn ? `data-a="tr-c" data-k="${k}" role="button" tabindex="0" aria-label="Carte du centre ${k + 1}"` : '' })).join('');
+  const ctrCells = s.cv.map((id, k) => id < 0 ? '<div class="card gone"></div>' : revC(k) ? trioC(id, { cls: 'up' }) : back('t' + id, { cls: myTurn ? 'can' : '', attr: myTurn ? `data-a="tr-c" data-ck="${k}" role="button" tabindex="0" aria-label="Carte du centre ${k + 1}"` : '' })).join('');
   const cols = s.cv.length > 8 ? 5 : 4;
   const center = `<div class="trzone">
       <div class="trsearch"><span class="lbl">${status}</span><div class="trslots ${s.ph === 'fail' ? 'fail' : s.ph === 'won' ? 'win' : ''}">${slots}</div></div>
@@ -2429,6 +2461,20 @@ VIEWS.trio = ctx => {
   return { opps, center, centerCls: 'trio', mine, mineCls: 'trio', bar, over };
 };
 
+
+function fitBoards(){
+  const b = document.querySelector('.dkboard'), c = document.querySelector('.center.dek');
+  if (!b || !c) return;
+  const wide = innerWidth >= 700;
+  const pick = document.querySelector('.dkpick');
+  const who = b.querySelector('.who');
+  const arrow = wide ? 28 : 24, gap = 4;
+  let H = c.clientHeight - 10 - (who ? who.offsetHeight + 6 : 0) - arrow * 2 - gap * 5;
+  let W = (wide ? c.clientWidth - (pick ? pick.offsetWidth : 0) - 60 : c.clientWidth - 8) - arrow * 2 - gap * 5;
+  if (!wide && pick) H -= pick.offsetHeight + 14;
+  const cw = Math.max(26, Math.min(76, Math.floor(Math.min(H / (4 * 1.4), W / 4))));
+  b.style.setProperty('--cw', cw + 'px');
+}
 /* =================== SOLITAIRE (levels, solvable deals) =================== */
 const SOLVER_SRC = solveKlondike.toString() + '\n' + genKlondike.toString() + '\nonmessage = e => postMessage(genKlondike(e.data));';
 let solWorker = null;
@@ -2762,7 +2808,7 @@ document.addEventListener('click', e => {
     case 'f7-stay': g({ t: 'stay' }); break;
     case 'f7-tg': g({ t: 'tg', j: +el.dataset.j }); break;
     // dékal
-    case 'dk-pick': g({ t: 'pick', k: +el.dataset.k }); break;
+    case 'dk-pick': g({ t: 'pick', k: +el.dataset.cell }); break;
     case 'dk-c': App.ui.dkc = +el.dataset.c; renderTable(); break;
     case 'dk-ins': {
       const s = viewT().s; let c = s.ctr.includes(App.ui.dkc) ? App.ui.dkc : (s.ctr.length === 1 ? s.ctr[0] : -1);
@@ -2771,7 +2817,7 @@ document.addEventListener('click', e => {
     }
     // trio
     case 'tr-p': g({ t: 'rv', w: 'p', i: +el.dataset.i, e: el.dataset.e }); break;
-    case 'tr-c': g({ t: 'rv', w: 'c', k: +el.dataset.k }); break;
+    case 'tr-c': g({ t: 'rv', w: 'c', k: +el.dataset.ck }); break;
     // solitaire
     case 'sol-stock': if (SOL.st && !SOL.st.won && !SOL.st.lost && !SOL.auto) { SOL.drawStock(); renderSol(); } break;
     case 'sol-undo': if (SOL.st && !SOL.auto) SOL.undo(); break;
