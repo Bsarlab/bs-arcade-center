@@ -173,10 +173,59 @@
     #help{display:none}
   }
   @media (prefers-reduced-motion:reduce){ *{transition:none!important;animation:none!important} }
+  #splash{position:fixed;inset:0;z-index:80;background:#070a1c;overflow:hidden;cursor:pointer;transition:opacity .9s ease, transform 1.2s ease}
+  #splash.out{opacity:0;transform:scale(1.04);pointer-events:none}
+  #splash .cover-svg{position:absolute;inset:0;width:100%;height:100%;animation:splZoom 30s ease-out forwards}
+  @keyframes splZoom{from{transform:scale(1.08)}to{transform:scale(1)}}
+  #splash .spl-title{position:absolute;left:0;right:0;top:max(5vh,20px);text-align:center;padding:0 16px}
+  .spl-mask{width:min(170px,30vw);filter:drop-shadow(0 4px 14px rgba(0,0,0,.7))}
+  .spl-sm{font-family:var(--f-ui);font-size:.75rem;letter-spacing:.45em;text-transform:uppercase;color:var(--gold);margin-top:.4em;text-shadow:0 2px 8px #000}
+  #splash h1{font-family:var(--f-display);font-weight:700;font-size:clamp(2.6rem,8vw,6.2rem);line-height:1;margin:.12em 0 .15em;
+    background:linear-gradient(#fff3c8,#e6bd62 50%,#a8762a);-webkit-background-clip:text;background-clip:text;color:transparent;filter:drop-shadow(0 4px 18px rgba(0,0,0,.85))}
+  .spl-tag{font-family:var(--f-body,serif);font-style:italic;font-size:clamp(1rem,2vw,1.3rem);color:#e8dcc8;text-shadow:0 2px 10px #000}
+  #splGo{margin-top:1.4em;font-family:var(--f-ui);font-size:.85rem;letter-spacing:.3em;text-transform:uppercase;color:#1a0d10;background:linear-gradient(#ffe7a6,#d9a94c);border:0;border-radius:2px;padding:.9em 2.2em;cursor:pointer;box-shadow:0 6px 24px rgba(0,0,0,.6),0 0 0 1px rgba(255,230,160,.5)}
+  #splGo:hover{filter:brightness(1.08)}
+  #splGo:disabled{opacity:.55;cursor:wait}
+  #splStatus{margin-top:.8em;font-family:var(--f-ui);font-size:.75rem;letter-spacing:.12em;color:#cbb994;text-shadow:0 1px 4px #000;min-height:1.2em}
+  #splash .spl-title{isolation:isolate}
+  #splash .spl-title::before{content:'';position:absolute;left:50%;top:-4vh;width:min(900px,120vw);height:calc(100% + 8vh);transform:translateX(-50%);background:radial-gradient(ellipse at center,rgba(7,8,22,.78) 0%,rgba(7,8,22,.45) 45%,rgba(7,8,22,0) 72%);z-index:-1}
+  @media (max-height:600px){ .spl-mask{width:110px} #splash h1{font-size:clamp(2.2rem,6vw,4rem)} #splGo{margin-top:.8em} }
+  .spl-laser{animation:splLaser 2.4s ease-in-out infinite} @keyframes splLaser{50%{opacity:.55}}
+
 </style>
 </head>
 <body data-screen="menu">
 <div id="stage"></div>
+
+<!-- ================= ÉCRAN D'ACCUEIL (illustration 2D) ================= -->
+<div id="splash">
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" preserveAspectRatio="xMidYMid slice" class="cover-svg"><defs>
+<linearGradient id="cSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#070a1c"/><stop offset=".55" stop-color="#1a1236"/><stop offset="1" stop-color="#3a1630"/></linearGradient>
+<radialGradient id="cMoon" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#fff6e0"/><stop offset=".7" stop-color="#f3dcae"/><stop offset="1" stop-color="#d9b77a"/></radialGradient>
+<radialGradient id="cHalo" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#f7e3b5" stop-opacity=".35"/><stop offset="1" stop-color="#f7e3b5" stop-opacity="0"/></radialGradient>
+<linearGradient id="cWin" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd98a"/><stop offset=".6" stop-color="#f0a84a"/><stop offset="1" stop-color="#b8602a"/></linearGradient>
+<radialGradient id="cGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#ffb860" stop-opacity=".55"/><stop offset="1" stop-color="#ffb860" stop-opacity="0"/></radialGradient>
+<linearGradient id="cFac" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#2a1a2e"/><stop offset="1" stop-color="#140c18"/></linearGradient>
+<linearGradient id="cGold" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0c0"/><stop offset=".45" stop-color="#e8c069"/><stop offset="1" stop-color="#a8762a"/></linearGradient>
+<radialGradient id="cVig" cx=".5" cy=".45" r=".75"><stop offset=".55" stop-color="#000" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".75"/></radialGradient>
+<filter id="cBlur" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+<filter id="cBlur2" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="2"/></filter>
+<linearGradient id="cFog" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5a3050" stop-opacity="0"/><stop offset="1" stop-color="#5a3050" stop-opacity=".55"/></linearGradient>
+</defs><rect width="1600" height="900" fill="url(#cSky)"/><circle cx="518" cy="75" r="0.6" fill="#fff" opacity="0.29"/><circle cx="857" cy="181" r="0.6" fill="#fff" opacity="0.80"/><circle cx="344" cy="43" r="1.3" fill="#fff" opacity="0.29"/><circle cx="145" cy="210" r="0.6" fill="#fff" opacity="0.82"/><circle cx="1009" cy="289" r="0.6" fill="#fff" opacity="0.60"/><circle cx="635" cy="483" r="0.6" fill="#fff" opacity="0.58"/><circle cx="213" cy="207" r="0.6" fill="#fff" opacity="0.59"/><circle cx="896" cy="338" r="0.6" fill="#fff" opacity="0.60"/><circle cx="1022" cy="184" r="0.6" fill="#fff" opacity="0.59"/><circle cx="990" cy="246" r="1.3" fill="#fff" opacity="0.72"/><circle cx="745" cy="457" r="1" fill="#fff" opacity="0.43"/><circle cx="1271" cy="346" r="0.8" fill="#fff" opacity="0.30"/><circle cx="480" cy="245" r="1" fill="#fff" opacity="0.69"/><circle cx="461" cy="485" r="0.6" fill="#fff" opacity="0.56"/><circle cx="264" cy="169" r="1.3" fill="#fff" opacity="0.50"/><circle cx="1539" cy="38" r="1" fill="#fff" opacity="0.45"/><circle cx="560" cy="246" r="1.3" fill="#fff" opacity="0.29"/><circle cx="150" cy="134" r="0.6" fill="#fff" opacity="0.29"/><circle cx="1122" cy="320" r="1.3" fill="#fff" opacity="0.42"/><circle cx="617" cy="331" r="0.6" fill="#fff" opacity="0.81"/><circle cx="569" cy="302" r="1.3" fill="#fff" opacity="0.29"/><circle cx="1229" cy="64" r="0.8" fill="#fff" opacity="0.49"/><circle cx="1467" cy="246" r="0.8" fill="#fff" opacity="0.52"/><circle cx="879" cy="437" r="1.3" fill="#fff" opacity="0.77"/><circle cx="445" cy="206" r="1" fill="#fff" opacity="0.66"/><circle cx="609" cy="114" r="0.6" fill="#fff" opacity="0.36"/><circle cx="371" cy="116" r="1.3" fill="#fff" opacity="0.75"/><circle cx="292" cy="140" r="0.8" fill="#fff" opacity="0.50"/><circle cx="591" cy="280" r="0.8" fill="#fff" opacity="0.66"/><circle cx="825" cy="306" r="0.6" fill="#fff" opacity="0.52"/><circle cx="1394" cy="471" r="1.3" fill="#fff" opacity="0.49"/><circle cx="631" cy="238" r="1.3" fill="#fff" opacity="0.29"/><circle cx="108" cy="103" r="0.8" fill="#fff" opacity="0.32"/><circle cx="961" cy="51" r="0.8" fill="#fff" opacity="0.57"/><circle cx="1518" cy="304" r="0.6" fill="#fff" opacity="0.77"/><circle cx="983" cy="74" r="1" fill="#fff" opacity="0.82"/><circle cx="964" cy="235" r="0.6" fill="#fff" opacity="0.76"/><circle cx="1589" cy="231" r="1.3" fill="#fff" opacity="0.44"/><circle cx="231" cy="371" r="1" fill="#fff" opacity="0.54"/><circle cx="1107" cy="256" r="0.8" fill="#fff" opacity="0.82"/><circle cx="845" cy="73" r="0.6" fill="#fff" opacity="0.70"/><circle cx="477" cy="318" r="0.6" fill="#fff" opacity="0.67"/><circle cx="418" cy="182" r="0.8" fill="#fff" opacity="0.46"/><circle cx="356" cy="268" r="1" fill="#fff" opacity="0.63"/><circle cx="981" cy="390" r="0.8" fill="#fff" opacity="0.73"/><circle cx="1309" cy="366" r="0.8" fill="#fff" opacity="0.37"/><circle cx="788" cy="362" r="0.6" fill="#fff" opacity="0.72"/><circle cx="756" cy="96" r="1" fill="#fff" opacity="0.52"/><circle cx="1499" cy="489" r="1" fill="#fff" opacity="0.30"/><circle cx="163" cy="233" r="1" fill="#fff" opacity="0.37"/><circle cx="999" cy="446" r="0.6" fill="#fff" opacity="0.54"/><circle cx="1045" cy="396" r="0.6" fill="#fff" opacity="0.75"/><circle cx="192" cy="192" r="0.8" fill="#fff" opacity="0.54"/><circle cx="286" cy="391" r="1" fill="#fff" opacity="0.30"/><circle cx="1514" cy="357" r="1.3" fill="#fff" opacity="0.49"/><circle cx="1515" cy="359" r="0.8" fill="#fff" opacity="0.85"/><circle cx="44" cy="292" r="1.3" fill="#fff" opacity="0.73"/><circle cx="234" cy="409" r="1.3" fill="#fff" opacity="0.64"/><circle cx="561" cy="272" r="0.8" fill="#fff" opacity="0.26"/><circle cx="1279" cy="360" r="0.6" fill="#fff" opacity="0.57"/><circle cx="1494" cy="215" r="0.8" fill="#fff" opacity="0.75"/><circle cx="338" cy="125" r="1" fill="#fff" opacity="0.55"/><circle cx="1222" cy="161" r="1.3" fill="#fff" opacity="0.75"/><circle cx="97" cy="366" r="1.3" fill="#fff" opacity="0.65"/><circle cx="1304" cy="256" r="0.8" fill="#fff" opacity="0.57"/><circle cx="838" cy="9" r="1.3" fill="#fff" opacity="0.72"/><circle cx="974" cy="384" r="0.8" fill="#fff" opacity="0.35"/><circle cx="758" cy="359" r="0.6" fill="#fff" opacity="0.45"/><circle cx="829" cy="275" r="0.6" fill="#fff" opacity="0.78"/><circle cx="91" cy="95" r="0.6" fill="#fff" opacity="0.71"/><circle cx="812" cy="278" r="0.6" fill="#fff" opacity="0.52"/><circle cx="980" cy="250" r="0.8" fill="#fff" opacity="0.67"/><circle cx="724" cy="264" r="1.3" fill="#fff" opacity="0.55"/><circle cx="396" cy="259" r="1" fill="#fff" opacity="0.80"/><circle cx="1428" cy="100" r="1.3" fill="#fff" opacity="0.33"/><circle cx="195" cy="219" r="0.6" fill="#fff" opacity="0.65"/><circle cx="685" cy="105" r="1" fill="#fff" opacity="0.72"/><circle cx="1435" cy="76" r="1" fill="#fff" opacity="0.34"/><circle cx="1413" cy="479" r="0.8" fill="#fff" opacity="0.70"/><circle cx="151" cy="438" r="0.8" fill="#fff" opacity="0.84"/><circle cx="1332" cy="80" r="1.3" fill="#fff" opacity="0.85"/><circle cx="646" cy="209" r="1" fill="#fff" opacity="0.44"/><circle cx="1155" cy="10" r="1.3" fill="#fff" opacity="0.51"/><circle cx="29" cy="164" r="1" fill="#fff" opacity="0.56"/><circle cx="103" cy="488" r="0.8" fill="#fff" opacity="0.83"/><circle cx="168" cy="131" r="0.6" fill="#fff" opacity="0.79"/><circle cx="290" cy="374" r="1.3" fill="#fff" opacity="0.76"/><circle cx="1082" cy="468" r="1.3" fill="#fff" opacity="0.34"/><circle cx="1471" cy="282" r="1" fill="#fff" opacity="0.30"/><circle cx="92" cy="341" r="1.3" fill="#fff" opacity="0.79"/><circle cx="430" cy="8" r="0.6" fill="#fff" opacity="0.73"/><circle cx="134" cy="424" r="0.6" fill="#fff" opacity="0.41"/><circle cx="195" cy="6" r="1.3" fill="#fff" opacity="0.81"/><circle cx="429" cy="64" r="0.8" fill="#fff" opacity="0.81"/><circle cx="1551" cy="130" r="0.8" fill="#fff" opacity="0.37"/><circle cx="499" cy="151" r="0.8" fill="#fff" opacity="0.42"/><circle cx="800" cy="88" r="1" fill="#fff" opacity="0.73"/><circle cx="1591" cy="18" r="0.6" fill="#fff" opacity="0.69"/><circle cx="882" cy="94" r="1.3" fill="#fff" opacity="0.40"/><circle cx="715" cy="326" r="1.3" fill="#fff" opacity="0.64"/><circle cx="873" cy="440" r="1" fill="#fff" opacity="0.66"/><circle cx="1572" cy="170" r="0.8" fill="#fff" opacity="0.49"/><circle cx="556" cy="27" r="0.8" fill="#fff" opacity="0.26"/><circle cx="1001" cy="436" r="1.3" fill="#fff" opacity="0.35"/><circle cx="135" cy="416" r="1" fill="#fff" opacity="0.61"/><circle cx="1108" cy="22" r="0.8" fill="#fff" opacity="0.34"/><circle cx="713" cy="130" r="1" fill="#fff" opacity="0.83"/><circle cx="875" cy="121" r="1" fill="#fff" opacity="0.38"/><circle cx="293" cy="166" r="0.6" fill="#fff" opacity="0.53"/><circle cx="804" cy="99" r="0.6" fill="#fff" opacity="0.30"/><circle cx="1307" cy="71" r="0.6" fill="#fff" opacity="0.49"/><circle cx="479" cy="312" r="0.6" fill="#fff" opacity="0.60"/><circle cx="847" cy="372" r="1.3" fill="#fff" opacity="0.71"/><circle cx="1153" cy="245" r="1" fill="#fff" opacity="0.68"/><circle cx="1029" cy="22" r="1.3" fill="#fff" opacity="0.69"/><circle cx="1300" cy="69" r="0.6" fill="#fff" opacity="0.75"/><circle cx="934" cy="442" r="0.8" fill="#fff" opacity="0.30"/><circle cx="67" cy="315" r="0.6" fill="#fff" opacity="0.48"/><circle cx="722" cy="25" r="0.6" fill="#fff" opacity="0.63"/><circle cx="1089" cy="242" r="0.6" fill="#fff" opacity="0.52"/><circle cx="112" cy="462" r="0.6" fill="#fff" opacity="0.65"/><circle cx="106" cy="365" r="1" fill="#fff" opacity="0.74"/><circle cx="1354" cy="116" r="0.8" fill="#fff" opacity="0.39"/><circle cx="1040" cy="228" r="1.3" fill="#fff" opacity="0.30"/><circle cx="1457" cy="142" r="0.6" fill="#fff" opacity="0.62"/><circle cx="1028" cy="38" r="0.8" fill="#fff" opacity="0.45"/><circle cx="1042" cy="343" r="0.8" fill="#fff" opacity="0.26"/><circle cx="97" cy="133" r="0.6" fill="#fff" opacity="0.67"/><circle cx="1081" cy="144" r="1" fill="#fff" opacity="0.53"/><circle cx="746" cy="59" r="0.8" fill="#fff" opacity="0.44"/><circle cx="137" cy="234" r="1" fill="#fff" opacity="0.53"/><circle cx="1312" cy="479" r="1.3" fill="#fff" opacity="0.85"/><circle cx="619" cy="454" r="0.8" fill="#fff" opacity="0.29"/><circle cx="144" cy="370" r="1" fill="#fff" opacity="0.82"/><circle cx="212" cy="406" r="1" fill="#fff" opacity="0.78"/><circle cx="1125" cy="115" r="1.3" fill="#fff" opacity="0.49"/><circle cx="255" cy="470" r="1.3" fill="#fff" opacity="0.49"/><circle cx="1163" cy="206" r="1.3" fill="#fff" opacity="0.44"/><circle cx="1344" cy="1" r="1" fill="#fff" opacity="0.75"/><circle cx="192" cy="459" r="0.6" fill="#fff" opacity="0.79"/><circle cx="1260" cy="190" r="190" fill="url(#cHalo)"/><circle cx="1260" cy="190" r="74" fill="url(#cMoon)"/><circle cx="1238" cy="172" r="12" fill="#d8bd86" opacity=".45"/><circle cx="1282" cy="214" r="8" fill="#d8bd86" opacity=".4"/><circle cx="1290" cy="168" r="5" fill="#d8bd86" opacity=".35"/><rect x="0" y="556" width="78" height="384" fill="#120c22"/><rect x="24" y="642" width="5" height="7" fill="#ffcc77" opacity="0.30"/><rect x="53" y="632" width="5" height="7" fill="#ffcc77" opacity="0.36"/><rect x="21" y="643" width="5" height="7" fill="#ffcc77" opacity="0.39"/><rect x="48" y="666" width="5" height="7" fill="#ffcc77" opacity="0.25"/><rect x="77" y="604" width="88" height="336" fill="#120c22"/><rect x="103" y="623" width="5" height="7" fill="#ffcc77" opacity="0.28"/><rect x="146" y="684" width="5" height="7" fill="#ffcc77" opacity="0.29"/><rect x="125" y="711" width="5" height="7" fill="#ffcc77" opacity="0.38"/><rect x="100" y="684" width="5" height="7" fill="#ffcc77" opacity="0.28"/><rect x="94" y="636" width="5" height="7" fill="#ffcc77" opacity="0.34"/><rect x="94" y="654" width="5" height="7" fill="#ffcc77" opacity="0.30"/><rect x="116" y="717" width="5" height="7" fill="#ffcc77" opacity="0.43"/><rect x="164" y="521" width="91" height="419" fill="#120c22"/><rect x="222" y="629" width="5" height="7" fill="#ffcc77" opacity="0.37"/><rect x="237" y="584" width="5" height="7" fill="#ffcc77" opacity="0.35"/><rect x="254" y="528" width="50" height="412" fill="#120c22"/><rect x="263" y="665" width="5" height="7" fill="#ffcc77" opacity="0.31"/><rect x="283" y="570" width="5" height="7" fill="#ffcc77" opacity="0.47"/><rect x="273" y="561" width="5" height="7" fill="#ffcc77" opacity="0.31"/><rect x="275" y="636" width="5" height="7" fill="#ffcc77" opacity="0.36"/><rect x="303" y="550" width="95" height="390" fill="#120c22"/><rect x="364" y="639" width="5" height="7" fill="#ffcc77" opacity="0.54"/><rect x="311" y="592" width="5" height="7" fill="#ffcc77" opacity="0.21"/><rect x="369" y="710" width="5" height="7" fill="#ffcc77" opacity="0.40"/><rect x="318" y="660" width="5" height="7" fill="#ffcc77" opacity="0.57"/><rect x="376" y="679" width="5" height="7" fill="#ffcc77" opacity="0.59"/><rect x="397" y="549" width="47" height="391" fill="#120c22"/><rect x="428" y="586" width="5" height="7" fill="#ffcc77" opacity="0.29"/><rect x="407" y="692" width="5" height="7" fill="#ffcc77" opacity="0.59"/><rect x="406" y="724" width="5" height="7" fill="#ffcc77" opacity="0.54"/><rect x="443" y="607" width="54" height="333" fill="#120c22"/><rect x="454" y="687" width="5" height="7" fill="#ffcc77" opacity="0.51"/><rect x="449" y="717" width="5" height="7" fill="#ffcc77" opacity="0.25"/><rect x="451" y="699" width="5" height="7" fill="#ffcc77" opacity="0.49"/><rect x="457" y="697" width="5" height="7" fill="#ffcc77" opacity="0.30"/><rect x="476" y="706" width="5" height="7" fill="#ffcc77" opacity="0.51"/><rect x="496" y="458" width="77" height="482" fill="#120c22"/><rect x="506" y="621" width="5" height="7" fill="#ffcc77" opacity="0.41"/><rect x="539" y="566" width="5" height="7" fill="#ffcc77" opacity="0.36"/><rect x="572" y="557" width="60" height="383" fill="#120c22"/><rect x="616" y="567" width="5" height="7" fill="#ffcc77" opacity="0.20"/><rect x="597" y="684" width="5" height="7" fill="#ffcc77" opacity="0.31"/><rect x="598" y="629" width="5" height="7" fill="#ffcc77" opacity="0.39"/><rect x="631" y="509" width="75" height="431" fill="#120c22"/><rect x="672" y="582" width="5" height="7" fill="#ffcc77" opacity="0.21"/><rect x="663" y="699" width="5" height="7" fill="#ffcc77" opacity="0.46"/><rect x="640" y="524" width="5" height="7" fill="#ffcc77" opacity="0.28"/><rect x="705" y="540" width="106" height="400" fill="#120c22"/><rect x="793" y="657" width="5" height="7" fill="#ffcc77" opacity="0.23"/><rect x="740" y="720" width="5" height="7" fill="#ffcc77" opacity="0.37"/><rect x="758" y="608" width="5" height="7" fill="#ffcc77" opacity="0.40"/><rect x="754" y="657" width="5" height="7" fill="#ffcc77" opacity="0.34"/><rect x="761" y="600" width="5" height="7" fill="#ffcc77" opacity="0.20"/><rect x="748" y="679" width="5" height="7" fill="#ffcc77" opacity="0.23"/><rect x="774" y="601" width="5" height="7" fill="#ffcc77" opacity="0.32"/><rect x="810" y="525" width="65" height="415" fill="#120c22"/><rect x="828" y="594" width="5" height="7" fill="#ffcc77" opacity="0.39"/><rect x="832" y="729" width="5" height="7" fill="#ffcc77" opacity="0.56"/><rect x="822" y="694" width="5" height="7" fill="#ffcc77" opacity="0.40"/><rect x="827" y="592" width="5" height="7" fill="#ffcc77" opacity="0.39"/><rect x="858" y="549" width="5" height="7" fill="#ffcc77" opacity="0.58"/><rect x="825" y="635" width="5" height="7" fill="#ffcc77" opacity="0.22"/><rect x="817" y="687" width="5" height="7" fill="#ffcc77" opacity="0.26"/><rect x="819" y="716" width="5" height="7" fill="#ffcc77" opacity="0.22"/><rect x="874" y="613" width="95" height="327" fill="#120c22"/><rect x="937" y="714" width="5" height="7" fill="#ffcc77" opacity="0.55"/><rect x="894" y="633" width="5" height="7" fill="#ffcc77" opacity="0.57"/><rect x="922" y="647" width="5" height="7" fill="#ffcc77" opacity="0.27"/><rect x="947" y="718" width="5" height="7" fill="#ffcc77" opacity="0.39"/><rect x="919" y="708" width="5" height="7" fill="#ffcc77" opacity="0.49"/><rect x="968" y="479" width="92" height="461" fill="#120c22"/><rect x="1021" y="573" width="5" height="7" fill="#ffcc77" opacity="0.38"/><rect x="987" y="489" width="5" height="7" fill="#ffcc77" opacity="0.23"/><rect x="984" y="578" width="5" height="7" fill="#ffcc77" opacity="0.37"/><rect x="989" y="632" width="5" height="7" fill="#ffcc77" opacity="0.59"/><rect x="1000" y="586" width="5" height="7" fill="#ffcc77" opacity="0.34"/><rect x="1013" y="699" width="5" height="7" fill="#ffcc77" opacity="0.52"/><rect x="985" y="501" width="5" height="7" fill="#ffcc77" opacity="0.48"/><rect x="999" y="584" width="5" height="7" fill="#ffcc77" opacity="0.42"/><rect x="1059" y="568" width="111" height="372" fill="#120c22"/><rect x="1089" y="660" width="5" height="7" fill="#ffcc77" opacity="0.35"/><rect x="1125" y="585" width="5" height="7" fill="#ffcc77" opacity="0.45"/><rect x="1096" y="681" width="5" height="7" fill="#ffcc77" opacity="0.22"/><rect x="1069" y="696" width="5" height="7" fill="#ffcc77" opacity="0.23"/><rect x="1072" y="643" width="5" height="7" fill="#ffcc77" opacity="0.28"/><rect x="1169" y="608" width="51" height="332" fill="#120c22"/><rect x="1196" y="664" width="5" height="7" fill="#ffcc77" opacity="0.31"/><rect x="1177" y="651" width="5" height="7" fill="#ffcc77" opacity="0.50"/><rect x="1219" y="505" width="93" height="435" fill="#120c22"/><rect x="1265" y="585" width="5" height="7" fill="#ffcc77" opacity="0.32"/><rect x="1233" y="521" width="5" height="7" fill="#ffcc77" opacity="0.53"/><rect x="1238" y="636" width="5" height="7" fill="#ffcc77" opacity="0.49"/><rect x="1284" y="713" width="5" height="7" fill="#ffcc77" opacity="0.35"/><rect x="1257" y="625" width="5" height="7" fill="#ffcc77" opacity="0.53"/><rect x="1241" y="642" width="5" height="7" fill="#ffcc77" opacity="0.27"/><rect x="1263" y="725" width="5" height="7" fill="#ffcc77" opacity="0.48"/><rect x="1311" y="456" width="58" height="484" fill="#120c22"/><rect x="1355" y="586" width="5" height="7" fill="#ffcc77" opacity="0.33"/><rect x="1337" y="701" width="5" height="7" fill="#ffcc77" opacity="0.34"/><rect x="1355" y="506" width="5" height="7" fill="#ffcc77" opacity="0.40"/><rect x="1368" y="496" width="77" height="444" fill="#120c22"/><rect x="1422" y="546" width="5" height="7" fill="#ffcc77" opacity="0.30"/><rect x="1378" y="672" width="5" height="7" fill="#ffcc77" opacity="0.21"/><rect x="1409" y="645" width="5" height="7" fill="#ffcc77" opacity="0.33"/><rect x="1401" y="532" width="5" height="7" fill="#ffcc77" opacity="0.60"/><rect x="1390" y="665" width="5" height="7" fill="#ffcc77" opacity="0.23"/><rect x="1444" y="480" width="47" height="460" fill="#120c22"/><rect x="1463" y="617" width="5" height="7" fill="#ffcc77" opacity="0.60"/><rect x="1464" y="534" width="5" height="7" fill="#ffcc77" opacity="0.29"/><rect x="1490" y="577" width="57" height="363" fill="#120c22"/><rect x="1525" y="647" width="5" height="7" fill="#ffcc77" opacity="0.50"/><rect x="1503" y="662" width="5" height="7" fill="#ffcc77" opacity="0.32"/><rect x="1532" y="655" width="5" height="7" fill="#ffcc77" opacity="0.35"/><rect x="1512" y="637" width="5" height="7" fill="#ffcc77" opacity="0.38"/><rect x="1507" y="649" width="5" height="7" fill="#ffcc77" opacity="0.29"/><rect x="1546" y="514" width="101" height="426" fill="#120c22"/><rect x="1626" y="572" width="5" height="7" fill="#ffcc77" opacity="0.33"/><rect x="1602" y="588" width="5" height="7" fill="#ffcc77" opacity="0.60"/><rect x="1616" y="658" width="5" height="7" fill="#ffcc77" opacity="0.29"/><rect x="1564" y="691" width="5" height="7" fill="#ffcc77" opacity="0.39"/><rect x="330" y="325" width="940" height="22" fill="#3a2436"/><polygon points="630.0,325 800.0,235 970.0,325" fill="#2c1b2e" stroke="#c9a24a" stroke-width="2"/><circle cx="800.0" cy="290" r="20" fill="none" stroke="#c9a24a" stroke-width="2"/><circle cx="800.0" cy="290" r="9" fill="#c9a24a" opacity=".7"/><rect x="360" y="345" width="880" height="555" fill="url(#cFac)"/><rect x="411.0" y="345" width="18" height="555" fill="#382438"/><rect x="406.0" y="345" width="28" height="10" fill="#4a3046"/><rect x="537.6666666666666" y="345" width="18" height="555" fill="#382438"/><rect x="532.6666666666666" y="345" width="28" height="10" fill="#4a3046"/><rect x="664.3333333333334" y="345" width="18" height="555" fill="#382438"/><rect x="659.3333333333334" y="345" width="28" height="10" fill="#4a3046"/><rect x="791.0" y="345" width="18" height="555" fill="#382438"/><rect x="786.0" y="345" width="28" height="10" fill="#4a3046"/><rect x="917.6666666666667" y="345" width="18" height="555" fill="#382438"/><rect x="912.6666666666667" y="345" width="28" height="10" fill="#4a3046"/><rect x="1044.3333333333335" y="345" width="18" height="555" fill="#382438"/><rect x="1039.3333333333335" y="345" width="28" height="10" fill="#4a3046"/><rect x="1171.0" y="345" width="18" height="555" fill="#382438"/><rect x="1166.0" y="345" width="28" height="10" fill="#4a3046"/><rect x="379.0" y="374" width="152" height="180" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M393.0,540 L393.0,462.0 A62.0,62.0 0 0 1 517.0,462.0 L517.0,540 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M455.0,410 L455.0,428"/><path d="M433.0,434 Q455.0,450 477.0,434"/></g><circle cx="435.0" cy="438" r="2.4" fill="#fff4cf"/><circle cx="445.0" cy="441" r="2.4" fill="#fff4cf"/><circle cx="455.0" cy="444" r="2.4" fill="#fff4cf"/><circle cx="465.0" cy="441" r="2.4" fill="#fff4cf"/><circle cx="475.0" cy="438" r="2.4" fill="#fff4cf"/><g transform="translate(433.92,536) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><g transform="translate(482.28,536) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><path d="M393.0,462.0 L517.0,462.0 M455.0,462.0 L455.0,540" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="385.0" y="540" width="140" height="9" fill="#4a3046"/><rect x="551.5" y="374" width="152" height="180" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M565.5,540 L565.5,462.0 A62.0,62.0 0 0 1 689.5,462.0 L689.5,540 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M627.5,410 L627.5,428"/><path d="M605.5,434 Q627.5,450 649.5,434"/></g><circle cx="607.5" cy="438" r="2.4" fill="#fff4cf"/><circle cx="617.5" cy="441" r="2.4" fill="#fff4cf"/><circle cx="627.5" cy="444" r="2.4" fill="#fff4cf"/><circle cx="637.5" cy="441" r="2.4" fill="#fff4cf"/><circle cx="647.5" cy="438" r="2.4" fill="#fff4cf"/><g transform="translate(606.42,536) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-60" r="7"/><path d="M-4,-66 Q0,-74 6,-64 Q9,-58 5,-55 Z"/><path d="M-8,-51 Q0,-54 8,-51 L7,-34 Q16,-6 18,0 L-18,0 Q-16,-6 -7,-34 Z"/></g><g transform="translate(654.78,536) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><path d="M565.5,462.0 L689.5,462.0 M627.5,462.0 L627.5,540" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="557.5" y="540" width="140" height="9" fill="#4a3046"/><rect x="724.0" y="374" width="152" height="180" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M738.0,540 L738.0,462.0 A62.0,62.0 0 0 1 862.0,462.0 L862.0,540 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M800.0,410 L800.0,428"/><path d="M778.0,434 Q800.0,450 822.0,434"/></g><circle cx="780.0" cy="438" r="2.4" fill="#fff4cf"/><circle cx="790.0" cy="441" r="2.4" fill="#fff4cf"/><circle cx="800.0" cy="444" r="2.4" fill="#fff4cf"/><circle cx="810.0" cy="441" r="2.4" fill="#fff4cf"/><circle cx="820.0" cy="438" r="2.4" fill="#fff4cf"/><g transform="translate(778.92,536) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/><path d="M11,-48 L20,-40 L22,-46" stroke-width="3" fill="none" stroke="currentColor"/><path d="M19,-54 L25,-54 L22,-47 Z"/></g><g transform="translate(827.28,536) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><path d="M738.0,462.0 L862.0,462.0 M800.0,462.0 L800.0,540" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="730.0" y="540" width="140" height="9" fill="#4a3046"/><rect x="896.5" y="374" width="152" height="180" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M910.5,540 L910.5,462.0 A62.0,62.0 0 0 1 1034.5,462.0 L1034.5,540 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M972.5,410 L972.5,428"/><path d="M950.5,434 Q972.5,450 994.5,434"/></g><circle cx="952.5" cy="438" r="2.4" fill="#fff4cf"/><circle cx="962.5" cy="441" r="2.4" fill="#fff4cf"/><circle cx="972.5" cy="444" r="2.4" fill="#fff4cf"/><circle cx="982.5" cy="441" r="2.4" fill="#fff4cf"/><circle cx="992.5" cy="438" r="2.4" fill="#fff4cf"/><g transform="translate(951.42,536) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-60" r="7"/><path d="M-4,-66 Q0,-74 6,-64 Q9,-58 5,-55 Z"/><path d="M-8,-51 Q0,-54 8,-51 L7,-34 Q16,-6 18,0 L-18,0 Q-16,-6 -7,-34 Z"/></g><g transform="translate(999.78,536) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-60" r="7"/><path d="M-4,-66 Q0,-74 6,-64 Q9,-58 5,-55 Z"/><path d="M-8,-51 Q0,-54 8,-51 L7,-34 Q16,-6 18,0 L-18,0 Q-16,-6 -7,-34 Z"/></g><path d="M910.5,462.0 L1034.5,462.0 M972.5,462.0 L972.5,540" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="902.5" y="540" width="140" height="9" fill="#4a3046"/><rect x="1069.0" y="374" width="152" height="180" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M1083.0,540 L1083.0,462.0 A62.0,62.0 0 0 1 1207.0,462.0 L1207.0,540 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M1145.0,410 L1145.0,428"/><path d="M1123.0,434 Q1145.0,450 1167.0,434"/></g><circle cx="1125.0" cy="438" r="2.4" fill="#fff4cf"/><circle cx="1135.0" cy="441" r="2.4" fill="#fff4cf"/><circle cx="1145.0" cy="444" r="2.4" fill="#fff4cf"/><circle cx="1155.0" cy="441" r="2.4" fill="#fff4cf"/><circle cx="1165.0" cy="438" r="2.4" fill="#fff4cf"/><g transform="translate(1123.92,536) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><g transform="translate(1172.28,536) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><path d="M1083.0,462.0 L1207.0,462.0 M1145.0,462.0 L1145.0,540" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="1075.0" y="540" width="140" height="9" fill="#4a3046"/><rect x="380" y="549" width="840" height="5" fill="#c9a24a" opacity=".55"/><rect x="388.0" y="554" width="3" height="22" fill="#2a1a26"/><rect x="401.7" y="554" width="3" height="22" fill="#2a1a26"/><rect x="415.5" y="554" width="3" height="22" fill="#2a1a26"/><rect x="429.2" y="554" width="3" height="22" fill="#2a1a26"/><rect x="442.9" y="554" width="3" height="22" fill="#2a1a26"/><rect x="456.7" y="554" width="3" height="22" fill="#2a1a26"/><rect x="470.4" y="554" width="3" height="22" fill="#2a1a26"/><rect x="484.1" y="554" width="3" height="22" fill="#2a1a26"/><rect x="497.9" y="554" width="3" height="22" fill="#2a1a26"/><rect x="511.6" y="554" width="3" height="22" fill="#2a1a26"/><rect x="525.3" y="554" width="3" height="22" fill="#2a1a26"/><rect x="539.1" y="554" width="3" height="22" fill="#2a1a26"/><rect x="552.8" y="554" width="3" height="22" fill="#2a1a26"/><rect x="566.5" y="554" width="3" height="22" fill="#2a1a26"/><rect x="580.3" y="554" width="3" height="22" fill="#2a1a26"/><rect x="594.0" y="554" width="3" height="22" fill="#2a1a26"/><rect x="607.7" y="554" width="3" height="22" fill="#2a1a26"/><rect x="621.5" y="554" width="3" height="22" fill="#2a1a26"/><rect x="635.2" y="554" width="3" height="22" fill="#2a1a26"/><rect x="648.9" y="554" width="3" height="22" fill="#2a1a26"/><rect x="662.7" y="554" width="3" height="22" fill="#2a1a26"/><rect x="676.4" y="554" width="3" height="22" fill="#2a1a26"/><rect x="690.1" y="554" width="3" height="22" fill="#2a1a26"/><rect x="703.9" y="554" width="3" height="22" fill="#2a1a26"/><rect x="717.6" y="554" width="3" height="22" fill="#2a1a26"/><rect x="731.3" y="554" width="3" height="22" fill="#2a1a26"/><rect x="745.1" y="554" width="3" height="22" fill="#2a1a26"/><rect x="758.8" y="554" width="3" height="22" fill="#2a1a26"/><rect x="772.5" y="554" width="3" height="22" fill="#2a1a26"/><rect x="786.3" y="554" width="3" height="22" fill="#2a1a26"/><rect x="800.0" y="554" width="3" height="22" fill="#2a1a26"/><rect x="813.7" y="554" width="3" height="22" fill="#2a1a26"/><rect x="827.5" y="554" width="3" height="22" fill="#2a1a26"/><rect x="841.2" y="554" width="3" height="22" fill="#2a1a26"/><rect x="854.9" y="554" width="3" height="22" fill="#2a1a26"/><rect x="868.7" y="554" width="3" height="22" fill="#2a1a26"/><rect x="882.4" y="554" width="3" height="22" fill="#2a1a26"/><rect x="896.1" y="554" width="3" height="22" fill="#2a1a26"/><rect x="909.9" y="554" width="3" height="22" fill="#2a1a26"/><rect x="923.6" y="554" width="3" height="22" fill="#2a1a26"/><rect x="937.3" y="554" width="3" height="22" fill="#2a1a26"/><rect x="951.1" y="554" width="3" height="22" fill="#2a1a26"/><rect x="964.8" y="554" width="3" height="22" fill="#2a1a26"/><rect x="978.5" y="554" width="3" height="22" fill="#2a1a26"/><rect x="992.3" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1006.0" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1019.7" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1033.5" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1047.2" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1060.9" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1074.7" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1088.4" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1102.1" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1115.9" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1129.6" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1143.3" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1157.1" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1170.8" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1184.5" y="554" width="3" height="22" fill="#2a1a26"/><rect x="1198.3" y="554" width="3" height="22" fill="#2a1a26"/><rect x="380" y="576" width="840" height="6" fill="#3a2436"/><rect x="379.0" y="574" width="152" height="190" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M393.0,750 L393.0,662.0 A62.0,62.0 0 0 1 517.0,662.0 L517.0,750 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M455.0,610 L455.0,628"/><path d="M433.0,634 Q455.0,650 477.0,634"/></g><circle cx="435.0" cy="638" r="2.4" fill="#fff4cf"/><circle cx="445.0" cy="641" r="2.4" fill="#fff4cf"/><circle cx="455.0" cy="644" r="2.4" fill="#fff4cf"/><circle cx="465.0" cy="641" r="2.4" fill="#fff4cf"/><circle cx="475.0" cy="638" r="2.4" fill="#fff4cf"/><g transform="translate(433.92,746) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-60" r="7"/><path d="M-4,-66 Q0,-74 6,-64 Q9,-58 5,-55 Z"/><path d="M-8,-51 Q0,-54 8,-51 L7,-34 Q16,-6 18,0 L-18,0 Q-16,-6 -7,-34 Z"/></g><g transform="translate(482.28,746) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-60" r="7"/><path d="M-4,-66 Q0,-74 6,-64 Q9,-58 5,-55 Z"/><path d="M-8,-51 Q0,-54 8,-51 L7,-34 Q16,-6 18,0 L-18,0 Q-16,-6 -7,-34 Z"/></g><path d="M393.0,662.0 L517.0,662.0 M455.0,662.0 L455.0,750" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="385.0" y="750" width="140" height="9" fill="#4a3046"/><rect x="551.5" y="574" width="152" height="190" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M565.5,750 L565.5,662.0 A62.0,62.0 0 0 1 689.5,662.0 L689.5,750 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M627.5,610 L627.5,628"/><path d="M605.5,634 Q627.5,650 649.5,634"/></g><circle cx="607.5" cy="638" r="2.4" fill="#fff4cf"/><circle cx="617.5" cy="641" r="2.4" fill="#fff4cf"/><circle cx="627.5" cy="644" r="2.4" fill="#fff4cf"/><circle cx="637.5" cy="641" r="2.4" fill="#fff4cf"/><circle cx="647.5" cy="638" r="2.4" fill="#fff4cf"/><g transform="translate(606.42,746) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><g transform="translate(654.78,746) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-60" r="7"/><path d="M-4,-66 Q0,-74 6,-64 Q9,-58 5,-55 Z"/><path d="M-8,-51 Q0,-54 8,-51 L7,-34 Q16,-6 18,0 L-18,0 Q-16,-6 -7,-34 Z"/></g><path d="M565.5,662.0 L689.5,662.0 M627.5,662.0 L627.5,750" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="557.5" y="750" width="140" height="9" fill="#4a3046"/><rect x="724.0" y="574" width="152" height="190" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M738.0,750 L738.0,662.0 A62.0,62.0 0 0 1 862.0,662.0 L862.0,750 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M800.0,610 L800.0,628"/><path d="M778.0,634 Q800.0,650 822.0,634"/></g><circle cx="780.0" cy="638" r="2.4" fill="#fff4cf"/><circle cx="790.0" cy="641" r="2.4" fill="#fff4cf"/><circle cx="800.0" cy="644" r="2.4" fill="#fff4cf"/><circle cx="810.0" cy="641" r="2.4" fill="#fff4cf"/><circle cx="820.0" cy="638" r="2.4" fill="#fff4cf"/><g transform="translate(778.92,746) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-60" r="7"/><path d="M-4,-66 Q0,-74 6,-64 Q9,-58 5,-55 Z"/><path d="M-8,-51 Q0,-54 8,-51 L7,-34 Q16,-6 18,0 L-18,0 Q-16,-6 -7,-34 Z"/></g><g transform="translate(827.28,746) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><path d="M738.0,662.0 L862.0,662.0 M800.0,662.0 L800.0,750" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="730.0" y="750" width="140" height="9" fill="#4a3046"/><rect x="896.5" y="574" width="152" height="190" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M910.5,750 L910.5,662.0 A62.0,62.0 0 0 1 1034.5,662.0 L1034.5,750 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M972.5,610 L972.5,628"/><path d="M950.5,634 Q972.5,650 994.5,634"/></g><circle cx="952.5" cy="638" r="2.4" fill="#fff4cf"/><circle cx="962.5" cy="641" r="2.4" fill="#fff4cf"/><circle cx="972.5" cy="644" r="2.4" fill="#fff4cf"/><circle cx="982.5" cy="641" r="2.4" fill="#fff4cf"/><circle cx="992.5" cy="638" r="2.4" fill="#fff4cf"/><g transform="translate(951.42,746) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/><path d="M11,-48 L20,-40 L22,-46" stroke-width="3" fill="none" stroke="currentColor"/><path d="M19,-54 L25,-54 L22,-47 Z"/></g><g transform="translate(999.78,746) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-60" r="7"/><path d="M-4,-66 Q0,-74 6,-64 Q9,-58 5,-55 Z"/><path d="M-8,-51 Q0,-54 8,-51 L7,-34 Q16,-6 18,0 L-18,0 Q-16,-6 -7,-34 Z"/></g><path d="M910.5,662.0 L1034.5,662.0 M972.5,662.0 L972.5,750" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="902.5" y="750" width="140" height="9" fill="#4a3046"/><rect x="1069.0" y="574" width="152" height="190" fill="url(#cGlow)" filter="url(#cBlur)"/><path d="M1083.0,750 L1083.0,662.0 A62.0,62.0 0 0 1 1207.0,662.0 L1207.0,750 Z" fill="url(#cWin)"/><g opacity=".55" stroke="#f9e7b8" stroke-width="1.2" fill="none"><path d="M1145.0,610 L1145.0,628"/><path d="M1123.0,634 Q1145.0,650 1167.0,634"/></g><circle cx="1125.0" cy="638" r="2.4" fill="#fff4cf"/><circle cx="1135.0" cy="641" r="2.4" fill="#fff4cf"/><circle cx="1145.0" cy="644" r="2.4" fill="#fff4cf"/><circle cx="1155.0" cy="641" r="2.4" fill="#fff4cf"/><circle cx="1165.0" cy="638" r="2.4" fill="#fff4cf"/><g transform="translate(1123.92,746) scale(1.05)" fill="#1a0d12" color="#1a0d12"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><g transform="translate(1172.28,746) scale(0.95)" fill="#24121a" color="#24121a"><circle cx="0" cy="-62" r="8"/><path d="M-11,-52 Q0,-56 11,-52 L14,-20 L9,0 L3,0 L1,-18 L-1,-18 L-3,0 L-9,0 L-14,-20 Z"/></g><path d="M1083.0,662.0 L1207.0,662.0 M1145.0,662.0 L1145.0,750" stroke="#2a1622" stroke-width="3" opacity=".7"/><rect x="1075.0" y="750" width="140" height="9" fill="#4a3046"/><rect x="380" y="759" width="840" height="5" fill="#c9a24a" opacity=".55"/><rect x="388.0" y="764" width="3" height="22" fill="#2a1a26"/><rect x="401.7" y="764" width="3" height="22" fill="#2a1a26"/><rect x="415.5" y="764" width="3" height="22" fill="#2a1a26"/><rect x="429.2" y="764" width="3" height="22" fill="#2a1a26"/><rect x="442.9" y="764" width="3" height="22" fill="#2a1a26"/><rect x="456.7" y="764" width="3" height="22" fill="#2a1a26"/><rect x="470.4" y="764" width="3" height="22" fill="#2a1a26"/><rect x="484.1" y="764" width="3" height="22" fill="#2a1a26"/><rect x="497.9" y="764" width="3" height="22" fill="#2a1a26"/><rect x="511.6" y="764" width="3" height="22" fill="#2a1a26"/><rect x="525.3" y="764" width="3" height="22" fill="#2a1a26"/><rect x="539.1" y="764" width="3" height="22" fill="#2a1a26"/><rect x="552.8" y="764" width="3" height="22" fill="#2a1a26"/><rect x="566.5" y="764" width="3" height="22" fill="#2a1a26"/><rect x="580.3" y="764" width="3" height="22" fill="#2a1a26"/><rect x="594.0" y="764" width="3" height="22" fill="#2a1a26"/><rect x="607.7" y="764" width="3" height="22" fill="#2a1a26"/><rect x="621.5" y="764" width="3" height="22" fill="#2a1a26"/><rect x="635.2" y="764" width="3" height="22" fill="#2a1a26"/><rect x="648.9" y="764" width="3" height="22" fill="#2a1a26"/><rect x="662.7" y="764" width="3" height="22" fill="#2a1a26"/><rect x="676.4" y="764" width="3" height="22" fill="#2a1a26"/><rect x="690.1" y="764" width="3" height="22" fill="#2a1a26"/><rect x="703.9" y="764" width="3" height="22" fill="#2a1a26"/><rect x="717.6" y="764" width="3" height="22" fill="#2a1a26"/><rect x="731.3" y="764" width="3" height="22" fill="#2a1a26"/><rect x="745.1" y="764" width="3" height="22" fill="#2a1a26"/><rect x="758.8" y="764" width="3" height="22" fill="#2a1a26"/><rect x="772.5" y="764" width="3" height="22" fill="#2a1a26"/><rect x="786.3" y="764" width="3" height="22" fill="#2a1a26"/><rect x="800.0" y="764" width="3" height="22" fill="#2a1a26"/><rect x="813.7" y="764" width="3" height="22" fill="#2a1a26"/><rect x="827.5" y="764" width="3" height="22" fill="#2a1a26"/><rect x="841.2" y="764" width="3" height="22" fill="#2a1a26"/><rect x="854.9" y="764" width="3" height="22" fill="#2a1a26"/><rect x="868.7" y="764" width="3" height="22" fill="#2a1a26"/><rect x="882.4" y="764" width="3" height="22" fill="#2a1a26"/><rect x="896.1" y="764" width="3" height="22" fill="#2a1a26"/><rect x="909.9" y="764" width="3" height="22" fill="#2a1a26"/><rect x="923.6" y="764" width="3" height="22" fill="#2a1a26"/><rect x="937.3" y="764" width="3" height="22" fill="#2a1a26"/><rect x="951.1" y="764" width="3" height="22" fill="#2a1a26"/><rect x="964.8" y="764" width="3" height="22" fill="#2a1a26"/><rect x="978.5" y="764" width="3" height="22" fill="#2a1a26"/><rect x="992.3" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1006.0" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1019.7" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1033.5" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1047.2" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1060.9" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1074.7" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1088.4" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1102.1" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1115.9" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1129.6" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1143.3" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1157.1" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1170.8" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1184.5" y="764" width="3" height="22" fill="#2a1a26"/><rect x="1198.3" y="764" width="3" height="22" fill="#2a1a26"/><rect x="380" y="786" width="840" height="6" fill="#3a2436"/><rect x="0" y="640" width="1600" height="260" fill="url(#cFog)"/><path d="M0,900 L0,750 L250,730 L520,760 L560,900 Z" fill="#06040c"/><g fill="#06040c"><path d="M210,730 L390,718 L394,728 L212,740 Z"/><rect x="290" y="704" width="62" height="12" rx="5"/><path d="M200,732 L160,752 L170,760 L218,742 Z"/><path d="M250,736 L260,762 L268,762 L264,736 Z"/><path d="M140,752 Q160,727 200,730 L210,748 Q160,762 130,766 Z"/></g><line x1="394" y1="724" x2="951.42" y2="704" stroke="#ff2a2a" stroke-width="7" opacity=".35" filter="url(#cBlur2)"/><line x1="394" y1="724" x2="951.42" y2="704" stroke="#ff4a4a" stroke-width="1.6" class="spl-laser"/><circle cx="951.42" cy="704" r="9" fill="#ff2020" opacity=".5" filter="url(#cBlur2)"/><circle cx="951.42" cy="704" r="3" fill="#ffd0d0"/><rect width="1600" height="900" fill="url(#cVig)"/></svg>
+  <div class="spl-title">
+    <svg class="spl-mask" viewBox="0 0 200 80" aria-hidden="true"><defs><linearGradient id="mG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff0c0"/><stop offset=".5" stop-color="#e2b75c"/><stop offset="1" stop-color="#9c6a22"/></linearGradient></defs>
+      <path d="M100,30 C82,8 30,6 8,24 C14,52 40,70 66,62 C80,58 90,48 100,44 C110,48 120,58 134,62 C160,70 186,52 192,24 C170,6 118,8 100,30 Z" fill="url(#mG)"/>
+      <path d="M40,34 C48,26 66,26 74,34 C66,42 48,42 40,34 Z M126,34 C134,26 152,26 160,34 C152,42 134,42 126,34 Z" fill="#160a14"/>
+      <path d="M8,24 C2,14 4,4 14,2 M192,24 C198,14 196,4 186,2" stroke="#e2b75c" stroke-width="2" fill="none"/>
+      <path d="M150,10 C170,-6 196,6 198,-2" stroke="#b02040" stroke-width="5" fill="none" stroke-linecap="round"/></svg>
+    <div class="spl-sm">Une soirée d'espionnage</div>
+    <h1>Bal Masqué</h1>
+    <div class="spl-tag">Un espion parmi les invités · un sniper · une seule balle</div>
+    <button id="splGo" type="button">Entrer au bal</button>
+    <div id="splStatus"></div>
+  </div>
+</div>
+
 
 <!-- ================= MENU ================= -->
 <div id="menu" class="screen">
@@ -977,7 +1026,7 @@ const texCache = {};
 function canvasTex(key, w, h, draw, linear){
   if (texCache[key]) return texCache[key];
   const c = document.createElement('canvas'); c.width = w; c.height = h;
-  draw(c.getContext('2d'), w, h);
+  draw(c.getContext('2d', {willReadFrequently:true}), w, h);
   const t = new THREE.CanvasTexture(c); if (!linear) t.encoding = THREE.sRGBEncoding;
   t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8;
   return texCache[key] = t;
@@ -1126,7 +1175,7 @@ function texCurtain(){
 
 /* ---------- rendu : moteur + post-traitement ---------- */
 const GradeShader = {
-  uniforms: {tDiffuse:{value:null}, uTime:{value:0}, uZoom:{value:0}, uVig:{value:.55}, uExp:{value:1.1}},
+  uniforms: {tDiffuse:{value:null}, uTime:{value:0}, uZoom:{value:0}, uVig:{value:.38}, uExp:{value:1.12}},
   vertexShader: 'varying vec2 vUv; void main(){ vUv = uv; gl_Position = projectionMatrix*modelViewMatrix*vec4(position,1.); }',
   fragmentShader: `
     uniform sampler2D tDiffuse; uniform float uTime, uZoom, uVig, uExp; varying vec2 vUv;
@@ -1135,15 +1184,17 @@ const GradeShader = {
       vec2 uv = vUv; vec3 col;
       if (uZoom > 0.){ vec2 d = (uv-.5)*.006*uZoom; col = vec3(texture2D(tDiffuse,uv+d).r, texture2D(tDiffuse,uv).g, texture2D(tDiffuse,uv-d).b); }
       else col = texture2D(tDiffuse, uv).rgb;
+      col *= vec3(1.04, 1.0, .95);                                  // balance des blancs chaude (lumière de bougie)
       col = aces(col*uExp);
-      float l = dot(col, vec3(.299,.587,.114));
-      col = mix(col*vec3(.9,.97,1.1), col*vec3(1.07,1.,.88), smoothstep(.05,.7,l));
+      float l = dot(col, vec3(.2126,.7152,.0722));
+      col = mix(col*vec3(.96,.98,1.04), col, smoothstep(.0,.35,l));   // ombres légèrement froides, très subtil
       col = pow(col, vec3(1./2.2));
-      col = mix(vec3(dot(col,vec3(.333))), col, 1.06);
-      float v = smoothstep(1.05, .3, length((uv-.5)*vec2(1.15,1.)));
+      col = mix(vec3(dot(col,vec3(.2126,.7152,.0722))), col, 1.04);
+      col = col*col*(3.-2.*col)*.12 + col*.88;                       // courbe douce type pellicule
+      float v = smoothstep(1.1, .25, length((uv-.5)*vec2(1.1,1.)));
       col *= mix(1.-uVig, 1., v);
       float n = fract(sin(dot(uv*1000. + uTime, vec2(12.9898,78.233)))*43758.5453);
-      col += (n-.5)*.03;
+      col += (n-.5)*.012;
       gl_FragColor = vec4(col, 1.);
     }`
 };
@@ -1152,7 +1203,7 @@ function initRenderer(){
   if (renderer) return;
   renderer = new THREE.WebGLRenderer({antialias:true, powerPreference:'high-performance'});
   renderer.setPixelRatio(Math.min(1.75, devicePixelRatio || 1));
-  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFShadowMap;
   $('stage').appendChild(renderer.domElement);
   POST = !!(THREE.EffectComposer && THREE.RenderPass && THREE.UnrealBloomPass && THREE.ShaderPass);
   if (POST){
@@ -1161,7 +1212,7 @@ function initRenderer(){
     const rt = new RT(innerWidth, innerHeight, {type: THREE.HalfFloatType, format: THREE.RGBAFormat});
     composer = new THREE.EffectComposer(renderer, rt);
     renderPass = new THREE.RenderPass(new THREE.Scene(), new THREE.PerspectiveCamera());
-    bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .32, .4, 1.25);
+    bloomPass = new THREE.UnrealBloomPass(new THREE.Vector2(innerWidth, innerHeight), .38, .55, 1.6);
     gradePass = new THREE.ShaderPass(GradeShader);
     composer.addPass(renderPass); composer.addPass(bloomPass); composer.addPass(gradePass);
   } else {
@@ -1179,19 +1230,22 @@ function initRenderer(){
   };
   addEventListener('resize', resize); resize();
   // reflets : environnement chaud généré
+  // reflets : une vraie salle de bal (murs chauds, lustres, hautes fenêtres de nuit)
   const pm = new THREE.PMREMGenerator(renderer), es = new THREE.Scene();
-  es.background = C3('#1a1410');
+  const room = new THREE.Mesh(new THREE.BoxGeometry(14, 6, 14), new THREE.MeshBasicMaterial({color:HDR('#4a2a1c',.55), side:THREE.BackSide})); room.position.y = 3; es.add(room);
+  const flr = new THREE.Mesh(new THREE.PlaneGeometry(14,14), new THREE.MeshBasicMaterial({color:HDR('#5a3420',.5)})); flr.rotation.x = -Math.PI/2; flr.position.y = .01; es.add(flr);
   const pane = (w,h,x,y,z,ry,c,k) => { const m = new THREE.Mesh(new THREE.PlaneGeometry(w,h), new THREE.MeshBasicMaterial({color:HDR(c,k), side:THREE.DoubleSide})); m.position.set(x,y,z); m.rotation.y = ry; es.add(m); };
-  pane(6,3, 0,2,-6, 0, '#ffd9a0', 3); pane(6,3, 6,2,0, -Math.PI/2, '#ffc890', 2); pane(6,3, -6,2,0, Math.PI/2, '#8aa8ff', 1.2); pane(8,8, 0,7,0, 0, '#fff0d8', 1.5);
-  const fl = new THREE.Mesh(new THREE.PlaneGeometry(20,20), new THREE.MeshBasicMaterial({color:HDR('#3a2416',.6)})); fl.rotation.x = -Math.PI/2; es.add(fl);
-  envTex = pm.fromScene(es, .04).texture;
+  for (let i=-1;i<=1;i++){ pane(1.6,3, i*4,2.2,6.9, 0, '#2a3a5a', .8); pane(1.6,3, -6.9,2.2,i*4, Math.PI/2, '#e8b070', 1.2); }
+  [[-3,-3],[3,-3],[-3,3],[3,3],[0,0]].forEach(([x,z]) => { const b = new THREE.Mesh(new THREE.SphereGeometry(.45,16,12), new THREE.MeshBasicMaterial({color:HDR('#ffe2b0', 9)})); b.position.set(x, 4.8, z); es.add(b); });
+  pane(6,2.5, 6.9,2.3,0, -Math.PI/2, '#ffd9a0', 1.6);
+  envTex = pm.fromScene(es, .03).texture;
 }
 function renderView(sc, cam, zoom){
   if (POST){
     renderPass.scene = sc; renderPass.camera = cam;
     gradePass.uniforms.uTime.value = (performance.now()/1000) % 100;
     gradePass.uniforms.uZoom.value = zoom ? 1 : 0;
-    gradePass.uniforms.uVig.value = zoom ? .15 : .55;
+    gradePass.uniforms.uVig.value = zoom ? .12 : .38;
     composer.render();
   } else renderer.render(sc, cam);
 }
@@ -1261,16 +1315,18 @@ function buildScene(mode){
   const H = 3.4;
 
   /* lumières */
-  scene.add(new THREE.HemisphereLight(C3('#6a7cb0'), C3('#3a2618'), .35));
-  const key = new THREE.DirectionalLight(C3('#ffd9b0'), .7);
+  scene.add(new THREE.HemisphereLight(C3('#7c6a8a'), C3('#4a2c18'), .28));
+  const key = new THREE.DirectionalLight(C3('#ffdcb8'), .55);
   key.position.set(cx+4, 24, cz+9); key.target.position.set(cx,0,cz); scene.add(key, key.target);
-  key.castShadow = true; key.shadow.mapSize.set(2048,2048); key.shadow.bias = -0.0003; key.shadow.normalBias = .025;
+  key.castShadow = true; key.shadow.mapSize.set(2048,2048); key.shadow.bias = -0.0004; key.shadow.normalBias = .03; key.shadow.radius = 3.5;
   Object.assign(key.shadow.camera, {left:-bw/2-3, right:bw/2+3, top:bd/2+4, bottom:-bd/2-4, near:1, far:70});
   key.shadow.camera.updateProjectionMatrix();
   const moonL = new THREE.DirectionalLight(C3('#8aa4ff'), .25); moonL.position.set(cx-20, 25, cz+40); scene.add(moonL);
   M.rooms.forEach(r => {
     const n = r.w > r.h * 1.4 ? [[.25,.5],[.75,.5]] : r.h > r.w * 1.4 ? [[.5,.28],[.5,.72]] : [[.5,.5]];
-    n.forEach(([a,b]) => { const l = new THREE.PointLight(C3('#ffc58a'), 1.7, 12, 1.6); l.position.set((r.x+r.w*a)*U, 2.75, (r.y+r.h*b)*U); scene.add(l); });
+    n.forEach(([a,b]) => { const l = new THREE.PointLight(C3('#ffc890'), 2.5, 14, 1.6); l.position.set((r.x+r.w*a)*U, 2.75, (r.y+r.h*b)*U); scene.add(l); });
+    // lumière rebondie douce (le plafond et les murs éclairés renvoient une lueur chaude)
+    const bounce = new THREE.PointLight(C3('#d89a6a'), .45, 9, 1.2); bounce.position.set((r.x+r.w/2)*U, .6, (r.y+r.h/2)*U); scene.add(bounce);
   });
 
   /* extérieur */
@@ -1278,7 +1334,7 @@ function buildScene(mode){
   const W0 = -24, W1 = 49, Wm = (W0+W1)/2, Wl = W1-W0;
   solid(box(Wl, .16, 1.3, mat('#55555c',{roughness:.8}), Wm, .0, B.y1*U+.65));
   const sz0 = B.y1*U+1.3, sz1 = 735*U;
-  solid(box(Wl, .05, sz1-sz0, mat('#18181c',{roughness:.35, metalness:.1}), Wm, -.01, (sz0+sz1)/2));
+  solid(box(Wl, .05, sz1-sz0, pbrMat(pbrPlaster('#1c1c22'), Wl/3, (sz1-sz0)/3, {ns:.6}), Wm, -.01, (sz0+sz1)/2));
   for (let x=W0; x<W1; x+=3.2) box(1.6,.012,.12, mat('#d0bc6a',{roughness:.6}), x, .02, (sz0+sz1)/2);
   solid(box(Wl, .16, 770*U-sz1, mat('#4c4c54',{roughness:.8}), Wm, .02, (sz1+770*U)/2));
   const bz0 = 770*U, bz1 = 1150*U;
@@ -1294,7 +1350,7 @@ function buildScene(mode){
     if (x > B.x0*U - 1.5 && x < B.x1*U + 1.5) continue;
     cyl(.05,.08,4.4, mat('#121212',{metalness:.7,roughness:.4}), x, 2.2, z);
     box(.25,.05,.25, mat('#121212',{metalness:.7,roughness:.4}), x, 4.45, z);
-    const l = sph(.16, glow('#ffd9a0', 6), x, 4.3, z); l.castShadow = false;
+    const l = sph(.13, glow('#ffd9a0', 2.6), x, 4.3, z); l.castShadow = false; halo(1.1, '#ffc880', .45, null, x, 4.3, z);
   }
   // ville autour
   const R = seeded(9);
@@ -1309,17 +1365,17 @@ function buildScene(mode){
   /* sols */
   solid(box(bw+.6, .12, bd+.6, '#241e1a', cx, -.06, cz));
   M.rooms.forEach(r => {
-    const t = r.tile ? rep(texMarbleTiles(r.floor), r.w*U/2.4, r.h*U/2.4) : rep(texParquet(r.floor), r.w*U/3.2, r.h*U/3.2);
-    const m = new THREE.MeshStandardMaterial({map:t, roughness: r.tile ? .18 : .32, metalness:.0}); m.envMapIntensity = .9;
+    const m = r.tile ? pbrMat(pbrMarble(r.floor), r.w*U/2.4, r.h*U/2.4, {ns:.6}) : pbrMat(pbrParquet(r.floor), r.w*U/3.2, r.h*U/3.2, {ns:.9});
+    m.envMapIntensity = r.tile ? 1.1 : .8; addFloorAO(m, r.x*U, r.y*U, (r.x+r.w)*U, (r.y+r.h)*U);
     const f = mesh(new THREE.PlaneGeometry(r.w*U, r.h*U), m, (r.x+r.w/2)*U, .005, (r.y+r.h/2)*U);
     f.rotation.x = -Math.PI/2; f.castShadow = false; solid(f);
   });
 
   /* murs */
-  const T = 7, wain = texWainscot();
-  const facadeIn = mat('#1a2238',{roughness:.5}), facadeOut = mat('#4e4a44',{roughness:.85});
+  const T = 7, wainSet = pbrWainscot();
+  const facadeIn = pbrMat(pbrPlaster('#2a2630'), 4, 2, {ns:.5}), facadeOut = pbrMat(pbrPlaster('#8a7c68'), 6, 2, {ns:.8});
   const glassM = new THREE.MeshStandardMaterial({transparent:true, opacity:.12, roughness:.02, metalness:.6, depthWrite:false}); glassM.color = C3('#a8c8ef'); glassM.envMapIntensity = 1.5;
-  const molding = mat('#e8dcc0',{roughness:.5}), gilt = mat('#c9a227',{roughness:.3, metalness:1});
+  const capM = mat('#5a4024',{roughness:.55, metalness:.4}); const molding = pbrMat(pbrPlaster('#e4d6b8'), 2, 1, {ns:.4}), gilt = mat('#b8913c',{roughness:.42, metalness:1}); gilt.envMapIntensity = .45;
   function wallMeshes(r, x1, y1, x2, y2, nx, ny, kind, gaps){
     const hz = y1 === y2, a0 = hz ? x1 : y1, a1 = hz ? x2 : y2;
     const c = (hz ? y1 : x1) + (hz ? ny : nx) * T/2;
@@ -1330,8 +1386,8 @@ function buildScene(mode){
     const seg = (s,e,y0,y1,m,th=T,off=0) => { const len = e-s, mid = (s+e)/2;
       const me = solid(box(hz ? len*U : th*U, y1-y0, hz ? th*U : len*U, m, (hz ? mid : c + (hz?0:nx)*off)*U, (y0+y1)/2, (hz ? c + ny*off : mid)*U));
       me.material = me.material.clone(); fadeWalls.push(me); return me; };
-    const wpM = len => { const m = new THREE.MeshStandardMaterial({map:rep(texWallpaper(r.wall), len*U/1.4, (H-1.05)/1.4), roughness:.85}); m.envMapIntensity = .3; return m; };
-    const wnM = len => new THREE.MeshStandardMaterial({map:rep(wain, len*U/1.8, 1), roughness:.45});
+    const wpM = len => { const m = pbrMat(pbrWallpaper(r.wall), len*U/1.1, (H-1.05)/1.1, {ns:.8}); m.envMapIntensity = .35; return addWallAO(m, H); };
+    const wnM = len => { const m = pbrMat(wainSet, len*U/1.8, 1, {ns:.9}); m.envMapIntensity = .6; return addWallAO(m, H); };
     if (kind === 'facade'){
       seg(a0,a1,0,.55,facadeIn); seg(a0,a1,3.05,H,facadeIn);
       for (let p=a0; p<=a1+1; p+=90){ seg(Math.max(a0,p-9), Math.min(a1,p+9), .55, 3.05, facadeIn, T+2); }
@@ -1351,7 +1407,7 @@ function buildScene(mode){
           const g = new THREE.PlaneGeometry(.55, 2.85, 12, 1), pp = g.attributes.position;
           for (let i=0;i<pp.count;i++){ const u = pp.getX(i); pp.setZ(i, Math.sin(u*28)*.05 + (pp.getY(i) < 0 ? -pp.getY(i)*.06*sd : 0)); }
           g.computeVertexNormals();
-          const m = new THREE.MeshStandardMaterial({map:ct, roughness:.85, side:THREE.DoubleSide}); m.color = C3('#ffffff');
+          const m = new THREE.MeshStandardMaterial({map:ct, roughness:.62, side:THREE.DoubleSide}); m.color = C3('#7a5258'); m.envMapIntensity = .5;
           const cu = mesh(g, m, (p + sd*20)*U, 1.95, (c - ny*-(T/2+3))*U); fadeWalls.push(cu);
         });
       }
@@ -1360,7 +1416,7 @@ function buildScene(mode){
       pieces.forEach(([s,e]) => {
         seg(s,e,0,Math.min(1.05,h), wnM(e-s));
         seg(s,e,.98,1.06, mat('#5a3620',{roughness:.4}), T+2.5);
-        if (h > 1.05){ seg(s,e,1.06,h, wpM(e-s)); seg(s,e,h-.16,h-.04, molding, T+3); seg(s,e,h-.04,h, gilt, T+4); }
+        if (h > 1.05){ seg(s,e,1.06,h, wpM(e-s)); seg(s,e,h-.16,h-.04, molding, T+3); seg(s,e,h-.04,h, capM, T+4); }
         seg(s,e,0,.12, mat('#2a160a',{roughness:.5}), T+1.5);
       });
       if (kind !== 'half') gs.forEach(g => { const s0 = Math.max(g[0],a0), e0 = Math.min(g[1],a1);
@@ -1423,16 +1479,22 @@ function buildScene(mode){
     mesh(new THREE.SphereGeometry(.07,12,10), gilt, 0, 2.7, 0, gl);
     for (let i=0;i<10;i++){ const a = i/10*Math.PI*2;
       const b = mesh(new THREE.SphereGeometry(.035,8,6), glow('#fff2d0', 7), Math.cos(a)*.42, 2.84, Math.sin(a)*.42, gl); b.castShadow = false;
+      halo(.32, '#ffd9a0', .9, gl, Math.cos(a)*.42, 2.86, Math.sin(a)*.42);
+      for (let k=1;k<4;k++){ const dd = mesh(new THREE.OctahedronGeometry(.016), mat('#ffffff',{roughness:0, metalness:.1, transparent:true, opacity:.55}), Math.cos(a+.3)*.36, 2.78-k*.05, Math.sin(a+.3)*.36, gl); dd.castShadow = false; }
       const dp = mesh(new THREE.OctahedronGeometry(.025), mat('#ffffff',{roughness:0, metalness:.2, transparent:true, opacity:.7}), Math.cos(a)*.42, 2.7, Math.sin(a)*.42, gl); dp.castShadow = false; }
     for (let i=0;i<6;i++){ const a = i/6*Math.PI*2 + .3; const b = mesh(new THREE.SphereGeometry(.03,8,6), glow('#fff2d0', 7), Math.cos(a)*.24, 3.0, Math.sin(a)*.24, gl); b.castShadow = false; }
+    halo(1.6, '#ffcf90', .35, gl, 0, 2.8, 0);
     gl.traverse(o => { if (o.isMesh) o.castShadow = false; o.layers.set(1); });
   });
 
   /* décor */
   M.furn.forEach(f => {
     const X = v => v*U;
+    // ombre de contact sous chaque meuble
+    if (f.t !== 'rug'){ if (f.r) floorAO(f.r*U*2.3, f.r*U*2.3, X(f.x), X(f.y), f.t === 'htable' ? .6 : 1);
+      else if (f.w) floorAO(f.w*U + .3, f.h*U + .3, X(f.x + f.w/2), X(f.y + f.h/2)); else floorAO(.95, .9, X(f.x), X(f.y), .8); }
     switch (f.t){
-      case 'rug': { const m = new THREE.MeshStandardMaterial({map:texRug('#5e1420','#c9a227','#1f3a5a'), roughness:.95}); m.color = C3('#ffffff');
+      case 'rug': { const m = pbrMat(pbrRug('#5e1420','#c9a227','#1f3a5a'), 1, 1, {ns:.6}); m.envMapIntensity = .2;
         const r = mesh(new THREE.PlaneGeometry(f.w*U, f.h*U), m, X(f.x+f.w/2), .012, X(f.y+f.h/2)); r.rotation.x = -Math.PI/2; r.castShadow = false; break; }
       case 'shelf': { const hz = f.w > f.h, L_ = (hz ? f.w : f.h)*U, D = (hz ? f.h : f.w)*U;
         const cxx = X(f.x+f.w/2), czz = X(f.y+f.h/2);
@@ -1450,7 +1512,8 @@ function buildScene(mode){
         [-1,1].forEach(sd => solid(box(hz ? .22 : .4, 1.2, hz ? .4 : .22, marble, cxx + (hz ? sd*(L_/2-.11) : 0), .6, czz + (hz ? 0 : sd*(L_/2-.11)))));
         box(hz ? L_-.44 : .3, .9, hz ? .3 : L_-.44, '#0a0705', cxx - out[0]*.06, .45, czz - out[1]*.06);
         for (let i=0;i<5;i++){ const fl = mesh(new THREE.ConeGeometry(.07+Math.random()*.05, .3+Math.random()*.25, 8), glow(i%2 ? '#ff9a3a' : '#ffd070', 5), cxx + (hz ? (i-2)*.14 : 0), .28, czz + (hz ? 0 : (i-2)*.14)); fl.castShadow = false; flickers.push(fl); }
-        const fireL = new THREE.PointLight(C3('#ff9a4a'), 2.2, 7, 1.5); fireL.position.set(cxx + out[0]*.6, .6, czz + out[1]*.6); scene.add(fireL); flickers.push(fireL);
+        halo(1.4, '#ff9040', .6, null, cxx + out[0]*.15, .45, czz + out[1]*.15);
+        const fireL = new THREE.PointLight(C3('#ff9a4a'), 2.4, 8, 1.5); fireL.position.set(cxx + out[0]*.6, .6, czz + out[1]*.6); scene.add(fireL); flickers.push(fireL);
         box(hz ? .1 : .3, .06, hz ? .3 : .1, '#2a1a0e', cxx, .1, czz);
         const mirror = mesh(new THREE.PlaneGeometry(hz ? L_*.8 : 1, 1.1), new THREE.MeshStandardMaterial({roughness:.02, metalness:1}), cxx - out[0]*.18 + out[0]*.0, 2.0, czz - out[1]*.18);
         mirror.material.color = C3('#d8d0c0'); mirror.material.envMapIntensity = 1.2; mirror.rotation.y = hz ? 0 : Math.PI/2;
@@ -1464,7 +1527,7 @@ function buildScene(mode){
         break;
       case 'htable': solid(cyl(f.r*U+.08, f.r*U+.08, .04, mat('#1a120c',{roughness:.2,metalness:.3}), X(f.x), 1.08, X(f.y), null, 32)); cyl(.03,.03,1.04, gilt, X(f.x), .54, X(f.y)); cyl(.2,.22,.03, gilt, X(f.x), .015, X(f.y));
         cyl(.04,.004,.07, mat('#dfeef5',{transparent:true,opacity:.35,roughness:.02}), X(f.x)+.08, 1.2, X(f.y), null, 12);
-        { const cn = mesh(new THREE.SphereGeometry(.03,8,6), glow('#ffcc66', 6), X(f.x)-.06, 1.17, X(f.y)); cn.castShadow = false; flickers.push(cn); }
+        { const cn = mesh(new THREE.SphereGeometry(.03,8,6), glow('#ffcc66', 6), X(f.x)-.06, 1.17, X(f.y)); cn.castShadow = false; flickers.push(cn); halo(.35, '#ffb860', .8, null, X(f.x)-.06, 1.18, X(f.y)); }
         break;
       case 'chair': { const vel = mat('#6a1a2a',{roughness:.9});
         solid(box(.7,.18,.66, vel, X(f.x), .38, X(f.y)));
@@ -1506,7 +1569,7 @@ function buildScene(mode){
           cyl(.032,.004,.07, mat('#dfeef5',{transparent:true,opacity:.35,roughness:.02}), X(x)+.12, .9, X(y), null, 12); }
         for (let x=f.x+60; x<f.x+f.w; x+=110){ cyl(.04,.07,.06, gilt, X(x), .83, X(f.y+f.h/2), null, 12); cyl(.01,.01,.25, gilt, X(x), .95, X(f.y+f.h/2), null, 8);
           [-1,0,1].forEach(k => { cyl(.012,.012,.14, mat('#f4f0e6'), X(x)+k*.09, 1.12, X(f.y+f.h/2), null, 8);
-            const fl = mesh(new THREE.SphereGeometry(.018,8,6), glow('#ffcc66', 7), X(x)+k*.09, 1.22, X(f.y+f.h/2)); fl.scale.set(1,1.8,1); fl.castShadow = false; flickers.push(fl); });
+            const fl = mesh(new THREE.SphereGeometry(.018,8,6), glow('#ffcc66', 7), X(x)+k*.09, 1.22, X(f.y+f.h/2)); fl.scale.set(1,1.8,1); fl.castShadow = false; flickers.push(fl); halo(.28, '#ffb860', .7, null, X(x)+k*.09, 1.23, X(f.y+f.h/2)); });
           box(.6,.04,.04, gilt, X(x), 1.05, X(f.y+f.h/2)); }
         break;
     }
@@ -1515,6 +1578,7 @@ function buildScene(mode){
   /* statues */
   M.statues.forEach((s,i) => {
     const marble = mat('#e8e2d8',{roughness:.22});
+    floorAO(.9, .9, s.x*U, s.y*U);
     solid(box(.52, .1, .52, marble, s.x*U, .05, s.y*U));
     solid(box(.42, .8, .42, mat('#3a2e2a',{roughness:.35}), s.x*U, .5, s.y*U));
     box(.5, .08, .5, marble, s.x*U, .94, s.y*U);
@@ -1589,13 +1653,13 @@ function buildPickScene(){
   const rim = new THREE.DirectionalLight(C3('#7a9aff'), .9); rim.position.set(-3, 3, -2); scene.add(rim);
   const fillL = new THREE.PointLight(C3('#ffb890'), .7, 8); fillL.position.set(2.2, 1.4, 2.4); scene.add(fillL);
   const rimL = new THREE.SpotLight(C3('#9ab8ff'), 2.2, 10, .6, .8, 1.2); rimL.position.set(1.5, 3, -2.5); rimL.target.position.set(0,1.2,0); scene.add(rimL, rimL.target);
-  const fl = mesh(new THREE.CircleGeometry(6, 64), new THREE.MeshStandardMaterial({map:rep(texParquet('#7a5034'), 3, 3), roughness:.3}), 0, 0, 0); fl.rotation.x = -Math.PI/2; fl.material.color = C3('#ffffff'); fl.castShadow = false;
-  const rugM = new THREE.MeshStandardMaterial({map:texRug('#5e1420','#c9a227','#1f3a5a'), roughness:.95}); rugM.color = C3('#ffffff');
+  const fl = mesh(new THREE.CircleGeometry(6, 64), pbrMat(pbrParquet('#7a5034'), 3, 3, {ns:.9}), 0, 0, 0); fl.rotation.x = -Math.PI/2; fl.castShadow = false;
+  const rugM = pbrMat(pbrRug('#5e1420','#c9a227','#1f3a5a'), 1, 1, {ns:.6});
   const rg = mesh(new THREE.CircleGeometry(1.1, 64), rugM, 0, .01, 0); rg.rotation.x = -Math.PI/2; rg.castShadow = false;
   const wallG = new THREE.CylinderGeometry(4.5, 4.5, 4, 64, 1, true, Math.PI*.6, Math.PI*.8);
-  const wm = new THREE.MeshStandardMaterial({map:rep(texWallpaper('#3a1420'), 8, 2.6), side:THREE.BackSide, roughness:.85}); wm.color = C3('#ffffff');
+  const wm = pbrMat(pbrWallpaper('#3a1420'), 10, 3.3, {ns:.8, side:THREE.BackSide});
   mesh(wallG, wm, 0, 2, 0).castShadow = false;
-  const wn = new THREE.MeshStandardMaterial({map:rep(texWainscot(), 9, 1), side:THREE.BackSide, roughness:.5}); wn.color = C3('#ffffff');
+  const wn = pbrMat(pbrWainscot(), 9, 1, {ns:.9, side:THREE.BackSide});
   mesh(new THREE.CylinderGeometry(4.45, 4.45, 1.05, 64, 1, true, Math.PI*.6, Math.PI*.8), wn, 0, .525, 0).castShadow = false;
   [-1.2, 1.2].forEach((a,i) => {
     const g = new THREE.Group(); g.position.set(Math.sin(Math.PI*1 + a*.5)*4.35, 0, Math.cos(Math.PI*1 + a*.5)*4.35); g.lookAt(0,0,0); scene.add(g);
@@ -1727,6 +1791,197 @@ function flattenStatic(root, keep){
 }
 function mergeTree(root, skip){ const gs = []; root.traverse(o => { if (o.isGroup || o === root) gs.push(o); }); gs.forEach(g => mergeChildren(g, skip)); }
 
+
+/* =====================================================================
+   MATIÈRES RÉALISTES (générées) : couleur + relief (normal map) + brillance
+   (roughness map). Bois véritable veiné, marbre, damas tissé, laine…
+   Tout est calculé au chargement, rien à télécharger.
+   ===================================================================== */
+const PBR = {};
+// ---- bruit périodique (les textures se répètent sans couture)
+function makeNoise(seed){
+  const R = seeded(seed), P = new Float32Array(256*256);
+  for (let i=0;i<P.length;i++) P[i] = R();
+  const sm = t => t*t*(3 - 2*t);
+  const vn = (x, y, per) => {
+    const xi = Math.floor(x), yi = Math.floor(y), fx = sm(x - xi), fy = sm(y - yi);
+    const w = q => ((q % per) + per) % per;
+    const a = P[(w(yi)&255)*256 + (w(xi)&255)], b = P[(w(yi)&255)*256 + (w(xi+1)&255)];
+    const c = P[(w(yi+1)&255)*256 + (w(xi)&255)], d = P[(w(yi+1)&255)*256 + (w(xi+1)&255)];
+    return (a + (b - a)*fx) + ((c + (d - c)*fx) - (a + (b - a)*fx))*fy;
+  };
+  // u, v ∈ [0,1) ; f = nombre de cellules sur la largeur
+  const fbm = (u, v, f, oct = 4, fy = f) => { let s = 0, a = .5, n = 0;
+    for (let o=0;o<oct;o++){ s += a*vn(u*f, v*fy, f) ; n += a; a *= .5; f *= 2; fy *= 2; } return s/n; };
+  return {vn, fbm};
+}
+const N1 = typeof THREE !== 'undefined' ? makeNoise(17) : null, N2 = typeof THREE !== 'undefined' ? makeNoise(91) : null;
+const hex2rgb = h => { const n = parseInt(h.slice(1), 16); return [n >> 16, n >> 8 & 255, n & 255]; };
+const lerp3 = (a, b, t) => [a[0] + (b[0]-a[0])*t, a[1] + (b[1]-a[1])*t, a[2] + (b[2]-a[2])*t];
+
+// fabrique : fn(u, v, px, py) -> [r,g,b, hauteur 0..1, rugosité 0..1]
+function genPBR(key, w, h, fn, nStrength = 2){
+  if (PBR[key]) return PBR[key];
+  const col = new Uint8ClampedArray(w*h*4), rgh = new Uint8ClampedArray(w*h*4), hgt = new Float32Array(w*h);
+  for (let y=0;y<h;y++) for (let x=0;x<w;x++){
+    const o = fn(x/w, y/h, x, y), i = y*w + x;
+    col[i*4] = o[0]; col[i*4+1] = o[1]; col[i*4+2] = o[2]; col[i*4+3] = 255;
+    hgt[i] = o[3]; const r = Math.round(clamp(o[4], 0, 1)*255); rgh[i*4] = r; rgh[i*4+1] = r; rgh[i*4+2] = r; rgh[i*4+3] = 255;
+  }
+  const nrm = new Uint8ClampedArray(w*h*4);
+  for (let y=0;y<h;y++) for (let x=0;x<w;x++){
+    const H_ = (xx, yy) => hgt[((yy+h)%h)*w + ((xx+w)%w)];
+    const dx = (H_(x+1,y) - H_(x-1,y))*nStrength, dy = (H_(x,y+1) - H_(x,y-1))*nStrength;
+    let nx = -dx, ny = dy, nz = 1; const l = Math.hypot(nx, ny, nz); nx /= l; ny /= l; nz /= l;
+    const i = (y*w + x)*4; nrm[i] = (nx*.5+.5)*255; nrm[i+1] = (ny*.5+.5)*255; nrm[i+2] = (nz*.5+.5)*255; nrm[i+3] = 255;
+  }
+  const mk = (data, srgb) => { const c = document.createElement('canvas'); c.width = w; c.height = h; c.getContext('2d', {willReadFrequently:true}).putImageData(new ImageData(data, w, h), 0, 0);
+    const t = new THREE.CanvasTexture(c); if (srgb) t.encoding = THREE.sRGBEncoding; t.wrapS = t.wrapT = THREE.RepeatWrapping; t.anisotropy = 8; return t; };
+  return PBR[key] = {map: mk(col, true), normalMap: mk(nrm), roughnessMap: mk(rgh)};
+}
+function pbrMat(set, rx, ry, o = {}){
+  const r = t => { const c = t.clone(); c.needsUpdate = true; c.repeat.set(rx, ry); return c; };
+  const opts = Object.assign({}, o); delete opts.ns; delete opts.tint;
+  const m = new THREE.MeshStandardMaterial(Object.assign({map:r(set.map), normalMap:r(set.normalMap), roughnessMap:r(set.roughnessMap), roughness:1, metalness:0}, opts));
+  m.color = C3(o.tint || '#ffffff'); m.normalScale = new THREE.Vector2(o.ns || 1, o.ns || 1);
+  return m;
+}
+
+/* ---------- parquet en chevrons, vrai bois veiné et ciré ---------- */
+function pbrParquet(base){
+  const B0 = lerp3(hex2rgb(base), [70,44,28], .35), dark = lerp3(B0, [24,12,6], .32), light = lerp3(B0, [230,190,140], .12);
+  return genPBR('pq2'+base, 512, 512, (u, v, px, py) => {
+    const pw = 32, ph = 128, col = Math.floor(px/pw), left = col % 2 === 0, lu = px - col*pw;
+    const vv = py + (left ? lu : pw - lu)*.5 + (left ? 0 : ph/2), row = Math.floor(vv/ph), lv = vv - row*ph;
+    const id = ((col*73856093) ^ (row*19349663)) >>> 0, rnd = (id % 1000)/1000, rnd2 = ((id >> 10) % 1000)/1000;
+    // veinage du bois (le long de la lame)
+    const gu = (lu + rnd*200)/pw;
+    const warp = N1.fbm(u + rnd, v*.25 + rnd2, 8, 3);
+    const ring = Math.sin((gu*11 + warp*3 + rnd*20)*Math.PI);
+    const fib = N2.fbm(u*1 + rnd, v + rnd2, 6, 4, 90);
+    let t = .5 + .1*ring + .3*(fib - .5);
+    t = clamp(t + (rnd - .5)*.45, 0, 1);
+    let c = lerp3(dark, light, t);
+    // joints entre lames + légère usure
+    const e = Math.min(lu, pw - lu, lv, ph - lv), gap = e < .8 ? 1 : 0;
+    const ao = clamp(e/3, 0, 1);
+    c = lerp3([20,11,5], c, gap ? .5 : .85 + .15*ao);
+    const wear = N1.fbm(u, v, 3, 3);
+    const h = gap ? 0 : .55 + .05*ring + .25*Math.min(1, e/2);
+    return [c[0], c[1], c[2], h, gap ? .9 : .36 + .2*fib + .2*wear];
+  }, 1.6);
+}
+/* ---------- marbre veiné en damier, filets de laiton ---------- */
+function pbrMarble(base){
+  const B0 = hex2rgb(base);
+  return genPBR('mb2'+base, 512, 512, (u, v, px, py) => {
+    const tile = 128, ti = Math.floor(px/tile), tj = Math.floor(py/tile), dk = (ti + tj) % 2;
+    const turb = N1.fbm(u, v, 4, 5), turb2 = N2.fbm(u + .3, v + .7, 6, 4);
+    const vein = Math.pow(1 - Math.abs(Math.sin((u*3 + v*2 + turb*3.2)*Math.PI)), 14);
+    const vein2 = Math.pow(1 - Math.abs(Math.sin((u*-2 + v*5 + turb2*4)*Math.PI)), 30);
+    let c = dk ? lerp3([18,34,30], [40,64,56], turb2) : lerp3(lerp3(B0, [255,252,244], .35), B0, turb*.6);
+    c = lerp3(c, dk ? [170,190,170] : [120,110,100], clamp(vein*.6 + vein2*.4, 0, 1)*(dk ? .5 : .55));
+    const lx = px % tile, ly = py % tile, e = Math.min(lx, tile - lx, ly, tile - ly);
+    const brass = e < 1.4;
+    if (brass) c = lerp3([150,110,40], [230,190,110], N2.fbm(u, v, 20, 2));
+    return [c[0], c[1], c[2], brass ? .7 : .5 + .02*turb, brass ? .35 : .06 + .08*turb2 + (dk ? .03 : 0)];
+  }, 1.2);
+}
+/* ---------- papier peint damassé tissé (relief + reflets satinés) ---------- */
+function pbrWallpaper(base){
+  const B0 = hex2rgb(base);
+  // motif dessiné → masque
+  const S = 512, c = document.createElement('canvas'); c.width = c.height = S; const x = c.getContext('2d', {willReadFrequently:true});
+  x.fillStyle = '#000'; x.fillRect(0,0,S,S); x.fillStyle = '#fff';
+  const motif = (cx, cy) => { x.save(); x.translate(cx, cy);
+    x.beginPath(); x.moveTo(0,-50); x.bezierCurveTo(30,-34, 30,-6, 0,8); x.bezierCurveTo(-30,-6,-30,-34, 0,-50); x.fill();
+    x.beginPath(); x.moveTo(0,50); x.bezierCurveTo(20,34, 20,18, 0,12); x.bezierCurveTo(-20,18,-20,34, 0,50); x.fill();
+    for (const sd of [-1,1]){ x.beginPath(); x.ellipse(sd*27, 2, 14, 5.5, sd*.6, 0, 7); x.fill(); x.beginPath(); x.arc(sd*40, -12, 4.5, 0, 7); x.fill();
+      x.beginPath(); x.ellipse(sd*18, -30, 4, 10, sd*-.5, 0, 7); x.fill(); }
+    x.restore(); };
+  for (let j=0;j<5;j++) for (let i=-1;i<5;i++) motif(i*128 + (j%2)*64 + 64, j*128);
+  const raw = x.getImageData(0,0,S,S).data, M_ = new Float32Array(S*S), tmp = new Float32Array(S*S);
+  for (let i=0;i<S*S;i++) tmp[i] = raw[i*4];
+  for (let y=0;y<S;y++) for (let x2=0;x2<S;x2++){ let a = 0; for (let k=-1;k<=1;k++) a += tmp[y*S + ((x2+k+S)%S)]; M_[y*S+x2] = a/3; }
+  for (let y=0;y<S;y++) for (let x2=0;x2<S;x2++){ let a = 0; for (let k=-1;k<=1;k++) a += M_[((y+k+S)%S)*S + x2]; tmp[y*S+x2] = a/3; }
+  return genPBR('wp2'+base, S, S, (u, v, px, py) => {
+    const m = tmp[py*S + px]/255;
+    const weave = (Math.sin(px*Math.PI*.9)*.5 + .5)*.5 + (Math.sin(py*Math.PI*.9 + 1)*.5 + .5)*.5;
+    const n = N1.fbm(u, v, 16, 3);
+    let c0 = lerp3(B0, [0,0,0], .12 - .1*n);
+    c0 = lerp3(c0, lerp3(B0, [255,236,200], .14), m*.55);
+    c0 = lerp3(c0, [c0[0]*.92, c0[1]*.92, c0[2]*.92], weave*.4);
+    return [c0[0], c0[1], c0[2], .4 + m*.3 + weave*.06, .85 - m*.45 + n*.08];
+  }, 1.6);
+}
+/* ---------- boiseries à panneaux moulurés ---------- */
+function pbrWainscot(){
+  const dark = [46,26,14], light = [92,56,32];
+  return genPBR('wain2', 512, 256, (u, v, px, py) => {
+    const ring = Math.sin((u*30 + N1.fbm(u, v, 6, 3)*4)*Math.PI), fib = N2.fbm(u, v, 40, 3, 4);
+    let c = lerp3(dark, light, clamp(.5 + .07*ring + .25*(fib - .5), 0, 1));
+    const pxl = px % 256, x0 = 22, x1 = 234, y0 = 40, y1 = 226;
+    let h = .5;
+    if (py < 16){ h = .85; c = lerp3(c, [130,80,44], .4); }
+    else if (pxl > x0 && pxl < x1 && py > y0 && py < y1){
+      const e = Math.min(pxl - x0, x1 - pxl, py - y0, y1 - py);
+      h = e < 6 ? .5 - e/6*.25 : e < 14 ? .25 + (e-6)/8*.5 : .75;          // gorge puis panneau en relief
+      if (e < 6) c = lerp3(c, [16,8,4], .35);
+    }
+    return [c[0], c[1], c[2], h, .32 + .25*fib];
+  }, 3);
+}
+/* ---------- tapis de laine (motif existant + fibres) ---------- */
+function pbrRug(c1, c2, c3){
+  const S = 512, cv = document.createElement('canvas'); cv.width = cv.height = S; const x = cv.getContext('2d', {willReadFrequently:true}); x.drawImage(texRug(c1, c2, c3).image, 0, 0, S, S); const D = x.getImageData(0,0,S,S).data;
+  return genPBR('rug2'+c1, S, S, (u, v, px, py) => {
+    const i = (py*S + px)*4, f = N1.vn(u*128, v*128, 128), f2 = N2.fbm(u, v, 24, 2);
+    const k = .8 + .3*f + .12*(f2 - .5);
+    return [D[i]*k, D[i+1]*k, D[i+2]*k, .4 + .5*f, .95];
+  }, 2.5);
+}
+/* ---------- plâtre / pierre pour moulures et façade ---------- */
+function pbrPlaster(base){
+  const B0 = hex2rgb(base);
+  return genPBR('pl'+base, 256, 256, (u, v) => { const n = N1.fbm(u, v, 8, 5); const c = lerp3(B0, [B0[0]*.85, B0[1]*.85, B0[2]*.85], n);
+    return [c[0], c[1], c[2], n, .8 + .15*n]; }, 2);
+}
+
+/* ---------- ombre douce de contact pour le mobilier (occlusion) ---------- */
+function floorAO(w, d, x, z, k = 1){
+  const m = contactShadow(1); m.scale.set(w*1.35, d*1.35, 1); m.position.set(x, .014, z); m.material = m.material.clone(); m.material.opacity = .55*k; scene.add(m); return m;
+}
+
+/* ---------- assombrissement près du sol et du plafond (occlusion des coins) ---------- */
+function addWallAO(m, H){
+  m.onBeforeCompile = sh => {
+    sh.vertexShader = 'varying float vWy;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n vWy = (modelMatrix*vec4(transformed,1.)).y;');
+    sh.fragmentShader = 'varying float vWy;\n' + sh.fragmentShader.replace('#include <aomap_fragment>',
+      `#include <aomap_fragment>\n float aoW = mix(.55, 1., smoothstep(0., .45, vWy)) * mix(.7, 1., smoothstep(${H.toFixed(2)}, ${(H-.5).toFixed(2)}, vWy));\n reflectedLight.indirectDiffuse *= aoW; reflectedLight.directDiffuse *= mix(1., aoW, .6);`);
+  };
+  m.customProgramCacheKey = () => 'wallAO' + H;
+  return m;
+}
+/* le sol s'assombrit doucement le long des murs */
+function addFloorAO(m, x0, z0, x1, z1){
+  m.onBeforeCompile = sh => {
+    sh.uniforms.uRect = {value: new THREE.Vector4(x0, z0, x1, z1)};
+    sh.vertexShader = 'varying vec2 vWxz;\n' + sh.vertexShader.replace('#include <worldpos_vertex>', '#include <worldpos_vertex>\n vec4 wpA = modelMatrix*vec4(transformed,1.); vWxz = wpA.xz;');
+    sh.fragmentShader = 'uniform vec4 uRect; varying vec2 vWxz;\n' + sh.fragmentShader.replace('#include <aomap_fragment>',
+      `#include <aomap_fragment>\n float ed = min(min(vWxz.x - uRect.x, uRect.z - vWxz.x), min(vWxz.y - uRect.y, uRect.w - vWxz.y));\n float aoF = mix(.45, 1., smoothstep(0., .9, ed));\n reflectedLight.indirectDiffuse *= aoF; reflectedLight.directDiffuse *= mix(1., aoF, .5); reflectedLight.indirectSpecular *= mix(.6, 1., aoF);`);
+  };
+  m.customProgramCacheKey = () => 'floorAO';
+  return m;
+}
+
+/* halo doux autour des sources de lumière (ampoules, bougies) */
+let haloTex = null;
+function halo(size, color, k, parent, x, y, z){
+  if (!haloTex){ const c = document.createElement('canvas'); c.width = c.height = 64; const g = c.getContext('2d'), gr = g.createRadialGradient(32,32,0,32,32,32);
+    gr.addColorStop(0,'rgba(255,255,255,1)'); gr.addColorStop(.25,'rgba(255,255,255,.35)'); gr.addColorStop(1,'rgba(255,255,255,0)'); g.fillStyle = gr; g.fillRect(0,0,64,64); haloTex = new THREE.CanvasTexture(c); }
+  const s = new THREE.Sprite(new THREE.SpriteMaterial({map:haloTex, color:HDR(color, k), transparent:true, depthWrite:false, blending:THREE.AdditiveBlending}));
+  s.scale.set(size, size, 1); s.position.set(x, y, z); (parent || scene).add(s); return s;
+}
 
 /* (les animations sont maintenant générées dans chars.js) */
 const MODEL_DATA = {};
@@ -2721,6 +2976,15 @@ function updateDust(dt){
 /* branchement sur le moteur existant */
 { const _bs = buildScene; buildScene = function(mode){ _bs(mode); addDust(); }; }
 { const _rw = renderWorld; renderWorld = function(dt, mode){ updateAmbience(dt, mode); updateDust(dt); _rw(dt, mode); }; }
+
+/* écran d'accueil illustré */
+function closeSplash(){ const sp = $('splash'); if (!sp || sp.classList.contains('out')) return; ensureAudio(); startAmbience(); sp.classList.add('out'); setTimeout(() => sp.remove(), 1300); }
+if ($('splash')){
+  $('splash').addEventListener('click', closeSplash);
+  addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') closeSplash(); });
+  const tick = setInterval(() => { const st = $('splStatus'), m = $('status'); if (!st){ clearInterval(tick); return; }
+    st.textContent = modelsReady ? '' : (m && m.textContent) || 'Les invités arrivent…'; if (modelsReady) clearInterval(tick); }, 300);
+}
 
 </script>
 </body>
