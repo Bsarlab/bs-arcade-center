@@ -277,7 +277,8 @@ input{font:inherit;color:inherit}
 .how b{display:block;font-family:var(--f-disp);font-weight:400;font-size:22px;color:var(--brass2);margin-bottom:4px}
 .how p{margin:0;color:var(--mut);font-size:14px}
 .foot{padding-block:40px 60px;color:var(--mut);font-size:13px}
-.banner{padding:12px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--bad) 60%,transparent);background:color-mix(in srgb,var(--bad) 10%,var(--night));font-size:14px}
+.banner a{color:var(--brass2);font-weight:700}
+.banner{line-height:1.55;padding:12px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--bad) 60%,transparent);background:color-mix(in srgb,var(--bad) 10%,var(--night));font-size:14px}
 
 /* =================== TABLE =================== */
 .tv{height:100%;display:flex;flex-direction:column;padding-left:max(12px,env(safe-area-inset-left,0px));padding-right:max(12px,env(safe-area-inset-right,0px));
@@ -1618,14 +1619,15 @@ const Net = {
   room: null, peers: [], pres: {}, state: 'connecting',
   async init(){
     let room = null;
-    try { if (window.claude && typeof window.claude.use === 'function') room = await window.claude.use('room'); } catch {}
-    if (!room) { this.state = 'offline'; onNet(); return; }
+    if (!(window.claude && typeof window.claude.use === 'function')) { this.why = 'file'; this.state = 'offline'; onNet(); return; }
+    try { room = await window.claude.use('room'); } catch {}
+    if (!room) { this.why = window.top === window ? 'tab' : 'view'; this.state = 'offline'; onNet(); return; }
     this.room = room;
-    room.onConnection(c => { if (!this.room) return; this.state = c ? 'online' : 'connecting'; onNet(); }, () => this.dead());
-    room.onPeers(ch => { if (!this.room) return; this.peers = ch.peers; onNet(); }, () => this.dead());
+    room.onConnection(c => { if (!this.room) return; this.state = c ? 'online' : 'connecting'; onNet(); }, e => this.dead(e));
+    room.onPeers(ch => { if (!this.room) return; this.peers = ch.peers; onNet(); }, e => this.dead(e));
     room.presence({ ...this.pres }).catch(() => {});
   },
-  dead(){ this.room = null; this.state = 'offline'; this.peers = []; onNet(); },
+  dead(e){ this.why = (e && e.code) || 'view'; this.room = null; this.state = 'offline'; this.peers = []; onNet(); },
   set(patch){
     const out = {};
     for (const k in patch) { const v = patch[k]; if (v == null) { delete this.pres[k]; out[k] = null; } else { this.pres[k] = v; out[k] = v; } }
@@ -1958,7 +1960,18 @@ function openTables(){
 }
 function renderTables(){
   const el = $('#tablelist'); if (!el) return;
-  if (Net.state === 'offline') { el.innerHTML = `<div class="banner">Le salon en ligne n’est pas disponible ici. Tu peux quand même créer une table et jouer contre des bots, ou faire un solitaire.</div>`; return; }
+  if (Net.state === 'offline') {
+    const LINK = 'https://claude.ai/artifact/6ayuhdqz3SFtMTL29gdWKv';
+    const why = Net.why === 'file'
+      ? `<b>Tu as ouvert le fichier téléchargé.</b> Le jeu en ligne ne fonctionne que sur la version publiée dans Claude : <a href="${LINK}" target="_blank" rel="noopener">ouvrir Brelan en ligne</a>.`
+      : Net.why === 'tab'
+      ? `<b>La page est ouverte seule, hors de l’app Claude.</b> Ouvre Brelan depuis claude.ai (dans la liste de tes artefacts ou depuis la conversation), en étant connecté à ton compte.`
+      : (Net.why === 'not_granted' || Net.why === 'revoked')
+      ? `<b>Ce compte n’a pas accès au salon.</b> Le propriétaire de Brelan doit t’inviter par e-mail depuis le bouton Partager (un lien public ne suffit pas pour jouer en ligne).`
+      : `<b>Le salon n’a pas pu se connecter.</b> Vérifie que tu es connecté à ton compte Claude et que tu as été invité par e-mail (pas par lien public), puis recharge la page.`;
+    el.innerHTML = `<div class="banner">${why}<br><span style="color:var(--mut)">En attendant, tu peux jouer contre des bots ou faire un solitaire.</span></div>`;
+    return;
+  }
   const ts = openTables();
   if (!ts.length) { el.innerHTML = `<div class="empty">Aucune table ouverte pour l’instant. Crée-en une : elle s’affichera ici pour tout le monde.</div>`; return; }
   el.innerHTML = ts.map(t => {
