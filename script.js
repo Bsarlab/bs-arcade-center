@@ -46,6 +46,9 @@ const I = {
   cadeau: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>',
 };
 
+// Illustrations dessinées (illustrations.js), masquables dans Mise en page
+const dessin = (nom, cls = "") => (option("illustrations") && window.ILLUS?.[nom] ? `<div class="dessin ${cls}">${window.ILLUS[nom]}</div>` : "");
+
 // ---------- Jeux : dates, couleurs ----------
 // Date d'ajout : l'identifiant créé par l'admin la contient
 const dateJeu = (j) => parseInt(String(j.id).slice(1), 36) || 0;
@@ -176,6 +179,7 @@ function appliquerApparence(a = {}) {
   r.setProperty("--f-corps", `"${corps}", system-ui, -apple-system, sans-serif`);
   $("polices").href = "https://fonts.googleapis.com/css2?" + [...new Set([titres, corps])].map((p) => "family=" + POLICES[p]).join("&") + "&display=swap";
   document.querySelector('meta[name="theme-color"]').content = tons.fond;
+  if (window.FAVICON_BS && $("favicon") && !(donnees?.site?.logoStyle === "image" && donnees.site.logo)) $("favicon").href = "data:image/svg+xml," + encodeURIComponent(window.FAVICON_BS(tons));
   h.classList.toggle("theme-sombre", sombre);
   // Classes d'effets (lues par le CSS)
   const e = v.effets, classes = h.className.split(/\s+/).filter((x) => x && !/^(anim|survol|trans|ombre)-|^effet-|^logos-couleur$/.test(x));
@@ -374,7 +378,7 @@ PAGES.accueil = () => {
   <section class="section">
     <div class="conteneur">
       ${enteteSection(t("derniers_etiquette"), t("derniers_titre"), jeux.length > 6 ? `<a class="lien-fleche" href="#/jeux">${t("derniers_tous")} ${I.droite}</a>` : `<a class="lien-fleche" href="#/jeux">${t("derniers_voir")} ${I.droite}</a>`)}
-      ${jeux.length ? `<div class="grille-jeux">${jeux.slice(0, 6).map((j) => carteJeu(j)).join("")}</div>` : `<div class="vide"><strong>${t("jeux_vide_titre")}</strong><span>${echapper(donnees.sectionJeux?.vide || "")}</span></div>`}
+      ${jeux.length ? `<div class="grille-jeux">${jeux.slice(0, 6).map((j) => carteJeu(j)).join("")}</div>` : `<div class="vide">${dessin("vide", "vide-dessin")}<strong>${t("jeux_vide_titre")}</strong><span>${echapper(donnees.sectionJeux?.vide || "")}</span></div>`}
     </div>
   </section>`,
     genres: () => genres.length < 2 ? "" : `
@@ -389,6 +393,28 @@ PAGES.accueil = () => {
       }).join("")}</div>
     </div>
   </section>`,
+    galerie: () => {
+      const imgs = [
+        ...jeux.filter((j) => j.image).map((j) => ({ src: j.image, titre: j.titre, lienJeu: j.id })),
+        ...(Array.isArray(donnees.slides) ? donnees.slides : []).filter((x) => x.image).map((x) => ({ src: x.image, titre: x.titre || "" })),
+        ...blocsPerso().flatMap((b) => [b.image, ...(b.images || [])]).filter(Boolean).map((src) => ({ src, titre: "" })),
+      ];
+      if (imgs.length < 2) return "";
+      // 8 cases (une grande, une large) : les cases en trop se remplissent de dessins
+      const cases = imgs.slice(0, 8);
+      ["ludotheque", "atelier", "lettre", "jouer", "partager", "choisir"].forEach((d) => { if (cases.length < 8) cases.push({ dessin: d }); });
+      return `
+  <section class="section">
+    <div class="conteneur">
+      ${enteteSection(t("galerie_etiquette"), t("galerie_titre"), `<span class="meta">${t("galerie_aide")}</span>`)}
+      <div class="galerie-mur">${cases.map((x, i) => {
+        const forme = i === 0 ? "grande" : i === 5 ? "large" : "";
+        if (x.dessin) return `<div class="galerie-case dessinee ${forme}" aria-hidden="true">${window.ILLUS?.[x.dessin] || ""}</div>`;
+        return `<button class="galerie-case ${forme}" type="button" data-zoom="${echapper(lien(x.src))}" data-legende="${echapper(x.titre)}"><img src="${echapper(lien(x.src))}" alt="${echapper(x.titre)}" loading="lazy">${x.titre ? `<span>${echapper(x.titre)}</span>` : ""}</button>`;
+      }).join("")}</div>
+    </div>
+  </section>`;
+    },
     citation: () => {
       const images = (jeux.length > 4 ? jeux.slice(2, 5) : jeux.slice(0, 3));
       return `
@@ -408,7 +434,7 @@ PAGES.accueil = () => {
   <section class="section">
     <div class="conteneur">
       <div class="section-tete centre"><div><p class="etiquette">${t("etapes_etiquette")}</p><h2>${t("etapes_titre")}</h2></div></div>
-      <div class="grille-etapes">${[1, 2, 3].map((n) => `<div class="etape" data-n="${n}"><span class="etape-num">${n}</span><b>${t("etape" + n + "_titre")}</b><span>${t("etape" + n + "_texte")}</span></div>`).join("")}</div>
+      <div class="grille-etapes">${[1, 2, 3].map((n) => `<div class="etape" data-n="${n}">${dessin(["choisir", "jouer", "partager"][n - 1], "etape-dessin")}<span class="etape-num">${n}</span><b>${t("etape" + n + "_titre")}</b><span>${t("etape" + n + "_texte")}</span></div>`).join("")}</div>
     </div>
   </section>`,
     prochains: () => `
@@ -423,7 +449,7 @@ PAGES.accueil = () => {
   <section class="section">
     <div class="conteneur">
       <div class="teaser">
-        <a class="teaser-image" href="#/a-propos" aria-label="${t("teaser_lien")}">${h.image ? `<img src="${echapper(lien(h.image))}" alt="">` : I.photo}</a>
+        <a class="teaser-image" href="#/a-propos" aria-label="${t("teaser_lien")}">${h.image ? `<img src="${echapper(lien(h.image))}" alt="">` : option("illustrations") && window.ILLUS ? window.ILLUS.portrait : I.photo}</a>
         <div class="teaser-texte">
           <p class="etiquette">${t("teaser_etiquette")}</p>
           <h2 class="teaser-titre">${echapper(h.titre?.trim() || T("teaser_titre"))}</h2>
@@ -444,7 +470,7 @@ PAGES.accueil = () => {
   <section class="section">
     <div class="conteneur">
       <div class="bande-contact">
-        <div class="bande-tete"><p class="etiquette">${t("bande_etiquette")}</p><h2>${t("bande_titre")}</h2><p>${t("bande_texte")}</p></div>
+        <div class="bande-tete"><p class="etiquette">${t("bande_etiquette")}</p><h2>${t("bande_titre")}</h2><p>${t("bande_texte")}</p>${dessin("lettre", "bande-dessin")}</div>
         <div class="bande-liens">
           ${mail ? `<a class="bande-lien clair" href="mailto:${echapper(mail)}"><span>${echapper(mail)}</span>${I.droite}</a>` : ""}
           ${tel ? `<a class="bande-lien clair" href="tel:${echapper(tel)}"><span>${echapper(c.telephone.trim())}</span>${I.droite}</a>` : ""}
@@ -469,10 +495,11 @@ PAGES.jeux = () => {
   return assembler("jeux", {
     entete: () => `
   <section class="entete-page">
-    <div class="conteneur">
-      <p class="etiquette">${t("jeux_etiquette", { jeux: pluriel(jeux.length, "jeu", "jeux") })}</p>
+    <div class="conteneur entete-illu">
+      <div><p class="etiquette">${t("jeux_etiquette", { jeux: pluriel(jeux.length, "jeu", "jeux") })}</p>
       <h1>${echapper(sj.titre || "Jeux")}</h1>
-      ${sj.intro ? `<p class="accroche">${echapper(sj.intro)}</p>` : ""}
+      ${sj.intro ? `<p class="accroche">${echapper(sj.intro)}</p>` : ""}</div>
+      ${dessin("ludotheque", "entete-dessin")}
     </div>
   </section>`,
     reprendre: () => `<section class="section serree"><div class="conteneur"><div class="reprendre" id="reprendre" hidden><p class="sous-titre">${t("jeux_reprendre")}</p><div class="reprendre-liste" id="reprendreListe"></div></div></div></section>`,
@@ -585,7 +612,7 @@ const PROCHAINS_DEFAUT = [
   { nom: "Jeu mystère", genre: "Aventure", avancement: 15 },
 ];
 const grilleProchains = (prochains) => `<div class="grille-prochains">${prochains.map((p) => `<article class="prochain">
-    <div class="prochain-visuel"><span class="prochain-forme f1"></span><span class="prochain-forme f2"></span><span class="prochain-cadenas">${I.cadenas}</span><span class="badge noir">${t("prochains_badge")}</span></div>
+    <div class="prochain-visuel">${option("illustrations") && window.ILLUS ? window.ILLUS.mystere : `<span class="prochain-forme f1"></span><span class="prochain-forme f2"></span><span class="prochain-cadenas">${I.cadenas}</span>`}<span class="badge noir">${t("prochains_badge")}</span></div>
     <div class="prochain-corps"><h3>${echapper(p.nom)}</h3>${p.genre ? `<p class="meta">${echapper(p.genre)}</p>` : ""}
       <div class="avancement" role="img" aria-label="Avancement : ${p.avancement} %"><span class="avancement-barre"><span style="--v:${p.avancement}%"></span></span><span class="avancement-nb">${p.avancement} %</span></div></div>
   </article>`).join("")}
@@ -600,15 +627,16 @@ PAGES["a-propos"] = () => {
   const prochains = prochainsJeux(h);
   return `
   <section class="entete-page">
-    <div class="conteneur">
-      <p class="etiquette">${t("apropos_etiquette")}</p>
-      <h1>${echapper(h.titre?.trim() || T("teaser_titre"))}</h1>
+    <div class="conteneur entete-illu">
+      <div><p class="etiquette">${t("apropos_etiquette")}</p>
+      <h1>${echapper(h.titre?.trim() || T("teaser_titre"))}</h1></div>
+      ${dessin("atelier", "entete-dessin")}
     </div>
   </section>` + assembler("a-propos", {
     histoire: () => `
   <section class="section serree">
-    <div class="conteneur apropos ${h.image ? "" : "sans-image"}">
-      ${h.image ? `<figure class="apropos-image"><img src="${echapper(lien(h.image))}" alt=""></figure>` : ""}
+    <div class="conteneur apropos ${h.image || option("illustrations") ? "" : "sans-image"}">
+      ${h.image ? `<figure class="apropos-image"><img src="${echapper(lien(h.image))}" alt=""></figure>` : option("illustrations") ? `<figure class="apropos-image dessinee">${window.ILLUS?.portrait || ""}</figure>` : ""}
       <div class="apropos-texte"><div class="prose grande">${paragraphes(String(h.texte || "").trim() ? h.texte : T("teaser_texte"))}</div></div>
     </div>
   </section>`,
@@ -683,10 +711,11 @@ PAGES.contact = () => {
   return assembler("contact", {
     entete: () => `
   <section class="entete-page">
-    <div class="conteneur">
-      <p class="etiquette">${t("contact_etiquette")}</p>
+    <div class="conteneur entete-illu">
+      <div><p class="etiquette">${t("contact_etiquette")}</p>
       <h1>${echapper(c.titre || "Restons en contact")}</h1>
-      <p class="accroche">${echapper(c.texte || "Une idée de jeu, un bug, un record à partager ? Écris-moi.")}</p>
+      <p class="accroche">${echapper(c.texte || "Une idée de jeu, un bug, un record à partager ? Écris-moi.")}</p></div>
+      ${dessin("lettre", "entete-dessin")}
     </div>
   </section>`,
     coordonnees: () => !(mail || tel) ? "" : `<section class="section serree"><div class="conteneur"><div class="grille-coord">${cartesCoordonnees()}</div></div></section>`,
@@ -707,6 +736,7 @@ PAGES.contact = () => {
 PAGES.introuvable = () => `
   <section class="entete-page centre">
     <div class="conteneur">
+      ${dessin("perdu", "dessin-404")}
       <p class="etiquette">${t("erreur_etiquette")}</p>
       <h1>${t("erreur_titre")}</h1>
       <p class="accroche">${t("erreur_texte")}</p>
@@ -769,6 +799,7 @@ function afficherPage(page, id) {
   (donnees.jeux || []).forEach(calculerCouleur);
   activerRevele();
   majDefilement();
+  marquerImagesPretes();
 }
 addEventListener("hashchange", naviguer);
 
@@ -818,10 +849,12 @@ function afficherCommun() {
   if (!css) { css = document.createElement("style"); css.id = "cssPerso"; document.head.appendChild(css); }
   css.textContent = donnees.apparence?.css || "";
   $("nomEntete").textContent = s.nom || "";
-  $("logoEntete").hidden = !s.logo;
-  $("initialesEntete").hidden = !!s.logo;
-  $("initialesEntete").textContent = (String(s.nom || "").match(/^[A-Z0-9]{2,3}\b/) || [initiales(s.nom || "?")])[0];
-  if (s.logo) $("logoEntete").src = lien(s.logo);
+  // Logo : dessiné aux couleurs du site, sauf si « Mon image » est choisi dans l'admin
+  const image = s.logoStyle === "image" && s.logo;
+  $("logoEntete").hidden = !image;
+  $("initialesEntete").hidden = !!image;
+  $("initialesEntete").innerHTML = window.LOGO_BS ? window.LOGO_BS() : echapper(initiales(s.nom || "?"));
+  if (image) $("logoEntete").src = lien(s.logo);
   if (s.accroche) document.querySelector('meta[name="description"]').content = s.accroche;
   const pages = [["accueil", "#/"], ["jeux", "#/jeux"], ["a-propos", "#/a-propos"], ["contact", "#/contact"]];
   const blocsMenu = blocsPerso().filter((b) => b.dansMenu && b.titre && htmlBloc(b));
@@ -829,7 +862,7 @@ function afficherCommun() {
     + blocsMenu.map((b, i) => `<li><a href="#bloc-${echapper(b.id)}"><span class="menu-num">0${pages.length + i + 1}</span>${echapper(b.titre.trim())}</a></li>`).join("");
   $("menuJeux").innerHTML = jeux.slice(0, 3).map((j) => `<a class="menu-jeu" href="#/jeu/${echapper(j.id)}" ${attrCouleur(j)}><span class="menu-jeu-image">${imageJeu(j)}</span><span><b>${echapper(j.titre)}</b><small>${echapper(majuscule(j.genre || T("jeu_genre_defaut")))}</small></span></a>`).join("");
   $("menuReseaux").innerHTML = liens.map(pastilleReseau).join("");
-  $("piedNom").textContent = s.nom || "";
+  $("piedNom").innerHTML = (image ? `<img class="pied-logo" src="${echapper(lien(s.logo))}" alt="">` : window.LOGO_BS ? window.LOGO_BS() : "") + `<span>${echapper(s.nom || "")}</span>`;
   $("piedAccroche").textContent = s.accroche || "";
   $("pied").textContent = s.piedDePage || `© ${new Date().getFullYear()} ${s.nom || ""}`;
   $("piedNav").innerHTML = pages.map(([p, href]) => `<li><a href="${href}">${NOMS_PAGES[p]}</a></li>`).join("");
@@ -879,7 +912,8 @@ function htmlCarte(s) {
   }
   if (!s.titre && !s.texte && !s.image) return "";
   const externe = s.cible === "url", href = externe ? lienSur(s.url) : s.cible;
-  return `<div class="carte-media" style="--c:hsl(${teinteDe(s.titre || s.id)} 60% 62%)">${s.image ? `<img src="${echapper(lien(s.image))}" alt="" draggable="false" onerror="this.remove()">` : ""}</div>
+  const dessins = ["atelier", "lettre", "ludotheque"], dessinCarte = window.ILLUS?.[dessins[teinteDe(s.id || s.titre) % 3]] || "";
+  return `<div class="carte-media ${s.image ? "" : "carte-dessin"}">${s.image ? `<img src="${echapper(lien(s.image))}" alt="" draggable="false" onerror="this.remove()">` : dessinCarte}</div>
     <div class="carte-corps">
       ${s.surtitre ? `<p class="etiquette">${echapper(s.surtitre)}</p>` : ""}
       ${s.titre ? `<h3>${echapper(s.titre)}</h3>` : ""}
@@ -1082,6 +1116,7 @@ $("btnPleinEcran").addEventListener("click", () => {
 document.addEventListener("click", (e) => {
   const t = e.target;
   const jouer = t.closest("[data-jouer]"); if (jouer) { e.preventDefault(); ouvrirJeu(jouer.dataset.jouer); return; }
+  const zoom = t.closest("#vue [data-zoom], #vue .galerie img, #vue .b-image img"); if (zoom) { ouvrirVision(zoom); return; }
   const fav = t.closest("[data-favori]"); if (fav) { e.preventDefault(); basculerFavori(fav.dataset.favori); return; }
   const part = t.closest("[data-partager]"); if (part) { copier(adresseSite() + "#/jeu/" + part.dataset.partager, "Lien du jeu copié !"); return; }
   if (t.closest("[data-partager-site]")) { copier(adresseSite(), "Lien du site copié !"); return; }
@@ -1153,6 +1188,43 @@ document.addEventListener("pointermove", (ev) => {
   if (incline && el.classList.contains("carte-jeu")) { el.style.setProperty("--ry", ((x - .5) * 10).toFixed(2) + "deg"); el.style.setProperty("--rx", ((.5 - y) * 8).toFixed(2) + "deg"); }
 }, { passive: true });
 
+// Images : apparition en fondu une fois chargées
+const marquerImage = (img) => img.classList.add("charge");
+document.addEventListener("load", (e) => { if (e.target.tagName === "IMG") marquerImage(e.target); }, true);
+document.addEventListener("error", (e) => { if (e.target.tagName === "IMG") marquerImage(e.target); }, true);
+const marquerImagesPretes = () => document.querySelectorAll("#vue img").forEach((i) => { if (i.complete) marquerImage(i); });
+
+// Visionneuse d'images (galerie, blocs Image et Galerie)
+let vision = { liste: [], i: 0 };
+function imagesZoomables() {
+  return [...document.querySelectorAll("#vue [data-zoom], #vue .galerie img, #vue .b-image img")].map((el) => ({
+    el, src: el.dataset.zoom || el.currentSrc || el.src, legende: el.dataset.legende || el.alt || el.closest("figure")?.querySelector("figcaption")?.textContent || "",
+  }));
+}
+function ouvrirVision(el) {
+  vision.liste = imagesZoomables();
+  vision.i = Math.max(0, vision.liste.findIndex((x) => x.el === el || x.el.contains(el)));
+  montrerVision();
+  if (!$("visionneuse").open) $("visionneuse").showModal();
+}
+function montrerVision() {
+  const x = vision.liste[vision.i]; if (!x) return;
+  const img = $("visionImage");
+  img.classList.remove("charge"); img.src = x.src; img.alt = x.legende;
+  $("visionLegende").textContent = x.legende;
+  $("visionCompte").textContent = `${vision.i + 1} / ${vision.liste.length}`;
+  $("visionPrec").hidden = $("visionSuiv").hidden = vision.liste.length < 2;
+}
+const tournerVision = (d) => { vision.i = (vision.i + d + vision.liste.length) % vision.liste.length; montrerVision(); };
+$("visionPrec").addEventListener("click", () => tournerVision(-1));
+$("visionSuiv").addEventListener("click", () => tournerVision(1));
+$("visionFermer").addEventListener("click", () => $("visionneuse").close());
+$("visionneuse").addEventListener("click", (e) => { if (e.target === $("visionneuse") || e.target.classList.contains("vision-scene")) $("visionneuse").close(); });
+$("visionneuse").addEventListener("keydown", (e) => { if (e.key === "ArrowRight") tournerVision(1); if (e.key === "ArrowLeft") tournerVision(-1); });
+let visionX = null;
+$("visionneuse").addEventListener("pointerdown", (e) => { visionX = e.clientX; });
+$("visionneuse").addEventListener("pointerup", (e) => { if (visionX !== null && Math.abs(e.clientX - visionX) > 50) tournerVision(e.clientX < visionX ? 1 : -1); visionX = null; });
+
 // Barre de progression de lecture + parallaxe des images
 let defilPrevu = false;
 function majDefilement() {
@@ -1161,6 +1233,10 @@ function majDefilement() {
   const barre = $("progression");
   barre.hidden = !effet("progression") || apercu;
   if (!barre.hidden) barre.style.setProperty("--p", max > 0 ? Math.min(1, scrollY / max) : 0);
+  // Bouton flottant « remonter » avec anneau de progression
+  const haut = $("hautFlottant");
+  haut.classList.toggle("visible", option("boutonHaut") && scrollY > 700 && !apercu);
+  haut.style.setProperty("--p", max > 0 ? Math.min(1, scrollY / max) : 0);
   const para = effet("parallaxe");
   document.querySelectorAll("#vue [data-parallaxe]").forEach((el) => {
     if (!para) { el.style.transform = ""; return; }
@@ -1171,6 +1247,7 @@ function majDefilement() {
 }
 addEventListener("scroll", () => { if (!defilPrevu) { defilPrevu = true; requestAnimationFrame(majDefilement); } }, { passive: true });
 addEventListener("resize", () => requestAnimationFrame(majDefilement));
+$("hautFlottant").addEventListener("click", () => scrollTo({ top: 0, behavior: mouvementReduit ? "auto" : "smooth" }));
 
 // Décor de fond : chaque forme glisse à sa propre vitesse quand on fait défiler (effet de profondeur)
 const formesDecor = [...document.querySelectorAll(".decor [data-vitesse]")];

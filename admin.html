@@ -186,7 +186,7 @@
   </section>
 </div>
 
-<script src="textes.js?v=28"></script>
+<script src="textes.js?v=29"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -412,7 +412,8 @@
         ${image("site.banniere", "Image de l'accueil", "Affichée à droite du titre tant qu'aucun jeu n'a de jaquette. Ensuite, ce sont tes jaquettes qui s'y affichent.")}
       </div>
       <div class="bloc"><h2>IDENTITÉ</h2>
-        ${image("site.logo", "Logo", "Carré de préférence, affiché à côté du nom en haut.")}
+        ${choixVL("site.logoStyle", "Logo du site", [["dessine", "Logo dessiné aux couleurs du site (recommandé)"], ["image", "Mon image ci-dessous"]])}
+        ${image("site.logo", "Mon image de logo", "Utilisée seulement si « Mon image » est choisi au-dessus. Carré de préférence.")}
         ${texte("site.piedDePage", "Pied de page", 160)}
       </div>
       <div class="bloc"><h2>SECTION JEUX</h2>

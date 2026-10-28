@@ -44,6 +44,9 @@ window.TEXTES_SITE = [
     ["teaser_texte", "À propos : texte (si l'onglet Histoire est vide)", "Je crée chaque jeu à la main, avec une idée simple : qu'on puisse y jouer tout de suite, entre amis, sans rien installer. Ce site rassemble tout ce que je fabrique."],
     ["teaser_chiffre1", "À propos : légende chiffre 1", "jeux en ligne"],
     ["teaser_chiffre2", "À propos : légende chiffre 2", "en préparation"],
+    ["galerie_etiquette", "Galerie : petit titre", "En images"],
+    ["galerie_titre", "Galerie : titre", "La galerie"],
+    ["galerie_aide", "Galerie : petit texte à droite", "Clique sur une image pour l'agrandir"],
   ]},
   { groupe: "Accueil : autres parties", page: "#/", textes: [
     ["accueil_pastille", "Pastille au-dessus du titre", "{jeux} · gratuits, sans compte"],
@@ -152,7 +155,7 @@ window.TEXTES_SITE = [
 window.SECTIONS_SITE = {
   accueil: { nom: "Accueil", lien: "#/", sections: [
     ["hero", "Grand titre et mosaïque"], ["defilant", "Bande de mots qui défile"], ["atouts", "4 blocs d'atouts"], ["une", "Carrousel « À la une »"],
-    ["derniers", "Liste des jeux"], ["genres", "Par genre"], ["citation", "Bande foncée avec citation"], ["etapes", "Comment ça marche"],
+    ["derniers", "Liste des jeux"], ["genres", "Par genre"], ["galerie", "Galerie d'images"], ["citation", "Bande foncée avec citation"], ["etapes", "Comment ça marche"],
     ["prochains", "Prochains jeux"], ["blocs", "Tes blocs (onglet Blocs)"], ["apropos", "Aperçu À propos"], ["contact", "Bandeau contact"]] },
   jeux: { nom: "Jeux", lien: "#/jeux", sections: [
     ["entete", "Titre de la page"], ["reprendre", "Reprendre une partie"], ["outils", "Recherche, filtres et tri"], ["grille", "Liste des jeux"], ["blocs", "Tes blocs"]] },
@@ -176,4 +179,6 @@ window.OPTIONS_SITE = [
   ["decor", "Décor de fond (formes grises)", true],
   ["taches", "Taches de couleur en fond", true],
   ["animations", "Animations à l'apparition des sections", true],
+  ["illustrations", "Illustrations dessinées (en-têtes, étapes, contact…)", true],
+  ["boutonHaut", "Bouton flottant « remonter » en bas à droite", true],
 ];
