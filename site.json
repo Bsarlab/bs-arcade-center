@@ -26,14 +26,28 @@
     ]
   },
   "apparence": {
-    "fond": "#F5F5F7",
-    "carte": "#ffffff",
-    "texte": "#121214",
-    "accent": "#ff0000",
-    "relief": 4,
-    "v": 3,
-    "titres": "DM Serif Display",
-    "corps": "Geist"
+    "v": 4,
+    "teinte": "#8C7963",
+    "mode": "clair",
+    "titres": "Manrope",
+    "corps": "Manrope",
+    "poidsTitres": 800,
+    "tailleTitres": 100,
+    "arrondi": 22,
+    "ombre": "douce",
+    "densite": "normale",
+    "effets": {
+      "apparition": "douce",
+      "survol": "zoom",
+      "transition": "fondu",
+      "halo": true,
+      "parallaxe": true,
+      "progression": true,
+      "compteurs": true,
+      "grain": false,
+      "logosCouleur": false
+    },
+    "css": ""
   },
   "sectionJeux": {
     "titre": "Jeux",
@@ -83,7 +97,7 @@
       "titre": "Bal Masqué",
       "genre": "",
       "description": "",
-      "fichier": "jeux/bal-masque-48t64.html",
+      "fichier": "jeux/bal-masque-pe18g.html",
       "image": "images/bal-masque-jaquette-0yvso.webp"
     }
   ],
