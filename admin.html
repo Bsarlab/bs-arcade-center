@@ -74,6 +74,12 @@
     .couleur input { width: 34px; height: 28px; border: 0; padding: 0; background: none; cursor: pointer; }
     .couleur span { font-weight: 700; font-size: 13px; }
     .palettes { display: flex; gap: 8px; flex-wrap: wrap; }
+    .teintes { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .teinte { display: grid; gap: 6px; padding: 8px; background: var(--champ); border: 1px solid var(--trait); border-radius: 10px; cursor: pointer; text-align: left; color: inherit; font-size: 13px; }
+    .teinte.choisie { border-color: var(--rouge); box-shadow: 0 0 0 1px var(--rouge); }
+    .nuancier { display: flex; height: 22px; border-radius: 6px; overflow: hidden; }
+    .nuancier i { flex: 1; }
+    .couleurs .champ { margin: 0; }
     .palette { display: flex; align-items: center; gap: 6px; padding: 6px 10px; background: var(--champ); border: 1px solid var(--trait); border-radius: 99px; cursor: pointer; font-size: 13px; font-weight: 700; }
     .palette i { width: 14px; height: 14px; border-radius: 50%; display: inline-block; border: 1px solid rgba(255,255,255,.25); }
 
@@ -180,7 +186,7 @@
   </section>
 </div>
 
-<script src="textes.js?v=27"></script>
+<script src="textes.js?v=28"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -189,15 +195,30 @@
   const hasard = () => Math.random().toString(36).slice(2, 7);
   const EXT = { "image/png": "png", "image/jpeg": "jpg", "image/webp": "webp", "image/gif": "gif", "image/svg+xml": "svg" };
   // Mêmes listes que dans script.js (le site remplace toute autre police par celles par défaut)
-  const POLICES_TITRES = ["Bricolage Grotesque", "Familjen Grotesk", "Syne", "Unbounded", "Instrument Serif", "DM Serif Display"];
-  const POLICES_CORPS = ["Geist", "Manrope", "DM Sans", "Figtree"];
-  const PALETTES = [
-    { nom: "Clair", c: { fond: "#F5F5F7", carte: "#FFFFFF", texte: "#121214", accent: "#E3121B" } },
-    { nom: "Lin", c: { fond: "#F3F1EC", carte: "#FFFFFF", texte: "#1A1814", accent: "#D9480F" } },
-    { nom: "Menthe", c: { fond: "#EEF5F1", carte: "#FFFFFF", texte: "#10201A", accent: "#0F9D62" } },
-    { nom: "Lavande", c: { fond: "#F2F0FA", carte: "#FFFFFF", texte: "#17142A", accent: "#6A4CFF" } },
-    { nom: "Nuit", c: { fond: "#0E0E10", carte: "#18181B", texte: "#F4F4F5", accent: "#FF3B44" } },
+  const POLICES_TITRES = ["Manrope", "Inter Tight", "Plus Jakarta Sans", "Outfit", "Sora", "Fraunces", "Bricolage Grotesque", "Familjen Grotesk", "Syne", "Unbounded", "Instrument Serif", "DM Serif Display"];
+  const POLICES_CORPS = ["Manrope", "Inter", "Plus Jakarta Sans", "Outfit", "DM Sans", "Figtree", "Geist"];
+  // Couleurs de base : le site en tire tous ses tons (du très clair au très foncé)
+  const TEINTES = [
+    ["Pierre", "#8C7963"], ["Sauge", "#6F8A6B"], ["Ardoise", "#677A99"], ["Terracotta", "#B0654A"],
+    ["Prune", "#86627F"], ["Océan", "#3E7C8C"], ["Sable", "#A89268"], ["Graphite", "#6E6E73"],
   ];
+  const DEFAUT_APP = {
+    v: 4, teinte: "#8C7963", mode: "clair", titres: "Manrope", corps: "Manrope", poidsTitres: 800, tailleTitres: 100,
+    arrondi: 22, ombre: "douce", densite: "normale",
+    effets: { apparition: "douce", survol: "zoom", transition: "fondu", halo: true, parallaxe: true, progression: true, compteurs: true, grain: false, logosCouleur: false },
+  };
+  // Même calcul que script.js, pour l'aperçu des nuanciers
+  function tonsDe(teinte) {
+    const m = String(teinte || "").match(/^#?([0-9a-f]{6})$/i);
+    const [r, g, b] = (m ? m[1] : "8C7963").match(/../g).map((x) => parseInt(x, 16) / 255);
+    const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+    let h = 0, s = 0;
+    if (d) { s = d / (1 - Math.abs(2 * l - 1)); h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4; h = (h * 60 + 360) % 360; }
+    s *= 100;
+    const c = (k, mx) => Math.min(s * k, mx), t = (sat, li) => `hsl(${h.toFixed(1)} ${sat.toFixed(1)}% ${li}%)`;
+    return [t(c(1.7, 32), 90), t(c(1.4, 34), 81), t(c(1, 60), 46), t(c(1.5, 62), 28), t(c(1.4, 40), 13)];
+  }
+  const nuancier = (teinte) => `<span class="nuancier">${tonsDe(teinte).map((c) => `<i style="background:${c}"></i>`).join("")}</span>`;
 
   let config = null;          // { pseudo, depot, cle, branche }
   let donnees = null;         // contenu de site.json en cours d'édition
@@ -256,7 +277,9 @@
     // Nouveau design : les anciennes polices « gamer » passent aux nouvelles
     donnees.apparence = donnees.apparence || {};
     // Nouveau site clair (v3) : l'ancien thème sombre « gaming » est remplacé, l'accent est gardé
-    if (!(donnees.apparence.v >= 3)) donnees.apparence = { ...PALETTES[0].c, accent: donnees.apparence.accent || PALETTES[0].c.accent, relief: 4, v: 3 };
+    // Nouveau design « Pierre » (v4) : une couleur déclinée en tons + réglages d'effets
+    if (!(donnees.apparence.v >= 4)) donnees.apparence = { ...structuredClone(DEFAUT_APP), css: donnees.apparence.css || "" };
+    donnees.apparence.effets = { ...DEFAUT_APP.effets, ...(donnees.apparence.effets || {}) };
     // Anciennes destinations de boutons → nouvelles pages
     // Page Contact : créée une première fois avec tes coordonnées et tes réseaux existants
     if (!donnees.contact) {
@@ -398,20 +421,39 @@
         ${texte("sectionJeux.vide", "Message quand il n'y a pas encore de jeu", 140)}
       </div>`;
     } else if (onglet === "apparence") {
-      h = `<div class="bloc"><h2>PALETTES</h2><div class="palettes">${PALETTES.map((p, i) =>
-          `<button class="palette" type="button" data-palette="${i}"><i style="background:${p.c.accent}"></i>${p.nom}</button>`).join("")}</div></div>
-      <div class="bloc"><h2>COULEURS</h2><div class="couleurs">
-        ${[["fond", "Fond"], ["carte", "Cartes et menu"], ["texte", "Texte"], ["accent", "Survol et relief"]].map(([k, l]) =>
-          `<label class="couleur"><input type="color" id="f-apparence.${k}" data-champ="apparence.${k}" value="${echapper(donnees.apparence[k])}"><span>${l}</span></label>`).join("")}
-      </div></div>
-      <div class="bloc"><h2>POLICES</h2>
-        ${choix("apparence.titres", "Titres", POLICES_TITRES)}
-        ${choix("apparence.corps", "Texte", POLICES_CORPS)}
+      const ap = donnees.apparence;
+      const curseur = (chemin, label, min, max, unite, defaut) => { const v = lire(chemin) ?? defaut; return `<div class="champ"><label for="f-${chemin}">${label} · <span id="val-${chemin}">${v}</span> ${unite}</label><input type="range" id="f-${chemin}" data-champ="${chemin}" data-nombre data-affiche="val-${chemin}" min="${min}" max="${max}" value="${v}"></div>`; };
+      const caseEffet = (k, label) => `<label class="caseMenu"><input type="checkbox" data-champ="apparence.effets.${k}" ${ap.effets?.[k] ? "checked" : ""}> ${label}</label>`;
+      h = `<div class="bloc"><h2>COULEUR DU SITE</h2>
+        <span class="aide">Choisis une couleur : le site en tire automatiquement tous ses tons, du très clair (fonds) au très foncé (textes, bandes).</span>
+        <div class="teintes">${TEINTES.map(([nom, c]) => `<button class="teinte ${String(ap.teinte).toLowerCase() === c.toLowerCase() ? "choisie" : ""}" type="button" data-teinte="${c}">${nuancier(c)}<b>${nom}</b></button>`).join("")}</div>
+        <div class="couleurs">
+          <label class="couleur"><input type="color" id="f-apparence.teinte" data-champ="apparence.teinte" value="${echapper(ap.teinte)}"><span>Ma couleur</span></label>
+          ${choixVL("apparence.mode", "Mode", [["clair", "Clair"], ["sombre", "Sombre"]])}
+        </div>
       </div>
-      <div class="bloc"><h2>RELIEF</h2>
-        <div class="champ"><label for="f-apparence.relief">Profondeur du relief au survol · <span id="valRelief">${donnees.apparence.relief ?? 5}</span> px</label>
-        <input type="range" id="f-apparence.relief" data-champ="apparence.relief" data-nombre min="0" max="12" value="${donnees.apparence.relief ?? 5}"></div>
-        <span class="aide">Passe la souris sur les titres et les cartes dans l'aperçu pour voir l'effet.</span>
+      <div class="bloc"><h2>TYPOGRAPHIE</h2>
+        ${choix("apparence.titres", "Police des titres", POLICES_TITRES)}
+        ${choix("apparence.corps", "Police du texte", POLICES_CORPS)}
+        ${choixVL("apparence.poidsTitres", "Épaisseur des titres", [["800", "Très gras"], ["700", "Gras"], ["600", "Demi-gras"], ["500", "Normal"]])}
+        ${curseur("apparence.tailleTitres", "Taille des titres", 80, 130, "%", 100)}
+      </div>
+      <div class="bloc"><h2>FORMES ET ESPACES</h2>
+        ${curseur("apparence.arrondi", "Arrondi des coins", 0, 40, "px", 22)}
+        ${choixVL("apparence.ombre", "Ombres", [["douce", "Douces"], ["marquee", "Marquées"], ["aucune", "Aucune (simple trait)"]])}
+        ${choixVL("apparence.densite", "Espacement entre les parties", [["normale", "Normal"], ["aeree", "Aéré"], ["compacte", "Compact"]])}
+      </div>
+      <div class="bloc"><h2>EFFETS VISUELS</h2>
+        ${choixVL("apparence.effets.apparition", "Apparition des éléments au défilement", [["douce", "Douce"], ["dynamique", "Dynamique (glissé + flou)"], ["aucune", "Aucune"]])}
+        ${choixVL("apparence.effets.survol", "Survol des cartes de jeux", [["zoom", "Zoom sur l'image"], ["souleve", "La carte se soulève"], ["3d", "Inclinaison 3D qui suit la souris"], ["aucun", "Aucun"]])}
+        ${choixVL("apparence.effets.transition", "Passage d'une page à l'autre", [["fondu", "Fondu"], ["glisse", "Glissé"], ["zoom", "Zoom flou"], ["aucune", "Instantané"]])}
+        ${caseEffet("halo", "Halo lumineux qui suit la souris sur les cartes")}
+        ${caseEffet("parallaxe", "Parallaxe : les images bougent en profondeur au défilement")}
+        ${caseEffet("progression", "Barre de progression de lecture en haut")}
+        ${caseEffet("compteurs", "Chiffres qui comptent à l'apparition")}
+        ${caseEffet("grain", "Grain de papier sur tout le site")}
+        ${caseEffet("logosCouleur", "Logos des réseaux dans leurs vraies couleurs")}
+        <span class="aide">Les effets sont désactivés automatiquement pour les visiteurs qui ont choisi « réduire les animations » sur leur appareil. Certains effets ne se voient pas dans l'aperçu : ouvre le site pour les tester.</span>
       </div>
       <div class="bloc"><h2>CSS PERSONNALISÉ (AVANCÉ)</h2>
         <div class="champ"><label for="f-apparence.css">Ton propre style</label><textarea class="code" id="f-apparence.css" data-champ="apparence.css" spellcheck="false" style="min-height:160px" placeholder="h1 { letter-spacing: -2px; }&#10;.carte-jeu { border-radius: 8px; }">${echapper(donnees.apparence.css || "")}</textarea>
@@ -634,10 +676,14 @@
   function ordreSections(p) {
     const defaut = window.SECTIONS_SITE[p].sections.map(([id]) => id);
     const L = (donnees.miseEnPage?.[p] || []).filter((s) => defaut.includes(s.id));
-    defaut.forEach((id) => { if (!L.some((s) => s.id === id)) L.push({ id, visible: true }); });
+    defaut.forEach((id, i) => {
+      if (L.some((s) => s.id === id)) return;
+      const avant = defaut.slice(0, i).reverse().find((q) => L.some((s) => s.id === q));
+      L.splice(avant ? L.findIndex((s) => s.id === avant) + 1 : 0, 0, { id, visible: true });
+    });
     return L;
   }
-  const choixVL = (chemin, label, options) => `<div class="champ"><label for="f-${chemin}">${label}</label><select id="f-${chemin}" data-champ="${chemin}">${options.map(([v, l]) => `<option value="${v}" ${v === (lire(chemin) || options[0][0]) ? "selected" : ""}>${l}</option>`).join("")}</select></div>`;
+  const choixVL = (chemin, label, options) => `<div class="champ"><label for="f-${chemin}">${label}</label><select id="f-${chemin}" data-champ="${chemin}">${options.map(([v, l]) => `<option value="${v}" ${v === String(lire(chemin) ?? options[0][0]) ? "selected" : ""}>${l}</option>`).join("")}</select></div>`;
   const caseMenu = (p) => `<label class="caseMenu"><input type="checkbox" id="f-${p}.dansMenu" data-champ="${p}.dansMenu" ${lire(p + ".dansMenu") ? "checked" : ""}> Afficher ce bloc dans le menu burger</label>`;
   function formBloc(b, i) {
     const p = "blocs." + i;
@@ -653,7 +699,7 @@
       case "texte": return texte(p + ".titre", "Titre", 80) + zone(p + ".texte", "Texte", "Laisse une ligne vide entre deux paragraphes.", 160) + choixVL(p + ".alignement", "Alignement", [["gauche", "À gauche"], ["centre", "Centré"]]) + caseMenu(p);
       case "image": return image(p + ".image", "Image") + texte(p + ".titre", "Titre (facultatif)", 80) + texte(p + ".legende", "Légende", 160) + choixVL(p + ".largeur", "Largeur", [["pleine", "Pleine largeur"], ["moyenne", "Moyenne"]]) + caseMenu(p);
       case "encadre": return texte(p + ".titre", "Titre", 80) + zone(p + ".texte", "Message", "", 90)
-        + `<label class="couleur"><input type="color" id="f-${p}.couleur" data-champ="${p}.couleur" value="${echapper(b.couleur || donnees.apparence.accent)}"><span>Couleur de fond</span></label>`
+        + `<label class="couleur"><input type="color" id="f-${p}.couleur" data-champ="${p}.couleur" value="${echapper(b.couleur || donnees.apparence.teinte || "#5A4836")}"><span>Couleur de fond</span></label>`
         + texte(p + ".texteBouton", "Texte du bouton (facultatif)", 30) + texte(p + ".lienBouton", "Lien du bouton (https://…)", 300) + caseMenu(p);
       case "galerie": return texte(p + ".titre", "Titre", 80) + `<div class="champ"><span class="lbl">Images</span><div class="galerieAdmin">${(b.images || []).map((img, k) =>
           `<div class="vg"><img src="${echapper(url(img))}" alt=""><button class="ico" type="button" data-galerie-retirer="${i}" data-k="${k}" aria-label="Retirer">×</button></div>`).join("")}</div>
@@ -707,7 +753,8 @@
       ecrire(el.dataset.champ, el.type === "checkbox" ? el.checked : el.dataset.nombre !== undefined ? Number(el.value) : el.value);
       if (el.dataset.rafraichir !== undefined) { changement(); afficherOnglet(); return; }
       if (/^blocs\.\d+\.titre$/.test(el.dataset.champ)) { const s = el.closest(".ligne")?.querySelector(".nom small"); if (s) s.textContent = el.value || "Vide"; }
-      if (el.dataset.champ === "apparence.relief") $("valRelief").textContent = el.value;
+      if (el.dataset.affiche && $(el.dataset.affiche)) $(el.dataset.affiche).textContent = el.value;
+      if (el.dataset.champ === "apparence.teinte") document.querySelectorAll(".teinte").forEach((b) => b.classList.toggle("choisie", b.dataset.teinte.toLowerCase() === el.value.toLowerCase()));
       if (el.dataset.champ === "slidesDuree") $("valDuree").textContent = el.value;
       if (el.dataset.champ === "miseEnPage.options.intensiteDecor") $("valDecor").textContent = el.value;
       if (/^blocs\.\d+\.page$/.test(el.dataset.champ)) { const s = el.closest(".ligne")?.querySelector(".nom small"); if (s) s.textContent = resumeBloc(blocs()[el.dataset.champ.split(".")[1]]); montrerPage(lienPage(el.value)); }
@@ -738,7 +785,9 @@
     const sd = e.target.closest("[data-section-defaut]");
     if (sd) { if (donnees.miseEnPage) delete donnees.miseEnPage[sd.dataset.sectionDefaut]; changement(); afficherOnglet(); montrerPage(lienPage(sd.dataset.sectionDefaut)); return; }
     const p = e.target.closest("[data-palette]");
-    if (p) { Object.assign(donnees.apparence, PALETTES[p.dataset.palette].c); changement(); afficherOnglet(); return; }
+    if (p) return;
+    const te = e.target.closest("[data-teinte]");
+    if (te) { donnees.apparence.teinte = te.dataset.teinte; changement(); afficherOnglet(); return; }
     const r = e.target.closest("[data-retirer]");
     if (r) { ecrire(r.dataset.retirer, ""); changement(); afficherOnglet(); return; }
     const sa = e.target.closest("[data-slide-ajout]");

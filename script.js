@@ -40,6 +40,9 @@ const I = {
   copie: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="12" height="12" rx="3"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>',
   souris: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="3" width="12" height="18" rx="6"/><path d="M12 7v4"/></svg>',
   ecran: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="4" width="18" height="12" rx="2"/><path d="M8 20h8M12 16v4"/></svg>',
+  utilisateur: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
+  euro: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6.5A7 7 0 1 0 18 17.5M4 10h10M4 14h10"/></svg>',
+  photo: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 8"/></svg>',
   cadeau: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>',
 };
 
@@ -116,28 +119,73 @@ const pastilleReseau = (l) => `<a class="pastille-reseau" href="${echapper(l.url
 
 // ---------- Apparence ----------
 const POLICES = {
+  "Manrope": "Manrope:wght@400;500;600;700;800", "Inter Tight": "Inter+Tight:wght@500;600;700;800", "Plus Jakarta Sans": "Plus+Jakarta+Sans:wght@400;500;600;700;800",
+  "Outfit": "Outfit:wght@400;500;600;700;800", "Sora": "Sora:wght@400;500;600;700;800", "Fraunces": "Fraunces:opsz,wght@9..144,500;9..144,600;9..144,700;9..144,800",
   "Bricolage Grotesque": "Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800",
   "Instrument Serif": "Instrument+Serif:ital@0;1", "DM Serif Display": "DM+Serif+Display", "Syne": "Syne:wght@500;600;700;800",
   "Familjen Grotesk": "Familjen+Grotesk:wght@500;600;700", "Unbounded": "Unbounded:wght@500;600;700",
-  "Geist": "Geist:wght@400;500;600", "Manrope": "Manrope:wght@400;500;600;700", "DM Sans": "DM+Sans:wght@400;500;600", "Figtree": "Figtree:wght@400;500;600",
+  "Geist": "Geist:wght@400;500;600;700", "Inter": "Inter:wght@400;500;600;700", "DM Sans": "DM+Sans:wght@400;500;600;700", "Figtree": "Figtree:wght@400;500;600;700",
 };
-const DEFAUT = { fond: "#F5F5F7", carte: "#FFFFFF", texte: "#121214", accent: "#E3121B", titres: "Bricolage Grotesque", corps: "Geist", relief: 4 };
+// Réglages par défaut du design « Pierre » (modifiables dans l'admin, onglet Apparence)
+const DEFAUT = {
+  v: 4, teinte: "#8C7963", mode: "clair", titres: "Manrope", corps: "Manrope", poidsTitres: 800, tailleTitres: 100,
+  arrondi: 22, ombre: "douce", densite: "normale",
+  effets: { apparition: "douce", survol: "zoom", transition: "fondu", halo: true, parallaxe: true, progression: true, compteurs: true, grain: false, logosCouleur: false },
+};
+let reglages = DEFAUT;
+function hexVersHsl(hex) {
+  const m = String(hex || "").match(/^#?([0-9a-f]{6})$/i);
+  const [r, g, b] = (m ? m[1] : "8C7963").match(/../g).map((x) => parseInt(x, 16) / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2, d = max - min;
+  let h = 0, s = 0;
+  if (d) {
+    s = d / (1 - Math.abs(2 * l - 1));
+    h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h = (h * 60 + 360) % 360;
+  }
+  return [h, s * 100];
+}
+// Tous les tons du site à partir d'une seule couleur
+function tonsDe(teinte, sombre) {
+  const [h, s] = hexVersHsl(teinte);
+  const c = (k, max) => Math.min(s * k, max);
+  const t = (sat, l) => `hsl(${h.toFixed(1)} ${sat.toFixed(1)}% ${l}%)`;
+  return sombre ? {
+    fond: t(c(1.2, 20), 8), carte: t(c(1.2, 18), 12), surface: t(c(1.2, 18), 16), clair: t(c(1.2, 18), 24), trait: t(c(1.2, 16), 19),
+    moyen: t(c(1, 45), 60), principal: t(c(1.3, 50), 80), fonce: t(c(1.2, 20), 14), encre: t(c(.8, 20), 94), doux: t(c(.8, 16), 72), pale: t(c(.6, 12), 56),
+    "sur-principal": t(c(1.2, 30), 10), "sur-fonce": t(c(.8, 20), 94),
+  } : {
+    fond: t(c(1.7, 30), 95.5), carte: t(c(1, 25), 99.5), surface: t(c(1.7, 32), 90), clair: t(c(1.4, 34), 81), trait: t(c(1.4, 30), 86.5),
+    moyen: t(c(1, 60), 46), principal: t(c(1.5, 62), 28), fonce: t(c(1.4, 40), 13), encre: t(c(1.3, 40), 10), doux: t(c(.9, 25), 35), pale: t(c(.7, 18), 50),
+    "sur-principal": t(c(1.7, 30), 96), "sur-fonce": t(c(1.5, 30), 94),
+  };
+}
 function appliquerApparence(a = {}) {
-  // Les réglages d'avant ce design (thème sombre « gaming ») sont remplacés par le nouveau thème clair
-  const v = a.v >= 3 ? { ...DEFAUT, ...a } : { ...DEFAUT, accent: a.accent || DEFAUT.accent };
-  const r = document.documentElement.style;
-  ["fond", "carte", "texte", "accent"].forEach((k) => r.setProperty("--" + k, v[k]));
-  r.setProperty("--relief", v.relief ?? 4);
+  // Avant ce design (v4), on repart des réglages « Pierre »
+  const v = a.v >= 4 ? { ...DEFAUT, ...a, effets: { ...DEFAUT.effets, ...(a.effets || {}) } } : { ...DEFAUT, css: a.css };
+  reglages = v;
+  const h = document.documentElement, r = h.style, sombre = v.mode === "sombre";
+  const tons = tonsDe(v.teinte, sombre);
+  Object.entries(tons).forEach(([k, val]) => r.setProperty("--" + k, val));
+  r.setProperty("--r", Math.max(0, Math.min(40, Number(v.arrondi) || 0)) + "px");
+  r.setProperty("--esp", { compacte: .72, normale: 1, aeree: 1.3 }[v.densite] || 1);
+  r.setProperty("--echelle-titres", (Number(v.tailleTitres) || 100) / 100);
+  r.setProperty("--poids-titres", v.poidsTitres || 800);
   const titres = POLICES[v.titres] ? v.titres : DEFAUT.titres, corps = POLICES[v.corps] ? v.corps : DEFAUT.corps;
-  r.setProperty("--f-titres", `"${titres}", "Avenir Next", system-ui, sans-serif`);
+  r.setProperty("--f-titres", `"${titres}", system-ui, sans-serif`);
   r.setProperty("--f-corps", `"${corps}", system-ui, -apple-system, sans-serif`);
   $("polices").href = "https://fonts.googleapis.com/css2?" + [...new Set([titres, corps])].map((p) => "family=" + POLICES[p]).join("&") + "&display=swap";
-  document.querySelector('meta[name="theme-color"]').content = v.fond;
-  const [rr, gg, bb] = (v.fond.match(/[0-9a-f]{2}/gi) || ["ff", "ff", "ff"]).map((x) => parseInt(x, 16));
-  const sombre = (0.2126 * rr + 0.7152 * gg + 0.0722 * bb) / 255 < 0.5;
-  r.colorScheme = sombre ? "dark" : "light";
-  document.documentElement.classList.toggle("theme-sombre", sombre);
+  document.querySelector('meta[name="theme-color"]').content = tons.fond;
+  h.classList.toggle("theme-sombre", sombre);
+  // Classes d'effets (lues par le CSS)
+  const e = v.effets, classes = h.className.split(/\s+/).filter((x) => x && !/^(anim|survol|trans|ombre)-|^effet-|^logos-couleur$/.test(x));
+  classes.push("anim-" + e.apparition, "survol-" + e.survol, "trans-" + e.transition, "ombre-" + v.ombre);
+  if (e.halo) classes.push("effet-halo");
+  if (e.grain) classes.push("effet-grain");
+  if (e.logosCouleur) classes.push("logos-couleur");
+  h.className = classes.join(" ");
 }
+const effet = (cle) => !mouvementReduit && !!reglages.effets?.[cle];
 
 // =========================================================
 // Morceaux réutilisés
@@ -248,9 +296,13 @@ function sectionsDePage(page) {
   const defaut = (window.SECTIONS_SITE?.[page]?.sections || []).map(([id]) => id);
   const enregistre = donnees?.miseEnPage?.[page];
   if (!Array.isArray(enregistre)) return defaut;
-  const vus = enregistre.filter((x) => defaut.includes(x.id));
-  const manquants = defaut.filter((id) => !vus.some((x) => x.id === id)).map((id) => ({ id, visible: true }));
-  return [...vus, ...manquants].filter((x) => x.visible !== false).map((x) => x.id);
+  const res = enregistre.filter((x) => defaut.includes(x.id));
+  defaut.forEach((id, i) => {
+    if (res.some((x) => x.id === id)) return;
+    const avant = defaut.slice(0, i).reverse().find((p) => res.some((x) => x.id === p));
+    res.splice(avant ? res.findIndex((x) => x.id === avant) + 1 : 0, 0, { id, visible: true });
+  });
+  return res.filter((x) => x.visible !== false).map((x) => x.id);
 }
 const assembler = (page, morceaux) => sectionsDePage(page).map((id) => (morceaux[id] ? morceaux[id]() : "")).join("\n");
 
@@ -268,29 +320,45 @@ const blocsPour = (page) => blocsPerso().filter((b) => (b.page || "accueil") ===
 const PAGES = {};
 
 // ---------- Accueil ----------
+const nbTexte = (n) => `<span data-compteur="${n}">${n}</span>`;
 PAGES.accueil = () => {
   const s = donnees.site, jeux = jeuxTries();
   const genres = [...new Map(jeux.filter((j) => j.genre?.trim()).map((j) => [j.genre.trim().toLowerCase(), majuscule(j.genre.trim())])).entries()];
-  const collage = jeux.slice(0, 3);
-  const h = donnees.histoire || {};
-  const liens = reseaux();
+  const h = donnees.histoire || {}, liens = reseaux(), prochains = prochainsJeux(h);
+  const [a, b] = jeux;
+  const nomJeux = (n) => (n > 1 ? "jeux" : "jeu");
   return assembler("accueil", {
     hero: () => `
   <section class="hero">
     <div class="conteneur hero-grille ${option("collage") ? "" : "sans-collage"}">
       <div class="hero-texte">
         ${option("pastille") ? `<p class="pastille"><span class="point" aria-hidden="true"></span>${jeux.length ? t("accueil_pastille", { jeux: pluriel(jeux.length, "jeu", "jeux") }) : t("accueil_pastille_vide")}</p>` : ""}
-        <h1>${echapper(s.nom)}</h1>
-        ${s.accroche ? `<p class="accroche">${echapper(s.accroche)}</p>` : ""}
+        <h1>${t("hero_titre")} <span class="ton">${t("hero_titre_ton")}</span></h1>
+        <p class="accroche">${t("hero_texte")}</p>
         <div class="boutons">${boutonsAccueil(s).map(lienBouton).join("")}</div>
+        <ul class="hero-atouts">${["hero_point1", "hero_point2", "hero_point3"].filter((k) => T(k).trim()).map((k) => `<li>${I.coche}${t(k)}</li>`).join("")}</ul>
       </div>
-      ${option("collage") ? `<div class="hero-collage" aria-hidden="true">
-        ${collage.length
-          ? collage.map((j, i) => `<a class="collage-carte c${i + 1}" href="#/jeu/${echapper(j.id)}" tabindex="-1" ${attrCouleur(j)}>${imageJeu(j)}<span class="collage-nom">${echapper(j.titre)}</span></a>`).join("")
-          : s.banniere ? `<div class="collage-carte c1 seule"><img src="${echapper(lien(s.banniere))}" alt=""></div>` : ""}
-        ${collage.length ? `<div class="collage-bulle"><span class="point"></span>${t("accueil_bulle")}<br><b>${echapper(collage[0].titre)}</b></div>` : ""}
-      </div>` : ""}
+      ${!option("collage") ? "" : jeux.length >= 2 ? `<div class="mosaique" data-parallaxe="-0.05">
+        <a class="mosaique-case grande" href="#/jeu/${echapper(a.id)}" aria-label="${echapper(a.titre)}">${imageJeu(a)}<span class="mosaique-nom">${echapper(a.titre)}</span></a>
+        <a class="mosaique-case" href="#/jeu/${echapper(b.id)}" aria-label="${echapper(b.titre)}">${imageJeu(b)}<span class="mosaique-nom">${echapper(b.titre)}</span></a>
+        <a class="mosaique-case mosaique-compteur" href="#/jeux"><small>${t("hero_compteur")}</small><span><b>${nbTexte(jeux.length)} ${nomJeux(jeux.length)}</b>${I.externe}</span></a>
+        <div class="mosaique-bulle" aria-hidden="true">${imageJeu(a)}<span><small><span class="point"></span>${t("accueil_bulle")}</small><b>${echapper(a.titre)}</b></span></div>
+      </div>` : a || s.banniere ? `<div class="mosaique seule"><a class="mosaique-case" href="${a ? "#/jeu/" + echapper(a.id) : "#/jeux"}">${a ? imageJeu(a) : `<img src="${echapper(lien(s.banniere))}" alt="">`}</a></div>` : ""}
     </div>
+  </section>`,
+    defilant: () => {
+      const mots = T("defilant_mots").split(/[·|,]/).map((x) => x.trim()).filter(Boolean);
+      let items = mots.flatMap((m, i) => (jeux[i] ? [m, jeux[i].titre] : [m]));
+      if (!items.length) return "";
+      while (items.length < 12) items = items.concat(items);
+      const html = items.map((x) => `<span>${echapper(x)}</span>`).join("");
+      return `<div class="defilant" aria-hidden="true"><div class="defilant-piste">${html}${html}</div></div>`;
+    },
+    atouts: () => `
+  <section class="section">
+    <div class="conteneur"><div class="grille-atouts">
+      ${[["ecran", 1], ["euro", 2], ["utilisateur", 3], ["lien", 4]].map(([ic, n]) => `<div class="atout"><span class="atout-icone">${I[ic]}</span><b>${t("atout" + n + "_titre")}</b><span>${t("atout" + n + "_texte")}</span></div>`).join("")}
+    </div></div>
   </section>`,
     une: () => !slidesDe().length ? "" : `
   <section class="section une" id="une" aria-roledescription="carrousel" aria-label="${t("une_etiquette")}">
@@ -305,9 +373,8 @@ PAGES.accueil = () => {
     derniers: () => `
   <section class="section">
     <div class="conteneur">
-      ${enteteSection(t("derniers_etiquette"), t("derniers_titre"), jeux.length > 3 ? `<a class="lien-fleche" href="#/jeux">${t("derniers_tous")} ${I.droite}</a>` : "")}
-      ${jeux.length ? `<div class="grille-jeux">${jeux.slice(0, 3).map((j) => carteJeu(j)).join("")}</div>` : `<div class="vide"><strong>${t("jeux_vide_titre")}</strong><span>${echapper(donnees.sectionJeux?.vide || "")}</span></div>`}
-      ${jeux.length && jeux.length <= 3 ? `<div class="centre-bas"><a class="btn" href="#/jeux">${t("derniers_voir")} ${I.droite}</a></div>` : ""}
+      ${enteteSection(t("derniers_etiquette"), t("derniers_titre"), jeux.length > 6 ? `<a class="lien-fleche" href="#/jeux">${t("derniers_tous")} ${I.droite}</a>` : `<a class="lien-fleche" href="#/jeux">${t("derniers_voir")} ${I.droite}</a>`)}
+      ${jeux.length ? `<div class="grille-jeux">${jeux.slice(0, 6).map((j) => carteJeu(j)).join("")}</div>` : `<div class="vide"><strong>${t("jeux_vide_titre")}</strong><span>${echapper(donnees.sectionJeux?.vide || "")}</span></div>`}
     </div>
   </section>`,
     genres: () => genres.length < 2 ? "" : `
@@ -316,40 +383,78 @@ PAGES.accueil = () => {
       ${enteteSection(t("genres_etiquette"), t("genres_titre"))}
       <div class="grille-genres">${genres.map(([k, nom]) => {
         const liste = jeux.filter((j) => (j.genre || "").trim().toLowerCase() === k);
-        return `<a class="tuile-genre" href="#/jeux?genre=${encodeURIComponent(k)}" style="--c:${couleurJeu(liste[0])}" data-couleur="${echapper(liste[0].id)}">
+        return `<a class="tuile-genre" href="#/jeux?genre=${encodeURIComponent(k)}">
           <span class="tuile-nom">${echapper(nom)}</span><span class="tuile-nb">${pluriel(liste.length, "jeu", "jeux")}</span>
           <span class="tuile-images">${liste.slice(0, 3).map((j) => j.image ? `<img src="${echapper(lien(j.image))}" alt="">` : "").join("")}</span></a>`;
       }).join("")}</div>
     </div>
   </section>`,
-    blocs: () => blocsPour("accueil"),
-    apropos: () => !(h.texte || h.titre) ? "" : `
+    citation: () => {
+      const images = (jeux.length > 4 ? jeux.slice(2, 5) : jeux.slice(0, 3));
+      return `
+  <section class="citation">
+    <div class="conteneur citation-grille">
+      <div>
+        <p class="etiquette clair">${t("citation_etiquette")}</p>
+        <blockquote>« ${t("citation_texte")} »</blockquote>
+        <div class="citation-auteur"><span class="citation-avatar">${h.image ? `<img src="${echapper(lien(h.image))}" alt="">` : echapper(T("citation_nom").charAt(0).toUpperCase())}</span>
+          <span><b>${t("citation_nom")}</b><small>${t("citation_role")}</small></span></div>
+      </div>
+      ${images.length ? `<div class="citation-images" data-parallaxe="0.06">${images.map((j) => `<a href="#/jeu/${echapper(j.id)}" aria-label="${echapper(j.titre)}">${imageJeu(j)}</a>`).join("")}</div>` : ""}
+    </div>
+  </section>`;
+    },
+    etapes: () => `
   <section class="section">
     <div class="conteneur">
-      <a class="teaser" href="#/a-propos">
-        ${h.image ? `<span class="teaser-image"><img src="${echapper(lien(h.image))}" alt=""></span>` : ""}
-        <span class="teaser-texte">
-          <span class="etiquette">${t("teaser_etiquette")}</span>
-          <span class="teaser-titre">${echapper(h.titre || "Mon histoire")}</span>
-          <span class="teaser-extrait">${echapper(String(h.texte || "").split(/\n{2,}/)[0].slice(0, 220))}${String(h.texte || "").length > 220 ? "…" : ""}</span>
-          <span class="lien-fleche">${t("teaser_lien")} ${I.droite}</span>
-        </span>
-      </a>
+      <div class="section-tete centre"><div><p class="etiquette">${t("etapes_etiquette")}</p><h2>${t("etapes_titre")}</h2></div></div>
+      <div class="grille-etapes">${[1, 2, 3].map((n) => `<div class="etape" data-n="${n}"><span class="etape-num">${n}</span><b>${t("etape" + n + "_titre")}</b><span>${t("etape" + n + "_texte")}</span></div>`).join("")}</div>
     </div>
   </section>`,
-    contact: () => !(liens.length || cartesCoordonnees()) || blocsPerso().some((b) => b.type === "liens" && (b.page || "accueil") === "accueil" && liensDe(b.liens).length) ? "" : `
+    prochains: () => `
   <section class="section">
     <div class="conteneur">
-      <div class="bande-contact">
-        <div class="bande-tete">
-          <div><p class="etiquette clair">${t("bande_etiquette")}</p><h2>${t("bande_titre")}</h2><p>${t("bande_texte")}</p></div>
-          <a class="btn blanc" href="#/contact">${t("bande_bouton")} ${I.droite}</a>
+      ${enteteSection(t("prochains_etiquette"), t("prochains_titre"), `<a class="lien-fleche" href="#/contact">${t("prochains_lien")} ${I.droite}</a>`)}
+      ${grilleProchains(prochains)}
+    </div>
+  </section>`,
+    blocs: () => blocsPour("accueil"),
+    apropos: () => `
+  <section class="section">
+    <div class="conteneur">
+      <div class="teaser">
+        <a class="teaser-image" href="#/a-propos" aria-label="${t("teaser_lien")}">${h.image ? `<img src="${echapper(lien(h.image))}" alt="">` : I.photo}</a>
+        <div class="teaser-texte">
+          <p class="etiquette">${t("teaser_etiquette")}</p>
+          <h2 class="teaser-titre">${echapper(h.titre?.trim() || T("teaser_titre"))}</h2>
+          <p class="teaser-extrait">${echapper((String(h.texte || "").trim() ? String(h.texte).split(/\n{2,}/)[0] : T("teaser_texte")).slice(0, 260))}</p>
+          <div class="chiffres">
+            <div><b>${nbTexte(jeux.length)}</b><small>${t("teaser_chiffre1")}</small></div>
+            <div><b>${nbTexte(prochains.length)}</b><small>${t("teaser_chiffre2")}</small></div>
+          </div>
+          <a class="lien-fleche" href="#/a-propos">${t("teaser_lien")} ${I.droite}</a>
         </div>
-        ${cartesCoordonnees() ? `<div class="grille-coord">${cartesCoordonnees()}</div>` : ""}
-        ${liens.length ? `<div class="grille-reseaux">${liens.map(carteReseau).join("")}</div>` : ""}
       </div>
     </div>
   </section>`,
+    contact: () => {
+      const c = donnees.contact || {}, mail = emailSur(c.email), tel = telLien(c.telephone);
+      if (!(mail || tel || liens.length)) return "";
+      return `
+  <section class="section">
+    <div class="conteneur">
+      <div class="bande-contact">
+        <div class="bande-tete"><p class="etiquette">${t("bande_etiquette")}</p><h2>${t("bande_titre")}</h2><p>${t("bande_texte")}</p></div>
+        <div class="bande-liens">
+          ${mail ? `<a class="bande-lien clair" href="mailto:${echapper(mail)}"><span>${echapper(mail)}</span>${I.droite}</a>` : ""}
+          ${tel ? `<a class="bande-lien clair" href="tel:${echapper(tel)}"><span>${echapper(c.telephone.trim())}</span>${I.droite}</a>` : ""}
+          ${liens.length ? `<div class="bande-reseaux">${liens.map((l) => `<a class="bande-lien" href="${echapper(l.url)}" target="_blank" rel="noopener"><span>${echapper(l.nom)}</span>${I.externe}</a>`).join("")}</div>` : ""}
+          <a class="bande-lien clair" href="#/contact"><span>${t("bande_bouton")}</span>${I.droite}</a>
+        </div>
+      </div>
+    </div>
+  </section>`;
+    },
   });
 };
 
@@ -479,6 +584,12 @@ const PROCHAINS_DEFAUT = [
   { nom: "Jeu mystère", genre: "Puzzle", avancement: 40 },
   { nom: "Jeu mystère", genre: "Aventure", avancement: 15 },
 ];
+const grilleProchains = (prochains) => `<div class="grille-prochains">${prochains.map((p) => `<article class="prochain">
+    <div class="prochain-visuel"><span class="prochain-forme f1"></span><span class="prochain-forme f2"></span><span class="prochain-cadenas">${I.cadenas}</span><span class="badge noir">${t("prochains_badge")}</span></div>
+    <div class="prochain-corps"><h3>${echapper(p.nom)}</h3>${p.genre ? `<p class="meta">${echapper(p.genre)}</p>` : ""}
+      <div class="avancement" role="img" aria-label="Avancement : ${p.avancement} %"><span class="avancement-barre"><span style="--v:${p.avancement}%"></span></span><span class="avancement-nb">${p.avancement} %</span></div></div>
+  </article>`).join("")}
+  <a class="prochain idee" href="#/contact"><span class="idee-plus">+</span><b>${t("idee_titre")}</b><span>${t("idee_texte")}</span></a></div>`;
 function prochainsJeux(h) {
   const l = String(h.prochains || "").split("\n").map((x) => x.split("|").map((y) => y.trim())).filter((x) => x[0])
     .map(([nom, genre, av]) => ({ nom, genre: genre || "", avancement: Math.max(0, Math.min(100, parseInt(av, 10) || 0)) }));
@@ -487,19 +598,18 @@ function prochainsJeux(h) {
 PAGES["a-propos"] = () => {
   const h = donnees.histoire || {}, jeux = jeuxTries(), chrono = [...jeux].reverse().filter(aUneDate);
   const prochains = prochainsJeux(h);
-  const couleursMystere = ["#FF6B4A", "#6A4CFF", "#1DB97A", "#3B82F6", "#FFC93C", "#FF5C8A"];
   return `
   <section class="entete-page">
     <div class="conteneur">
       <p class="etiquette">${t("apropos_etiquette")}</p>
-      <h1>${echapper(h.titre || "Mon histoire")}</h1>
+      <h1>${echapper(h.titre?.trim() || T("teaser_titre"))}</h1>
     </div>
   </section>` + assembler("a-propos", {
     histoire: () => `
   <section class="section serree">
     <div class="conteneur apropos ${h.image ? "" : "sans-image"}">
       ${h.image ? `<figure class="apropos-image"><img src="${echapper(lien(h.image))}" alt=""></figure>` : ""}
-      <div class="apropos-texte"><div class="prose grande">${paragraphes(h.texte)}</div></div>
+      <div class="apropos-texte"><div class="prose grande">${paragraphes(String(h.texte || "").trim() ? h.texte : T("teaser_texte"))}</div></div>
     </div>
   </section>`,
     debut: () => `
@@ -527,30 +637,7 @@ PAGES["a-propos"] = () => {
   <section class="section">
     <div class="conteneur">
       ${enteteSection(t("prochains_etiquette"), t("prochains_titre"), `<a class="lien-fleche" href="#/contact">${t("prochains_lien")} ${I.droite}</a>`)}
-      <div class="grille-prochains">${prochains.map((p, i) => {
-        const c = couleursMystere[(teinteDe(p.nom + p.genre + i)) % couleursMystere.length];
-        return `<article class="prochain" style="--c:${c}">
-          <div class="prochain-visuel">
-            <span class="prochain-forme f1"></span><span class="prochain-forme f2"></span>
-            <span class="prochain-cadenas">${I.cadenas}</span>
-            <span class="badge noir">${t("prochains_badge")}</span>
-          </div>
-          <div class="prochain-corps">
-            <h3>${echapper(p.nom)}</h3>
-            ${p.genre ? `<p class="meta">${echapper(p.genre)}</p>` : ""}
-            <div class="avancement" role="img" aria-label="Avancement : ${p.avancement} %">
-              <span class="avancement-barre"><span style="--v:${p.avancement}%"></span></span>
-              <span class="avancement-nb">${p.avancement} %</span>
-            </div>
-          </div>
-        </article>`;
-      }).join("")}
-        <a class="prochain idee" href="#/contact">
-          <span class="idee-plus">+</span>
-          <b>${t("idee_titre")}</b>
-          <span>${t("idee_texte")}</span>
-        </a>
-      </div>
+      ${grilleProchains(prochains)}
     </div>
   </section>`,
     chrono: () => !chrono.length ? "" : `
@@ -681,6 +768,7 @@ function afficherPage(page, id) {
   if (page === "jeux") majListeJeux();
   (donnees.jeux || []).forEach(calculerCouleur);
   activerRevele();
+  majDefilement();
 }
 addEventListener("hashchange", naviguer);
 
@@ -731,6 +819,8 @@ function afficherCommun() {
   css.textContent = donnees.apparence?.css || "";
   $("nomEntete").textContent = s.nom || "";
   $("logoEntete").hidden = !s.logo;
+  $("initialesEntete").hidden = !!s.logo;
+  $("initialesEntete").textContent = (String(s.nom || "").match(/^[A-Z0-9]{2,3}\b/) || [initiales(s.nom || "?")])[0];
   if (s.logo) $("logoEntete").src = lien(s.logo);
   if (s.accroche) document.querySelector('meta[name="description"]').content = s.accroche;
   const pages = [["accueil", "#/"], ["jeux", "#/jeux"], ["a-propos", "#/a-propos"], ["contact", "#/contact"]];
@@ -1016,17 +1106,71 @@ document.addEventListener("keydown", (e) => {
   if (e.key === "Escape" && $("menu").classList.contains("ouvert")) ouvrirMenu(false);
 });
 
-// Apparition douce au défilement
+// Apparition au défilement (réglable : aucune, douce, dynamique) + compteurs animés
 let observateur = null;
+function compter(el) {
+  const fin = Number(el.dataset.compteur) || 0, debut = performance.now(), duree = 1100;
+  const pas = (t) => { const p = Math.min(1, (t - debut) / duree); el.textContent = Math.round(fin * (1 - Math.pow(1 - p, 3))); if (p < 1) requestAnimationFrame(pas); };
+  el.textContent = "0"; requestAnimationFrame(pas);
+}
 function activerRevele() {
-  if (apercu || mouvementReduit || !option("animations") || !("IntersectionObserver" in window)) return;
-  document.documentElement.classList.add("js-revele");
-  observateur ??= new IntersectionObserver((l) => l.forEach((en) => { if (en.isIntersecting) { en.target.classList.add("vu"); observateur.unobserve(en.target); } }), { rootMargin: "0px 0px -6% 0px" });
-  document.querySelectorAll("#vue .section-tete, #vue .grille-jeux, #vue .grille-genres, #vue .teaser, #vue .bande-contact, #vue .bloc .conteneur, #vue .chronologie, #vue .carrousel-fenetre, #vue .debut, #vue .grille-prochains").forEach((el) => {
-    el.classList.add("revele");
-    if (el.getBoundingClientRect().top < innerHeight) el.classList.add("vu"); else observateur.observe(el);
+  const anime = !apercu && !mouvementReduit && option("animations") && reglages.effets?.apparition !== "aucune" && "IntersectionObserver" in window;
+  const compteurs = effet("compteurs") && !apercu && "IntersectionObserver" in window;
+  if (!anime && !compteurs) return;
+  if (anime) document.documentElement.classList.add("js-revele");
+  observateur ??= new IntersectionObserver((l) => l.forEach((en) => {
+    if (!en.isIntersecting) return;
+    if (en.target.dataset.compteur !== undefined) compter(en.target); else en.target.classList.add("vu");
+    observateur.unobserve(en.target);
+  }), { rootMargin: "0px 0px -8% 0px" });
+  if (anime) {
+    const seuls = "#vue .section-tete, #vue .hero-texte, #vue .mosaique, #vue .teaser, #vue .bande-contact, #vue .bloc .conteneur, #vue .chronologie, #vue .carrousel-fenetre, #vue .debut, #vue .citation-grille > div:first-child, #vue .apropos, #vue .entete-page .conteneur, #vue .carte-partage, #vue .page-jeu .conteneur";
+    const enfants = "#vue .grille-jeux > *, #vue .grille-genres > *, #vue .grille-atouts > *, #vue .grille-etapes > *, #vue .grille-prochains > *, #vue .citation-images > *, #vue .grille-reseaux > *, #vue .grille-coord > *, #vue .suite-jeux > *";
+    document.querySelectorAll(seuls).forEach((el) => el.style.setProperty("--i", 0));
+    document.querySelectorAll(enfants).forEach((el) => el.style.setProperty("--i", [...el.parentNode.children].indexOf(el) % 6));
+    document.querySelectorAll(seuls + ", " + enfants).forEach((el) => {
+      el.classList.add("revele");
+      // Ce qui est déjà à l'écran apparaît aussi en douceur
+      if (el.getBoundingClientRect().top < innerHeight) requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("vu")));
+      else observateur.observe(el);
+    });
+  }
+  if (compteurs) document.querySelectorAll("#vue [data-compteur]").forEach((el) => observateur.observe(el));
+}
+
+// Effets qui suivent la souris : inclinaison 3D et halo lumineux sur les cartes
+let carteSurvolee = null;
+document.addEventListener("pointermove", (ev) => {
+  if (ev.pointerType !== "mouse") return;
+  const h = document.documentElement, incline = h.classList.contains("survol-3d") && !mouvementReduit, halo = h.classList.contains("effet-halo");
+  if (!incline && !halo) return;
+  const el = ev.target.closest?.(".carte-jeu, .tuile-genre");
+  if (carteSurvolee && carteSurvolee !== el) { carteSurvolee.style.removeProperty("--rx"); carteSurvolee.style.removeProperty("--ry"); }
+  carteSurvolee = el;
+  if (!el) return;
+  const r = el.getBoundingClientRect(), x = (ev.clientX - r.left) / r.width, y = (ev.clientY - r.top) / r.height;
+  if (halo) { el.style.setProperty("--mx", x * 100 + "%"); el.style.setProperty("--my", y * 100 + "%"); }
+  if (incline && el.classList.contains("carte-jeu")) { el.style.setProperty("--ry", ((x - .5) * 10).toFixed(2) + "deg"); el.style.setProperty("--rx", ((.5 - y) * 8).toFixed(2) + "deg"); }
+}, { passive: true });
+
+// Barre de progression de lecture + parallaxe des images
+let defilPrevu = false;
+function majDefilement() {
+  defilPrevu = false;
+  const max = document.documentElement.scrollHeight - innerHeight;
+  const barre = $("progression");
+  barre.hidden = !effet("progression") || apercu;
+  if (!barre.hidden) barre.style.setProperty("--p", max > 0 ? Math.min(1, scrollY / max) : 0);
+  const para = effet("parallaxe");
+  document.querySelectorAll("#vue [data-parallaxe]").forEach((el) => {
+    if (!para) { el.style.transform = ""; return; }
+    const r = el.getBoundingClientRect(), centre = r.top + r.height / 2 - innerHeight / 2;
+    const d = Math.max(-36, Math.min(36, centre * Number(el.dataset.parallaxe)));
+    el.style.transform = `translate3d(0, ${d.toFixed(1)}px, 0)`;
   });
 }
+addEventListener("scroll", () => { if (!defilPrevu) { defilPrevu = true; requestAnimationFrame(majDefilement); } }, { passive: true });
+addEventListener("resize", () => requestAnimationFrame(majDefilement));
 
 // Décor de fond : chaque forme glisse à sa propre vitesse quand on fait défiler (effet de profondeur)
 const formesDecor = [...document.querySelectorAll(".decor [data-vitesse]")];

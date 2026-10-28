@@ -5,17 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>BS arcade center</title>
   <meta name="description" content="Des jeux faits maison, à lancer en un clic, sans compte et gratuitement.">
-  <meta name="theme-color" content="#F5F5F7">
+  <meta name="theme-color" content="#F6F3EF">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link id="polices" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500;12..96,600;12..96,700;12..96,800&family=Geist:wght@400;500;600&display=swap">
+  <link id="polices" rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap">
   <!-- Icônes officielles des réseaux sociaux (Font Awesome) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/fontawesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/brands.min.css">
-  <link rel="stylesheet" href="style.css?v=27">
+  <link rel="stylesheet" href="style.css?v=28">
 </head>
 <body>
   <a class="lien-evitement" href="#contenu">Aller au contenu</a>
+  <div class="progression" id="progression" aria-hidden="true" hidden></div>
 
   <!-- ===== Décor de fond : formes grises floutées + taches de couleur douces ===== -->
   <div class="decor" aria-hidden="true">
@@ -41,6 +42,7 @@
     <div class="entete-int">
       <a class="marque" href="#/" aria-label="Accueil">
         <img id="logoEntete" class="marque-logo" alt="" hidden>
+        <span id="initialesEntete" class="marque-initiales" aria-hidden="true">BS</span>
         <span id="nomEntete" class="marque-nom">BS arcade center</span>
       </a>
 
@@ -134,7 +136,7 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="textes.js?v=27"></script>
-  <script src="script.js?v=27"></script>
+  <script src="textes.js?v=28"></script>
+  <script src="script.js?v=28"></script>
 </body>
 </html>
