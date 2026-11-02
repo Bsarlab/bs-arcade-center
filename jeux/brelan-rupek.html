@@ -277,6 +277,11 @@ input{font:inherit;color:inherit}
 .how b{display:block;font-family:var(--f-disp);font-weight:400;font-size:22px;color:var(--brass2);margin-bottom:4px}
 .how p{margin:0;color:var(--mut);font-size:14px}
 .foot{padding-block:40px 60px;color:var(--mut);font-size:13px}
+.p2pbox{padding:16px 18px;border-radius:14px;border:1px solid color-mix(in srgb,var(--ok) 45%,transparent);background:color-mix(in srgb,var(--ok) 8%,var(--night));line-height:1.55}
+.p2pbox b{font-size:16px;color:var(--fg)}
+.p2pbox ol{margin:8px 0 10px;padding-left:1.3em}
+.p2pbox li{margin:2px 0}
+.p2pbox span{color:var(--mut);font-size:13px}
 .banner a{color:var(--brass2);font-weight:700}
 .banner{line-height:1.55;padding:12px 14px;border-radius:12px;border:1px solid color-mix(in srgb,var(--bad) 60%,transparent);background:color-mix(in srgb,var(--bad) 10%,var(--night));font-size:14px}
 
@@ -1619,9 +1624,10 @@ const Net = {
   room: null, peers: [], pres: {}, state: 'connecting',
   async init(){
     let room = null;
-    if (!(window.claude && typeof window.claude.use === 'function')) { this.why = 'file'; this.state = 'offline'; onNet(); return; }
+    if (!(window.claude && typeof window.claude.use === 'function')) { this.why = 'file'; this.mode = 'p2p'; this.state = 'solo'; onNet(); return; }
     try { room = await window.claude.use('room'); } catch {}
     if (!room) { this.why = window.top === window ? 'tab' : 'view'; this.state = 'offline'; onNet(); return; }
+    this.mode = 'room';
     this.room = room;
     room.onConnection(c => { if (!this.room) return; this.state = c ? 'online' : 'connecting'; onNet(); }, e => this.dead(e));
     room.onPeers(ch => { if (!this.room) return; this.peers = ch.peers; onNet(); }, e => this.dead(e));
@@ -1632,8 +1638,79 @@ const Net = {
     const out = {};
     for (const k in patch) { const v = patch[k]; if (v == null) { delete this.pres[k]; out[k] = null; } else { this.pres[k] = v; out[k] = v; } }
     if (this.room) this.room.presence(out).catch(e => console.warn('presence', e && e.code, e && e.message));
+    else if (this.mode === 'p2p') P2P.update();
   }
 };
+/* =================== direct online play by code (file mode, PeerJS) =================== */
+const P2P = {
+  lib: null, peer: null, hub: null, conns: new Map(), list: new Map(), isHub: false, code: null, myPid: null, timer: 0, stimer: 0,
+  load(){
+    if (window.Peer) return Promise.resolve();
+    if (this.lib) return this.lib;
+    const urls = ['https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js', 'https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js'];
+    this.lib = new Promise((res, rej) => {
+      const tryNext = i => {
+        if (i >= urls.length) { this.lib = null; rej(new Error('lib')); return; }
+        const s = document.createElement('script'); s.src = urls[i];
+        s.onload = () => window.Peer ? res() : tryNext(i + 1); s.onerror = () => tryNext(i + 1);
+        document.head.appendChild(s);
+      };
+      tryNext(0);
+    });
+    return this.lib;
+  },
+  opts(){ return { debug: 0, config: { iceServers: [{ urls: 'stun:stun.l.google.com:19302' }, { urls: 'stun:stun1.l.google.com:19302' }, { urls: 'stun:stun.cloudflare.com:3478' }] } }; },
+  snap(){ return JSON.parse(JSON.stringify(Net.pres)); },
+  async host(code){
+    await this.load(); this.close(); this.isHub = true; this.code = code;
+    return new Promise((res, rej) => {
+      const p = new Peer('brelan-tbl-' + code, this.opts()); this.peer = p; let ok = false;
+      p.on('open', id => { ok = true; this.myPid = id; this.list.set(id, this.snap()); Net.state = 'online'; this.push(); res(); });
+      p.on('connection', c => {
+        c.on('open', () => { this.conns.set(c.peer, c); this.push(); });
+        c.on('data', d => { if (d && d.t === 'pres' && d.p && typeof d.p === 'object') { this.list.set(c.peer, d.p); this.push(); } });
+        c.on('close', () => { this.conns.delete(c.peer); this.list.delete(c.peer); this.push(); });
+        c.on('error', () => {});
+      });
+      p.on('error', e => { if (!ok) rej(e); });
+      p.on('disconnected', () => { if (this.peer === p) try { p.reconnect(); } catch {} });
+    });
+  },
+  async join(code){
+    await this.load(); this.close(); this.isHub = false; this.code = code;
+    return new Promise((res, rej) => {
+      const p = new Peer(undefined, this.opts()); this.peer = p; let ok = false;
+      const fail = e => { if (!ok) { ok = true; rej(e); } };
+      const to = setTimeout(() => fail(new Error('timeout')), 12000);
+      p.on('open', id => {
+        this.myPid = id;
+        const c = p.connect('brelan-tbl-' + code, { reliable: true, serialization: 'json' }); this.hub = c;
+        c.on('open', () => { clearTimeout(to); ok = true; Net.state = 'online'; this.sendMine(); res(); });
+        c.on('data', d => { if (d && d.t === 'all' && Array.isArray(d.l)) { Net.peers = d.l.map(x => ({ peer: x.k, presence: x.p || {}, sameTab: x.k === this.myPid, isMe: x.k === this.myPid })); onNet(); } });
+        c.on('close', () => { if (this.hub === c) { this.hub = null; Net.state = 'lost'; Net.peers = []; onNet(); } });
+      });
+      p.on('error', e => { clearTimeout(to); fail(e); if (ok && e.type === 'network') { Net.state = 'lost'; onNet(); } });
+    });
+  },
+  sendMine(){
+    if (this.stimer) return;
+    this.stimer = setTimeout(() => { this.stimer = 0; if (this.hub && this.hub.open) try { this.hub.send({ t: 'pres', p: this.snap() }); } catch {} }, 20);
+  },
+  update(){ if (!this.peer || !this.myPid) return; if (this.isHub) { this.list.set(this.myPid, this.snap()); this.push(); } else this.sendMine(); },
+  push(){
+    if (this.timer) return;
+    this.timer = setTimeout(() => {
+      this.timer = 0;
+      const l = [...this.list].map(([k, p]) => ({ k, p })), msg = { t: 'all', l };
+      for (const c of this.conns.values()) if (c.open) try { c.send(msg); } catch {}
+      Net.peers = l.map(x => ({ peer: x.k, presence: x.p, sameTab: x.k === this.myPid, isMe: x.k === this.myPid }));
+      onNet();
+    }, 25);
+  },
+  close(){ try { this.peer && this.peer.destroy(); } catch {} this.peer = null; this.hub = null; this.conns.clear(); this.list.clear(); this.isHub = false; this.myPid = null; this.code = null; }
+};
+
+
 Net.set({ id: Me.id, n: Me.name, av: Me.av });
 
 /* =================== app state =================== */
@@ -1654,6 +1731,8 @@ const amHost = () => App.hostId === Me.id;
 function presentIds(){ const s = new Set(tablePeers().map(p => p.presence.id)); s.add(Me.id); return s; }
 
 function onNet(){
+  if (Net.mode === 'p2p' && Net.state === 'lost' && App.view === 'table' && !App.lostShown) { App.lostShown = 1; toast('La connexion avec la table est perdue. Reviens au salon et rejoins-la à nouveau.'); }
+  if (Net.state !== 'lost') App.lostShown = 0;
   renderStatus();
   if (App.view === 'home') renderTables();
   else if (App.view === 'table') sync();
@@ -1840,10 +1919,32 @@ function optsHTML(g, o, host){
   if (!g.OPTS) return '';
   return `<div class="panel"><h3>Règles de la table</h3><div class="opts">${g.OPTS.map(x => `<label class="opt"><input type="checkbox" id="opt-${x.k}" data-opt="${x.k}" ${o[x.k] ? 'checked' : ''} ${host ? '' : 'disabled'}><span><b>${x.label}</b><small>${x.help}</small></span></label>`).join('')}</div>${host ? '' : '<p class="note" style="margin:8px 0 0">Seul l’hôte peut changer ces règles.</p>'}</div>`;
 }
-function createTable(gm){
-  const code = randCode();
+async function createTable(gm){
+  let code = randCode();
+  if (Net.mode === 'p2p') {
+    App.view = 'table'; App.code = code; App.T = null; App.connecting = 'host'; render();
+    let ok = false;
+    for (let k = 0; k < 3 && !ok; k++) {
+      try { await P2P.host(code); ok = true; }
+      catch (e) { if (e && e.type === 'unavailable-id') { code = randCode(); continue; } break; }
+    }
+    App.connecting = null;
+    if (!ok) { P2P.close(); Net.state = 'solo'; toast('Connexion en ligne impossible (pas d’internet ou réseau bloqué). Tu peux jouer contre des bots.'); }
+  }
   const T = { v: 1, code, gm, ph: 'lobby', seats: [{ id: Me.id, n: Me.name, av: Me.av }], ack: {}, s: {}, opt: optsOf({ gm, opt: LS.get('brelan.opt.' + gm, {}) }) };
   enterTable(code, T);
+}
+async function joinByCode(code){
+  if (Net.mode !== 'p2p') { enterTable(code); return; }
+  App.view = 'table'; App.code = code; App.T = null; App.connecting = 'join'; render();
+  try { await P2P.join(code); }
+  catch (e) {
+    App.connecting = null; P2P.close(); Net.state = 'solo'; App.view = 'home'; render();
+    toast(e && e.type === 'peer-unavailable' ? `Aucune table ${code} en ce moment. Vérifie le code avec ton collègue.` : 'Connexion impossible : vérifie ta connexion internet.');
+    return;
+  }
+  App.connecting = null;
+  enterTable(code);
 }
 function enterTable(code, T){
   App.view = 'table'; App.code = code; App.T = T || null; App.pending = []; App.ui = {}; App.logSeen = null; App.enterAt = Date.now(); App.sitTried = 0; App.sig = ''; App.lastTurnSig = '';
@@ -1857,7 +1958,8 @@ function leaveTable(){
   clearTimeout(App.botT); App.botT = null;
   if (App.T && App.T.ph === 'lobby' && App.T.seats.some(s => s.id === Me.id) && !amHost()) send({ t: 'stand' });
   App.view = 'home'; App.code = null; App.T = null; App.pending = [];
-  setTimeout(() => Net.set({ t: null, g: null, hv: null, q: null }), 250);
+  if (Net.mode === 'p2p') { const wasHub = P2P.isHub; setTimeout(() => { P2P.close(); Net.peers = []; Net.state = 'solo'; onNet(); }, wasHub ? 50 : 300); Net.set({ t: null, g: null, hv: null, q: null }); }
+  else setTimeout(() => Net.set({ t: null, g: null, hv: null, q: null }), 250);
   render();
 }
 
@@ -1945,6 +2047,7 @@ function homeHTML(){
 function renderStatus(){
   const el = $('#status'); if (!el) return;
   const n = Net.peers.length || 1;
+  if (Net.mode === 'p2p') { el.className = 'status on'; el.innerHTML = '<i></i>En ligne par code'; return; }
   if (Net.state === 'online') { el.className = 'status on'; el.innerHTML = `<i></i>${n} en ligne`; }
   else if (Net.state === 'offline') { el.className = 'status off'; el.innerHTML = '<i></i>Hors ligne'; }
   else { el.className = 'status'; el.innerHTML = '<i></i>Connexion…'; }
@@ -1960,6 +2063,18 @@ function openTables(){
 }
 function renderTables(){
   const el = $('#tablelist'); if (!el) return;
+  if (Net.mode === 'p2p') {
+    el.innerHTML = `<div class="p2pbox">
+      <b>Jouer en ligne avec tes collègues</b>
+      <ol>
+        <li>Envoie-leur ce fichier Brelan (mail, Teams, clé USB…).</li>
+        <li>Crée une table ci-dessous : un code à 4 lettres s’affiche.</li>
+        <li>Ils ouvrent le fichier, tapent le code dans « Rejoindre » ci-dessus, et s’assoient.</li>
+      </ol>
+      <span>Il faut une connexion internet. Les navigateurs se connectent directement entre eux. Sur certains réseaux d’entreprise très verrouillés, la connexion peut être bloquée.</span>
+    </div>`;
+    return;
+  }
   if (Net.state === 'offline') {
     const LINK = 'https://claude.ai/artifact/6ayuhdqz3SFtMTL29gdWKv';
     const why = Net.why === 'file'
@@ -1969,7 +2084,7 @@ function renderTables(){
       : (Net.why === 'not_granted' || Net.why === 'revoked')
       ? `<b>Ce compte n’a pas accès au salon.</b> Le propriétaire de Brelan doit t’inviter par e-mail depuis le bouton Partager (un lien public ne suffit pas pour jouer en ligne).`
       : `<b>Le salon n’a pas pu se connecter.</b> Vérifie que tu es connecté à ton compte Claude et que tu as été invité par e-mail (pas par lien public), puis recharge la page.`;
-    el.innerHTML = `<div class="banner">${why}<br><span style="color:var(--mut)">En attendant, tu peux jouer contre des bots ou faire un solitaire.</span></div>`;
+    el.innerHTML = `<div class="banner">${why}<br><span style="color:var(--mut)">Pour jouer avec des collègues sans compte invité : télécharge le fichier Brelan depuis la conversation, ouvre-le dans ton navigateur et utilise le mode en ligne par code. En attendant, tu peux jouer contre des bots ou faire un solitaire.</span></div>`;
     return;
   }
   const ts = openTables();
@@ -2047,7 +2162,7 @@ function lobbyHTML(ctx){
     <div class="panel"><h3>Lancer</h3>${acts}</div>
     <div class="panel"><h3>Inviter</h3>
       <div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap"><span class="codebig">${esc(T.code)}</span><button class="btn sm" data-a="copycode">Copier le code</button></div>
-      <p class="note">Tes amis ouvrent ce même lien Brelan : la table apparaît dans leur salon, ou ils tapent ce code.</p></div>
+      <p class="note">${Net.mode === 'p2p' ? (Net.state === 'online' ? 'Tes collègues ouvrent le fichier Brelan, cliquent sur « Rejoindre » et tapent ce code. La table reste ouverte tant que ta page reste ouverte.' : 'Table hors ligne : seuls les bots peuvent te rejoindre.') : 'Tes amis ouvrent ce même lien Brelan : la table apparaît dans leur salon, ou ils tapent ce code.'}</p></div>
   </div></div>`;
 }
 
@@ -2060,7 +2175,9 @@ function renderTable(force){
   App.sig = sig;
   const root = $('#app');
   let body;
-  if (!T) {
+  if (!T && App.connecting) {
+    body = `<div class="waiting"><div><div class="spin">${back()}${back()}${back()}</div><h2>${App.connecting === 'host' ? 'Ouverture de la table…' : 'Connexion à la table ' + esc(App.code) + '…'}</h2><p>Connexion directe entre navigateurs.</p></div></div>`;
+  } else if (!T) {
     const late = Date.now() - App.enterAt > 4500;
     body = `<div class="waiting"><div><h2>${late ? 'Table introuvable' : 'Recherche de la table…'}</h2><p>${late ? `Personne n’héberge la table ${esc(App.code)} en ce moment.` : 'Connexion à l’hôte.'}</p>${late ? '<button class="btn" data-a="leave">Retour au salon</button>' : ''}</div></div>`;
   } else {
@@ -2751,7 +2868,7 @@ document.addEventListener('click', e => {
     case 'goto': { const t = document.getElementById(el.dataset.t); if (t) t.scrollIntoView({ behavior: RM.matches ? 'auto' : 'smooth', block: 'start' }); if (el.dataset.t === 'tables') setTimeout(() => $('#jc') && $('#jc').focus({ preventScroll: true }), 400); break; }
     case 'av': Me.av = +el.dataset.i; LS.set('brelan.av', Me.av); Net.set({ av: Me.av }); document.querySelectorAll('.swatches button').forEach(b => b.setAttribute('aria-pressed', b === el)); $('#meav').innerHTML = avatar(Me, 'lg'); break;
     case 'create': createTable(el.dataset.g); break;
-    case 'join': enterTable(el.dataset.code); break;
+    case 'join': joinByCode(el.dataset.code); break;
     case 'rules': showRules(el.dataset.g); break;
     case 'modal-close': modal(''); break;
     case 'sol': openSol(); break;
@@ -2852,7 +2969,7 @@ document.addEventListener('input', e => {
   if (e.target.id === 'jc') e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, '');
 });
 document.addEventListener('submit', e => {
-  if (e.target.id === 'joinform') { e.preventDefault(); const c = $('#jc').value.trim().toUpperCase(); if (c.length === 4) enterTable(c); else toast('Le code fait 4 lettres.'); }
+  if (e.target.id === 'joinform') { e.preventDefault(); const c = $('#jc').value.trim().toUpperCase(); if (c.length === 4) joinByCode(c); else toast('Le code fait 4 lettres.'); }
 });
 let rsT; addEventListener('resize', () => { clearTimeout(rsT); rsT = setTimeout(() => { if (App.view === 'sol') layoutSol(); else if (App.view === 'table') renderTable(true); }, 120); });
 setInterval(() => { if (App.view === 'sol' && SOL.st && !SOL.st.won) { const t = $('#soltime'); if (t) t.textContent = fmtTime(Date.now() - SOL.st.t0); } }, 1000);
