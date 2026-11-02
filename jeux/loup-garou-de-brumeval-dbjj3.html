@@ -4217,12 +4217,35 @@ const Net = (() => {
   const genCode = () => { const A = 'ABCDEFGHJKLMNPRSTUVWXYZ'; let s = ''; for (let i = 0; i < 4; i++) s += A[Math.floor(Math.random() * A.length)]; return s; };
   const newPid = () => 'p' + Math.random().toString(36).slice(2, 9);
 
+  let shards = {}, shardUnsub = [], lobbyMode = false, lastPubObj = null, shardPriv = null, present = { m: new Set(), l: new Set() }, lobbyPids = new Set(), lobbyPub = false;
+  const SHARDS = 4;
+  const shardOf = pid => { let h = 0; for (const ch of pid) h = (h * 31 + ch.charCodeAt(0)) >>> 0; return h % SHARDS; };
+  async function getRoom() {
+    const t0 = Date.now();
+    while (!(window.claude && typeof window.claude.use === 'function') && Date.now() - t0 < 15000) await new Promise(r => setTimeout(r, 150));
+    if (!(window.claude && window.claude.use)) return null;
+    try { return await window.claude.use('room'); } catch (e) { return null; }
+  }
   async function boot() {
-    let tries = 0;
-    while (!(window.claude && typeof window.claude.use === 'function') && tries < 30) { await new Promise(r => setTimeout(r, 100)); tries++; }
-    if (!(window.claude && window.claude.use)) { st.avail = 'no'; UI.avail(); return; }
-    try { room = await window.claude.use('room'); } catch (e) { room = null; }
+    room = await getRoom();
     st.avail = room ? 'yes' : 'no'; UI.avail();
+    if (room) { try { room.onConnection(c => { st.connected = c; UI.avail(); }, () => {}); } catch (e) {} }
+  }
+  /* rejoint la salle de la partie ; si les salons nommés sont refusés, on partage le salon général en filtrant par code */
+  async function joinMain(code) {
+    if (!room) room = await getRoom();
+    if (!room) throw { code: 'no_room' };
+    try { lobbyMode = false; return await room.join('lg-' + code.toLowerCase()); }
+    catch (e) {
+      if (e && (e.code === 'not_permitted' || e.code === 'limit_reached' || e.code === 'upstream_error')) { lobbyMode = true; st.joinErr = e.code; return room; }
+      throw e;
+    }
+  }
+  /* données privées réparties dans de petits salons annexes : la présence d'un joueur ne dépasse pas 4 Ko */
+  async function shardRoom(k) {
+    if (lobbyMode) return null;
+    if (!(k in shards)) shards[k] = room.join('lg-' + st.code.toLowerCase() + '-s' + k).catch(() => null);
+    return shards[k];
   }
   function me() { return { nm: UI.myName(), c: UI.myColor() }; }
 
@@ -4237,18 +4260,21 @@ const Net = (() => {
     makeEngine();
     engine.addHuman(st.pid, me().nm, me().c);
     if (solo) { const n = 6; for (let i = 0; i < n; i++) engine.addBot(); return true; }
-    try { rm = await room.join('lg-' + st.code.toLowerCase()); }
-    catch (e) { st.mode = null; engine.destroy(); engine = null; return false; }
-    unsub.push(rm.onPeers(ch => onPeersHost(ch), () => {}));
+    try { rm = await joinMain(st.code); }
+    catch (e) { st.mode = null; st.joinErr = e && e.code; engine.destroy(); engine = null; return false; }
+    unsub.push(rm.onPeers(ch => onPeersHost(ch, lobbyMode ? 'l' : 'm'), () => {}));
+    // les invités qui ne peuvent pas entrer dans le salon de la partie passent par le salon général
+    if (!lobbyMode) unsub.push(room.onPeers(ch => onPeersHost(ch, 'l'), () => {}));
     schedulePub();
     return true;
   }
-  function onPeersHost(ch) {
-    const present = new Set();
+  function onPeersHost(ch, src) {
+    const seen = new Set();
     for (const p of ch.peers) {
       if (p.sameTab || p.kind !== 'viewer') continue;
       const pr = p.presence || {}; if (pr.host || typeof pr.pid !== 'string' || pr.pid.length > 12) continue;
-      present.add(pr.pid);
+      if (src === 'l' && pr.code !== st.code) continue;
+      seen.add(pr.pid);
       const nm = String(pr.nm || 'Inconnu').slice(0, 16), c = clamp(parseInt(pr.c) || 0, 0, 15);
       const prev = info.get(pr.pid);
       info.set(pr.pid, { pk: typeof pr.pk === 'string' ? pr.pk : null, nm, c });
@@ -4262,7 +4288,9 @@ const Net = (() => {
       pkBy.set(pr.pid, pr.pk);
       takePm(pr.pid, pr.pk, pr.pm, false);
     }
-    for (const pl of engine.players) if (!pl.bot && pl.pid !== st.pid && !present.has(pl.pid) && !pl.off) engine.markOff(pl.pid, true);
+    present[src] = seen;
+    lobbyPids = present.l;
+    for (const pl of engine.players) if (!pl.bot && pl.pid !== st.pid && !present.m.has(pl.pid) && !present.l.has(pl.pid) && !pl.off) engine.markOff(pl.pid, true);
   }
   function schedulePub() {
     if (pubTimer) return;
@@ -4296,9 +4324,21 @@ const Net = (() => {
         for (const j of engine.members(ch)) { const q = engine.players[j]; if (!q || q.bot || q.pid === st.pid) continue; const inf = info.get(q.pid); if (inf && inf.pk) to[q.pid] = await Crypt.enc(inf.pk, { ch, i, text }); }
         if (Object.keys(to).length) { sentBpm.push([ts, to]); if (sentBpm.length > 4) sentBpm.shift(); }
       }
-      const pres = { host: 1, pid: st.pid, nm: me().nm, c: me().c, pk: Crypt.pk, pub: engine.pub(), priv, chat: myChat.slice(-4), bc: engine.botChat.slice(-5), pm: myPm.slice(-3), bpm: sentBpm.slice(-3) };
+      // chaque joueur lit sa partie privée dans le salon annexe de son groupe
+      const byShard = {}; let mainPriv = {};
+      const lobPriv = {};
+      for (const pid in priv) { if (lobbyPids.has(pid) && !lobbyMode) { lobPriv[pid] = priv[pid]; continue; } const k = shardOf(pid); (byShard[k] = byShard[k] || {})[pid] = priv[pid]; }
+      for (const k in byShard) { const r = await shardRoom(+k); if (r) r.presence({ host: 1, pid: st.pid, priv: byShard[k] }).catch(() => {}); else Object.assign(mainPriv, byShard[k]); }
+      const pres = { host: 1, code: st.code, pid: st.pid, nm: me().nm, c: me().c, pk: Crypt.pk, pub: engine.pub(), priv: mainPriv, chat: myChat.slice(-4), bc: engine.botChat.slice(-5), pm: myPm.slice(-3), bpm: sentBpm.slice(-3) };
       while (JSON.stringify(pres).length > 3900 && (pres.chat.length || pres.bc.length || pres.bpm.length > 1 || pres.pm.length > 1)) { if (pres.bpm.length > 1) pres.bpm.shift(); else if (pres.pm.length > 1) pres.pm.shift(); else if (pres.bc.length >= pres.chat.length) pres.bc.shift(); else pres.chat.shift(); }
-      await rm.presence(pres).catch(() => {});
+      if (JSON.stringify(pres).length > 4000) { pres.chat = []; pres.bc = []; pres.pm = []; pres.bpm = []; }
+      await rm.presence(pres).catch(e => { st.lastErr = e && e.code; });
+      if (!lobbyMode && (lobbyPids.size || lobbyPub)) {
+        lobbyPub = lobbyPids.size > 0;
+        const lp = Object.assign({}, pres, { priv: lobPriv });
+        if (JSON.stringify(lp).length > 4000) { lp.chat = []; lp.bc = []; lp.pm = []; lp.bpm = []; }
+        room.presence(lobbyPub ? lp : { host: null, code: null, pub: null, priv: null, chat: null, bc: null, pm: null, bpm: null }).catch(() => {});
+      }
     } finally {
       building = false; if (dirty) { dirty = false; schedulePub(); }
     }
@@ -4309,9 +4349,11 @@ const Net = (() => {
     await Crypt.ready;
     st.mode = 'client'; st.code = code; st.pid = store.sget('lg_pid_' + code) || newPid(); store.sset('lg_pid_' + code, st.pid);
     st.seenHost = false; st.lastHost = Date.now(); lastPrivStr = null;
-    try { rm = await room.join('lg-' + code.toLowerCase()); } catch (e) { st.mode = null; return 'err'; }
-    await rm.presence({ pid: st.pid, nm: me().nm, c: me().c, pk: Crypt.pk, chat: [] }).catch(() => {});
+    try { rm = await joinMain(code); } catch (e) { st.mode = null; st.joinErr = e && e.code; return 'err'; }
+    await rm.presence({ code, pid: st.pid, nm: me().nm, c: me().c, pk: Crypt.pk, chat: [] }).catch(() => {});
     unsub.push(rm.onPeers(ch => onPeersClient(ch), () => {}));
+    const sr = await shardRoom(shardOf(st.pid));
+    if (sr) { sr.presence({ pid: st.pid }).catch(() => {}); shardUnsub.push(sr.onPeers(ch => onShard(ch), () => {})); }
     return await new Promise(res => {
       const t0 = Date.now();
       const iv = setInterval(() => {
@@ -4321,14 +4363,27 @@ const Net = (() => {
     });
   }
   let lastPubV = -1;
+  let shardDone = null, shardObj = null;
+  function onShard(ch) {
+    const h = ch.peers.find(p => p.presence && p.presence.host === 1 && !p.isMe); if (!h) return;
+    const ps = h.presence.priv && h.presence.priv[st.pid]; if (typeof ps !== 'string') return;
+    shardPriv = ps; tryShard();
+  }
+  function tryShard() {
+    if (!shardPriv || !st.hostPk || !lastPubObj || shardDone === shardPriv) return;
+    const ps = shardPriv; shardDone = ps;
+    Crypt.dec(st.hostPk, ps).then(d => { if (d) { shardObj = d; UI.onState(lastPubObj, d); } else if (shardDone === ps) shardDone = null; });
+  }
   function onPeersClient(ch) {
     let hostP = null;
     for (const p of ch.peers) {
       const pr = p.presence || {};
+      if (lobbyMode && pr.code !== st.code) continue;
       if (pr.host === 1 && pr.pub && !p.isMe) { if (!hostP || (pr.pub.v || 0) > (hostP.presence.pub.v || 0)) hostP = p; }
     }
     for (const p of ch.peers) {
       const pr = p.presence || {}; if (p.sameTab || typeof pr.pid !== 'string') continue;
+      if (lobbyMode && pr.code !== st.code) continue;
       takeChat(pr.pid, String(pr.nm || '').slice(0, 16), clamp(parseInt(pr.c) || 0, 0, 15), pr.chat, false);
       if (typeof pr.pk === 'string') pkBy.set(pr.pid, pr.pk);
       takePm(pr.pid, pr.pk, pr.pm, false);
@@ -4341,22 +4396,23 @@ const Net = (() => {
       addChat('b' + i + ':' + ts, String(s[0]), s[1], String(text).slice(0, 160), true, i);
     }
     if (Array.isArray(pr.bpm)) for (const e of pr.bpm) { if (!Array.isArray(e) || !e[1] || typeof e[1][st.pid] !== 'string') continue; const k = 'hb' + e[0]; if (seenPm.has(k)) continue; seenPm.add(k); Crypt.dec(st.hostPk, e[1][st.pid]).then(d => { if (d && typeof d.text === 'string' && Number.isInteger(d.i)) UI.pmAdd(String(d.ch), d.i, d.text.slice(0, 160)); }); }
-    const ps = pr.priv && pr.priv[st.pid];
-    const pub = pr.pub;
+    const ps = (pr.priv && pr.priv[st.pid]) || null;
+    const pub = pr.pub; lastPubObj = pub;
     if (ps && ps !== lastPrivStr) {
       lastPrivStr = ps;
       Crypt.dec(st.hostPk, ps).then(d => { UI.onState(pub, d); });
     } else if (pub.v !== lastPubV) {
-      UI.onState(pub, ps ? UI.lastPriv() : null);
+      UI.onState(pub, ps ? UI.lastPriv() : shardObj);
     }
     lastPubV = pub.v;
+    tryShard();
   }
   function watchHost() {
     clearInterval(hostWatch);
     hostWatch = setInterval(() => {
       if (st.mode !== 'client') return clearInterval(hostWatch);
       if (st.seenHost && rm) {
-        const alive = rm.peers().some(p => p.presence && p.presence.host === 1 && !p.isMe);
+        const alive = rm.peers().some(p => p.presence && p.presence.host === 1 && !p.isMe && (!lobbyMode || p.presence.code === st.code));
         if (alive) st.lastHost = Date.now();
         else if (Date.now() - st.lastHost > 9000) { clearInterval(hostWatch); UI.hostGone(); }
       }
@@ -4424,7 +4480,11 @@ const Net = (() => {
   async function leave() {
     unsub.forEach(u => { try { u(); } catch (e) {} }); unsub = [];
     clearInterval(hostWatch);
-    if (rm) { try { await rm.leave(); } catch (e) {} rm = null; }
+    shardUnsub.forEach(u => { try { u(); } catch (e) {} }); shardUnsub = [];
+    for (const k in shards) { try { const r = await shards[k]; if (r) await r.leave(); } catch (e) {} } shards = {};
+    if (rm && !lobbyMode) { try { await rm.leave(); } catch (e) {} } else if (rm && lobbyMode) { try { await rm.presence({ code: null, pid: null, host: null, pub: null, priv: null, chat: null, act: null, pm: null }); } catch (e) {} }
+    if (lobbyPub && room) { try { await room.presence({ host: null, code: null, pub: null, priv: null, chat: null, bc: null, pm: null, bpm: null }); } catch (e) {} }
+    rm = null; lobbyMode = false; lastPubObj = null; shardPriv = null; shardDone = null; shardObj = null; present = { m: new Set(), l: new Set() }; lobbyPids = new Set(); lobbyPub = false;
     if (engine) { engine.destroy(); engine = null; }
     st.mode = null; st.code = null; myChat = []; seenChat = new Set(); myPm = []; pkBy = new Map(); seenPm = new Set(); sentBpm = []; bpmDone = new Set(); lastAct = new Map(); info = new Map(); privCache = new Map(); lastPrivStr = null; lastPubV = -1;
   }
@@ -4432,7 +4492,7 @@ const Net = (() => {
     if (engine) { const p = engine.players.find(q => q.pid === st.pid); if (p) { p.nm = me().nm; p.c = me().c; engine.changed(); } }
     else if (rm) rm.presence({ nm: me().nm, c: me().c }).catch(() => {});
   }
-  return { boot, host, join, leave, act, say, pmSay, watchHost, updateMe, st, get engine() { return engine; } };
+  return { boot, getRoom, host, join, leave, act, say, pmSay, watchHost, updateMe, st, get engine() { return engine; } };
 })();
 
 /* =================== interface =================== */
@@ -4511,12 +4571,17 @@ const UI = (() => {
   function openOv(id) { $('#' + id).hidden = false; }
   function closeOv(id) { $('#' + id).hidden = true; }
 
+  function errText(code, base) {
+    const why = { not_permitted: 'ton compte n’a pas le droit de jouer en ligne sur cette page : demande à l’hôte de te partager l’artifact par e-mail.', not_granted: 'cette page n’est pas autorisée à se connecter : ouvre-la dans Claude, connecté.', no_room: 'le salon en ligne ne répond pas : recharge la page.', limit_reached: 'trop de salons ouverts : recharge la page.', upstream_error: 'le serveur n’a pas répondu : réessaie dans un instant.' }[code];
+    return base + ' ' + (why || 'Réessaie dans un instant.');
+  }
   function avail() {
     const a = $('#avail'), s = Net.st.avail;
     a.className = 'avail ' + s;
     a.querySelector('span').textContent = s === 'yes' ? 'Taverne ouverte : tu peux allumer un feu en ligne ou rejoindre tes amis avec leur code.'
-      : s === 'no' ? 'Le jeu en ligne fonctionne quand cette page est ouverte dans Claude par des personnes invitées sur l’artifact. Ici, la veillée solo reste ouverte.'
+      : s === 'no' ? 'Jeu en ligne indisponible sur cette page. Il faut l’ouvrir dans Claude, connecté, via un partage par e-mail (pas un lien public). La veillée solo reste ouverte.'
         : 'Recherche de la taverne en ligne…';
+    if (s === 'yes' && Net.st.connected === false) a.querySelector('span').textContent = 'Connexion à la taverne… si ça dure, recharge la page.';
     $('#btn-host').disabled = s !== 'yes'; $('#btn-join').disabled = s !== 'yes'; $('#in-code').disabled = s !== 'yes';
   }
 
@@ -5105,7 +5170,7 @@ const UI = (() => {
   /* ---------- branchements ---------- */
   function bind() {
     initIdentity();
-    $('#btn-host').onclick = async () => { Snd.start(); Snd.click(); $('#btn-host').disabled = true; St.pub = null; const ok = await Net.host(false); $('#btn-host').disabled = false; if (!ok) return toast('Impossible d’allumer le feu en ligne. Réessaie.'); };
+    $('#btn-host').onclick = async () => { Snd.start(); Snd.click(); $('#btn-host').disabled = true; St.pub = null; const ok = await Net.host(false); $('#btn-host').disabled = false; if (!ok) return toast(errText(Net.st.joinErr, 'Impossible d’allumer le feu en ligne.')); };
     $('#btn-solo').onclick = async () => { Snd.start(); Snd.click(); St.pub = null; await Net.host(true); };
     $('#gt-leave').onclick = () => { Snd.click(); askLeave(); };
     $('#gt-settings').onclick = () => { Snd.click(); openOv('ov-settings'); };
@@ -5118,7 +5183,7 @@ const UI = (() => {
       const r = await Net.join(code);
       $('#btn-join').disabled = false; $('#btn-join').textContent = 'Rejoindre';
       if (r === 'ok') Net.watchHost();
-      else { await Net.leave(); toast(r === 'nohost' ? 'Aucun feu de camp ne brûle avec le code ' + code + '.' : 'Connexion impossible. Réessaie.'); }
+      else { await Net.leave(); toast(r === 'nohost' ? 'Aucun feu ne brûle avec le code ' + code + '. Vérifie le code, et que l’hôte a bien la page ouverte.' : errText(Net.st.joinErr, 'Connexion impossible.')); }
     };
     $('#in-code').addEventListener('input', e => { e.target.value = e.target.value.toUpperCase().replace(/[^A-Z]/g, ''); });
     $('#btn-addbot').onclick = () => { Snd.click(); Net.engine && Net.engine.addBot(); };
