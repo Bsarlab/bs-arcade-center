@@ -14,11 +14,6 @@
         "style": "plein"
       },
       {
-        "texte": "Mon histoire",
-        "cible": "#/a-propos",
-        "style": "contour"
-      },
-      {
         "texte": "Me suivre",
         "cible": "#/contact",
         "style": "contour"
@@ -171,6 +166,14 @@
         "visible": true
       },
       {
+        "id": "defilant",
+        "visible": true
+      },
+      {
+        "id": "atouts",
+        "visible": true
+      },
+      {
         "id": "une",
         "visible": true
       },
@@ -183,16 +186,54 @@
         "visible": true
       },
       {
+        "id": "galerie",
+        "visible": true
+      },
+      {
+        "id": "citation",
+        "visible": true
+      },
+      {
+        "id": "etapes",
+        "visible": true
+      },
+      {
+        "id": "prochains",
+        "visible": true
+      },
+      {
         "id": "blocs",
         "visible": true
       },
       {
         "id": "apropos",
-        "visible": true
+        "visible": false
       },
       {
         "id": "contact",
         "visible": true
+      }
+    ],
+    "a-propos": [
+      {
+        "id": "histoire",
+        "visible": false
+      },
+      {
+        "id": "debut",
+        "visible": false
+      },
+      {
+        "id": "prochains",
+        "visible": false
+      },
+      {
+        "id": "chrono",
+        "visible": false
+      },
+      {
+        "id": "blocs",
+        "visible": false
       }
     ]
   },
