@@ -817,41 +817,130 @@ function libsOk(){
   return true;
 }
 
-function createParty(){
+/* ---------------------------------------------------------------------
+   Deux façons de jouer à deux :
+   1) dans Claude (page d'artefact) : le « salon » de la page relaie les
+      messages — aucun réglage réseau, ça passe même derrière un pare-feu
+      d'entreprise ;
+   2) sur ton propre site : connexion directe PeerJS (WebRTC).
+   --------------------------------------------------------------------- */
+const roomP = (window.claude && typeof window.claude.use === 'function')
+  ? window.claude.use('room').catch(() => null) : Promise.resolve(null);
+let NETMODE = 'peer';                       // 'room' | 'peer'
+const RELIABLE_SKIP = new Set(['s', 'aim']);
+const ICE = {iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]};
+
+/* --- transport « salon » (fiable : accusés de réception + renvoi) --- */
+const MY_ID = 'x' + Math.random().toString(36).slice(2, 10);   // identifiant à nous, sans dépendre d'un écho
+function makeRoomConn(r, onOpen){
+  const c = {open:false, other:null, handlers:{data:[], close:[], full:[]}, sent:new Map(), seen:new Set(), seq:1, closed:false};
+  const pending = [];
+  const fire = (ev, x) => { if (ev === 'data' && !c.handlers.data.length){ pending.push(x); return; } c.handlers[ev].forEach(f => f(x)); };
+  c.on = (ev, fn) => { c.handlers[ev].push(fn); if (ev === 'data') pending.splice(0).forEach(fn); };
+  const raw = d => { d.f = MY_ID; return r.emit('bm', d).catch(() => {}); };
+  c.hello = () => raw({k:'hello'});
+  c.send = m => {
+    if (!c.open) return;
+    if (RELIABLE_SKIP.has(m.t)){ raw({k:'d', to:c.other, m}); return; }
+    const id = c.seq++, e = {k:'r', to:c.other, id, m}; c.sent.set(id, {e, t:performance.now(), n:0}); raw(e);
+  };
+  c.close = () => { if (c.closed) return; c.closed = true; c.open = false; try { raw({k:'bye', to:c.other}); setTimeout(() => { try { r.leave(); } catch(e){} }, 300); } catch(e){} fire('close'); };
+  const timer = setInterval(() => {                         // renvoi des messages importants non confirmés
+    if (c.closed){ clearInterval(timer); return; }
+    const now = performance.now();
+    c.sent.forEach((v, id) => { if (now - v.t > 350){ v.t = now; if (++v.n > 60){ c.sent.delete(id); return; } raw(v.e); } });
+  }, 120);
+  const openWith = (who, peer) => { c.other = who; c.peer = peer; c.open = true; onOpen(c); };
+  r.on('bm', msg => {
+    const d = msg.data || {};
+    if (!d.f || d.f === MY_ID) return;
+    if (d.k === 'hello'){
+      if (!isHost) return;
+      if (c.other && d.f !== c.other){ raw({k:'full', to:d.f}); return; }
+      raw({k:'welcome', to:d.f});
+      if (!c.other) openWith(d.f, msg.peer);
+      return;
+    }
+    if (d.to !== MY_ID) return;
+    if (d.k === 'full'){ if (!c.other) fire('full'); return; }
+    if (!c.other && !isHost) openWith(d.f, msg.peer);     // tout message de l'hôte vaut accueil
+    if (d.f !== c.other) return;
+    if (d.k === 'welcome') return;
+    if (d.k === 'bye'){ if (c.open){ c.open = false; c.closed = true; fire('close'); } return; }
+    if (d.k === 'ack'){ c.sent.delete(d.id); return; }
+    if (d.k === 'r'){ raw({k:'ack', to:c.other, id:d.id}); if (c.seen.has(d.id)) return; c.seen.add(d.id); fire('data', d.m); return; }
+    if (d.k === 'd') fire('data', d.m);
+  });
+  r.onPeers(ch => { if (c.peer && (ch.left || []).some(p => p.peer === c.peer) && c.open){ c.open = false; c.closed = true; fire('close'); } });
+  return c;
+}
+async function roomJoin(code){
+  const room = await roomP; if (!room) return null;
+  try { return await room.join('bm-' + code.toLowerCase()); } catch(e){ return null; }
+}
+
+function netFail(msg){ status(msg); $('createBtn').disabled = $('joinBtn').disabled = false; }
+
+async function createParty(){
   if (!modelsReady) return status('Les invités arrivent, encore un instant…');
-  ensureAudio(); if (!libsOk()) return;
+  ensureAudio(); if (typeof THREE === 'undefined') return status('Impossible de charger le moteur 3D. Vérifie ta connexion.');
   solo = false; isHost = true; const code = makeCode();
   $('createBtn').disabled = $('joinBtn').disabled = true;
   status('Création de la partie…');
-  peer = new Peer(ID_PREFIX + code);
-  peer.on('open', () => {
+  const r = await roomJoin(code);
+  const showCode = () => {
     status(''); $('codeBox').classList.remove('hidden'); $('codeBig').textContent = code;
+    $('copyBtn').textContent = NETMODE === 'room' ? 'Copier le code' : "Copier le lien d'invitation";
     $('copyBtn').onclick = () => {
-      const url = location.href.split(/[?#]/)[0] + '?partie=' + code;
-      navigator.clipboard?.writeText(url).then(()=>status('Lien copié !'), ()=>status(url));
+      const txt = NETMODE === 'room' ? code : location.href.split(/[?#]/)[0] + '?partie=' + code;
+      navigator.clipboard?.writeText(txt).then(() => status(NETMODE === 'room' ? 'Code copié ! Ton collègue ouvre ce même jeu et clique sur « Rejoindre ».' : 'Lien copié !'), () => status(txt));
     };
-  });
+  };
+  if (r){
+    NETMODE = 'room'; showCode();
+    status("Partie créée. Donne le code à ton collègue : il ouvre ce même jeu, clique sur « Rejoindre » et l'entre.");
+    makeRoomConn(r, c => { conn = c; bindConn(); startSetup(true); });
+    return;
+  }
+  if (typeof Peer === 'undefined') return netFail('Impossible de charger le module réseau. Vérifie ta connexion (ou désactive ton bloqueur de pub).');
+  NETMODE = 'peer';
+  peer = new Peer(ID_PREFIX + code, {config: ICE});
+  peer.on('open', showCode);
   peer.on('connection', c => {
     if (conn && conn.open){ c.on('open',()=>c.close()); return; }
     conn = c; bindConn();
     c.on('open', () => startSetup(true));
   });
-  peer.on('error', e => { status('Erreur réseau : ' + e.type); $('createBtn').disabled = $('joinBtn').disabled = false; });
+  peer.on('error', e => netFail('Erreur réseau : ' + e.type + '. Le réseau de ton entreprise bloque peut-être les connexions directes : essaie depuis la page du jeu dans Claude.'));
 }
 
-function joinParty(){
+async function joinParty(){
   if (!modelsReady) return status('Les invités arrivent, encore un instant…');
-  ensureAudio(); if (!libsOk()) return;
+  ensureAudio(); if (typeof THREE === 'undefined') return status('Impossible de charger le moteur 3D. Vérifie ta connexion.');
   const code = $('codeIn').value.trim().toUpperCase();
   if (code.length !== 5) return status('Entre un code de 5 caractères.');
   solo = false; isHost = false; $('createBtn').disabled = $('joinBtn').disabled = true;
   status('Connexion…');
-  peer = new Peer();
-  peer.on('open', () => { conn = peer.connect(ID_PREFIX + code, {reliable:true}); bindConn(); });
+  const r = await roomJoin(code);
+  if (r){
+    NETMODE = 'room';
+    let done = false;
+    const c = makeRoomConn(r, c2 => { done = true; conn = c2; bindConn(); status('Connecté ! En attente de l\'hôte…'); });
+    c.on('full', () => { if (!done){ done = true; c.close(); netFail('Cette partie a déjà deux joueurs.'); } });
+    const hello = () => { if (done) return; c.hello(); setTimeout(hello, 600); };
+    hello();
+    setTimeout(() => { if (!done){ done = true; try { r.leave(); } catch(e){} netFail("Partie introuvable. Vérifie le code, et que l'hôte a bien la page du jeu ouverte."); } }, 15000);
+    return;
+  }
+  if (typeof Peer === 'undefined') return netFail('Impossible de charger le module réseau. Vérifie ta connexion (ou désactive ton bloqueur de pub).');
+  NETMODE = 'peer';
+  peer = new Peer({config: ICE});
+  let opened = false;
+  peer.on('open', () => { conn = peer.connect(ID_PREFIX + code, {reliable:true}); bindConn(); conn.on('open', () => opened = true); });
   peer.on('error', e => {
-    status(e.type === 'peer-unavailable' ? 'Partie introuvable. Vérifie le code.' : 'Erreur réseau : ' + e.type);
-    $('createBtn').disabled = $('joinBtn').disabled = false;
+    netFail(e.type === 'peer-unavailable' ? 'Partie introuvable. Vérifie le code.' : 'Erreur réseau : ' + e.type);
   });
+  setTimeout(() => { if (!opened && !running) netFail("La connexion n'aboutit pas : le réseau (pare-feu d'entreprise) bloque sans doute les connexions directes entre ordinateurs. Jouez depuis la page du jeu dans Claude, ça passe partout."); }, 15000);
 }
 
 function bindConn(){
@@ -2534,7 +2623,7 @@ function updateSniper(dt){
   if (keys.shift) S.zm = 1; else if (keys._shiftWas) S.zm = 0;
   keys._shiftWas = !!keys.shift;
   if (isHost){ if (G) G.sniper = {...S}; }
-  else if ((aimSendT += dt) > 0.05){ aimSendT = 0; send({t:'aim', x:Math.round(S.x), a:+S.a.toFixed(3), p:+S.p.toFixed(3), zm:S.zm}); }
+  else if ((aimSendT += dt) > (NETMODE === 'room' ? 0.09 : 0.05)){ aimSendT = 0; send({t:'aim', x:Math.round(S.x), a:+S.a.toFixed(3), p:+S.p.toFixed(3), zm:S.zm}); }
 }
 function updateSpyKeys(){
   const f = (keys.z || keys.w || keys.arrowup ? 1 : 0) - (keys.s || keys.arrowdown ? 1 : 0);
@@ -2818,7 +2907,7 @@ $('tMark').onclick = toggleMark;
 $('tFire').onclick = sniperShoot;
 
 /* simulation de l'hôte : à chaque image (mouvements fluides), et en secours quand l'onglet est en arrière-plan */
-let simLast = performance.now();
+let simLast = performance.now(), snapTick = 0;
 function stepHost(){
   const now = performance.now(); let dt = (now - simLast)/1000; simLast = now;
   if (!isHost || !G || !running || G.demo) return;
@@ -2828,7 +2917,8 @@ function stepHost(){
 setInterval(() => {
   if (!isHost || !G || !running || G.demo) return;
   if (performance.now() - simLast > 120) stepHost();              // l'onglet ne dessine plus : on continue quand même
-  if (conn && conn.open && !G.over) send(snapshot(remoteRole === 'spy'));
+  snapTick = (snapTick + 1) % 4;
+  if (conn && conn.open && !G.over && (NETMODE !== 'room' || snapTick !== 0)) send(snapshot(remoteRole === 'spy'));   // salon : 15 envois/s
 }, 50);
 
 /* ---------- menu : navigation ---------- */
