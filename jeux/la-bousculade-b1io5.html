@@ -475,6 +475,22 @@ input[type=range]:focus-visible{outline:3px solid var(--cobalt);outline-offset:3
 #practiceBar{left:50%;top:calc(14px + env(safe-area-inset-top,0px));transform:translateX(-50%) rotate(-1deg);display:flex;align-items:center;gap:10px;background:var(--ink);color:#fff;border-radius:16px;padding:8px 18px;font-weight:900;box-shadow:0 5px 0 #0006}
 #practiceBar b{font-family:var(--f-display);color:var(--sun);font-size:22px}
 
+
+/* --- salons privés */
+.salonWrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(900px,calc(100% - 48px));display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:18px}
+.sCard{background:#fff;border:4px solid var(--ink);border-radius:24px;box-shadow:0 9px 0 #000a;padding:20px;display:flex;flex-direction:column;gap:12px;animation:rowin .45s cubic-bezier(.3,1.5,.5,1) both}
+.sCard:nth-child(2){animation-delay:.08s}
+.sCard h3{margin:0;font-family:var(--f-display);font-size:30px;color:var(--cobalt);-webkit-text-stroke:1.5px var(--ink);paint-order:stroke fill;line-height:1}
+.sCard p{margin:0;font-weight:700;line-height:1.4;font-size:14px;color:#3d3768}
+.codeBig{display:flex;gap:8px;justify-content:center}
+.codeBig span{width:52px;height:64px;display:grid;place-items:center;background:var(--sun);border:4px solid var(--ink);border-radius:14px;box-shadow:0 5px 0 var(--ink);font-family:var(--f-display);font-size:38px;animation:let .6s cubic-bezier(.25,1.8,.45,1) both}
+.codeIn{font:800 34px var(--f-display);letter-spacing:.3em;text-transform:uppercase;text-align:center;border:4px solid var(--ink);border-radius:16px;padding:10px;width:100%;box-sizing:border-box;color:var(--ink);background:var(--paper);-webkit-user-select:text;user-select:text}
+.codeIn:focus-visible{outline:3px solid var(--cobalt);outline-offset:3px}
+.sErr{font-weight:800;color:var(--berry);min-height:1.2em;font-size:14px}
+.sRow{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.salonChip{display:flex;align-items:center;gap:6px;font-weight:900;font-size:14px;background:#fff;color:var(--ink);border-radius:10px;padding:3px 6px 3px 10px;pointer-events:auto}
+.salonChip button{font:900 12px var(--f-body);border:2px solid var(--ink);border-radius:8px;background:var(--mint);padding:1px 7px;cursor:pointer}
+
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-iteration-count:1!important;transition:none!important}}
 </style>
 
@@ -546,13 +562,14 @@ input[type=range]:focus-visible{outline:3px solid var(--cobalt);outline-offset:3
   </div>
 
   <section id="wait" hidden>
-    <div class="waitTop"><span class="wt">Salle d'attente</span><span class="waitMode" id="waitMode">Tournoi</span><span class="ws" id="waitSub">0 / 1 prêt</span></div>
+    <div class="waitTop"><span class="wt">Salle d'attente</span><span class="salonChip" id="salonChip"><span id="salonTxt">Salon public</span><button id="salonCopy" type="button" hidden>Copier</button></span><span class="waitMode" id="waitMode">Tournoi</span><span class="ws" id="waitSub">0 / 1 prêt</span></div>
     <div class="party" id="party"></div>
     <div class="waitAct">
       <div class="waitMsg" id="lobbyMsg" aria-live="polite"></div>
       <button id="ready" class="bigReady" type="button"><kbd>Entrée</kbd><span id="readyTxt">Je suis prêt</span></button>
       <div class="smallAct">
         <button id="force" class="sbtn" type="button" hidden>Lancer sans attendre</button>
+        <button id="waitSalon" class="sbtn" type="button"><kbd>P</kbd>Salon privé</button>
         <button id="waitModes" class="sbtn" type="button"><kbd>M</kbd>Changer de mode</button>
         <button id="waitCustom" class="sbtn" type="button"><kbd>C</kbd>Personnaliser</button>
         <button id="waitPause" class="sbtn" type="button"><kbd>Échap</kbd>Menu</button>
@@ -577,6 +594,7 @@ input[type=range]:focus-visible{outline:3px solid var(--cobalt);outline-offset:3
       <div class="bigLogo"><span class="la">La</span><span class="word" id="titleWord">Bousculade</span></div>
       <nav class="mmenu" id="mmenu" aria-label="Menu principal">
         <button class="btnReset mbtn primary" type="button" data-act="play"><span class="mt">Jouer</span><span class="md" id="playDesc">Choisir un mode et rejoindre la partie</span></button>
+        <button class="btnReset mbtn" type="button" data-act="salon"><span class="mt">Salon privé</span><span class="md">Créer un salon ou rejoindre tes collègues avec un code</span></button>
         <button class="btnReset mbtn" type="button" data-act="custom"><span class="mt">Personnaliser</span><span class="md">Couleurs, tenues, chapeaux et maillot dessiné</span></button>
         <button class="btnReset mbtn" type="button" data-act="howto"><span class="mt">Comment jouer</span><span class="md">Les commandes et les manches</span></button>
         <button class="btnReset mbtn" type="button" data-act="settings"><span class="mt">Paramètres</span><span class="md">Son, souris et qualité graphique</span></button>
@@ -650,6 +668,27 @@ input[type=range]:focus-visible{outline:3px solid var(--cobalt);outline-offset:3
     <div class="modeGrid" id="modeGrid"></div>
     <div class="mapList" id="mapList" hidden></div>
     <div class="scrFoot"><span>Le mode choisi s'applique à toute la salle d'attente : le dernier vote l'emporte.</span></div>
+  </section>
+  <section id="salonScr" class="screen" hidden aria-label="Salons" style="background:rgba(29,23,71,.9)">
+    <div class="scrHead"><button class="back" type="button" data-back><kbd>Échap</kbd> Retour</button><h2>Salons</h2></div>
+    <div class="salonWrap">
+      <div class="sCard">
+        <h3>Créer un salon</h3>
+        <p>Tu obtiens un code à 5 lettres. Donne-le à tes collègues : ils le tapent ici et vous jouez entre vous.</p>
+        <div class="codeBig" id="sCode" hidden></div>
+        <div class="sRow"><button id="sCreate" class="bigReady" type="button" style="font-size:22px;padding:10px 18px"><span>Créer un salon</span></button><button id="sCopy" class="sbtn" type="button" hidden>Copier le code</button></div>
+        <button id="sEnter" class="sbtn" type="button" hidden style="justify-content:center;background:var(--mint);font-size:16px;padding:10px">Entrer dans le salon</button>
+      </div>
+      <div class="sCard">
+        <h3>Rejoindre avec un code</h3>
+        <p>Tape le code que ton collègue t'a donné.</p>
+        <label class="lbl" for="sInput">Code du salon</label>
+        <input id="sInput" class="codeIn" maxlength="6" autocomplete="off" spellcheck="false" placeholder="ABCDE">
+        <div class="sRow"><button id="sJoin" class="bigReady" type="button" style="font-size:22px;padding:10px 18px"><span>Rejoindre</span></button></div>
+        <div class="sErr" id="sErr" aria-live="polite"></div>
+      </div>
+    </div>
+    <div class="scrFoot"><span id="sFoot">Tu es dans le salon public, ouvert à tous ceux qui ont la page.</span><button id="sPublic" class="sbtn" type="button" hidden style="pointer-events:auto">Revenir au salon public</button></div>
   </section>
   <div id="wipe" aria-hidden="true"><i></i><i></i><i></i></div>
 </div>
@@ -1881,7 +1920,7 @@ function collideWorld(oy, wasG) {
 }
 
 /* ---------------------------------------------------------- réseau */
-let room = null, myPeer = 'solo', amHost = true, netState = 'wait';
+let room = null, net = null, netUnsubs = [], salon = null, myPeer = 'solo', amHost = true, netState = 'wait';
 const remotes = new Map();
 const joinedAt = Date.now();
 const saved = lsGet('bousculade:me', null) || {};
@@ -1890,7 +1929,7 @@ if (!ME.n) ME.n = ['Pompon', 'Bidule', 'Gribouille', 'Tornade', 'Patapouf', 'Zig
 if (ME.a === ME.c) ME.a = (ME.c + 1) % COLORS.length;
 let sentStatic = '', sentDyn = '', sentG = '', lastSend = 0, emoteN = 0;
 function sendPresence(now, force) {
-  if (!room) return;
+  if (!net) return;
   if (!force && now - lastSend < 33) return;
   lastSend = now;
   const patch = {};
@@ -1901,7 +1940,7 @@ function sendPresence(now, force) {
   if (dyn !== sentDyn) { patch.p = ME.p; patch.y = ME.y; patch.s = ME.s; patch.v = ME.v; sentDyn = dyn; }
   const gs = amHost ? JSON.stringify(G) : '';
   if (gs !== sentG) { patch.g = amHost ? G : null; sentG = gs; }
-  if (Object.keys(patch).length) room.presence(patch).catch(() => {});
+  if (Object.keys(patch).length) net.presence(patch).catch(() => {});
 }
 function cleanName(s) { return String(s || '').replace(/[\u0000-\u001f\u007f-\u009f​-‏‪-‮⁠-⁯]/g, '').slice(0, 14) || 'Joueur'; }
 function upsert(p) {
@@ -1930,18 +1969,57 @@ function dropRemote(peer) { const r = remotes.get(peer); if (r && r.av) { scene.
 function setNet(s) {
   netState = s; const el = $('#netS'); el.className = s === 'on' ? 'on' : s === 'wait' ? 'wait' : '';
   const n = 1 + [...remotes.values()].filter(r => r.pres.n).length;
-  el.querySelector('span').textContent = s === 'on' ? `En ligne · ${n} joueur${n > 1 ? 's' : ''}` : s === 'wait' ? 'Connexion…' : 'Hors ligne · solo';
+  el.querySelector('span').textContent = s === 'on' ? `${salon ? 'Salon ' + salon : 'En ligne'} · ${n} joueur${n > 1 ? 's' : ''}` : s === 'wait' ? 'Connexion…' : 'Hors ligne · solo';
 }
 (async () => {
   if (!window.claude || typeof window.claude.use !== 'function') { setNet('solo'); return; }
   let r = null; try { r = await window.claude.use('room'); } catch (e) { r = null; }
   if (!r) { setNet('solo'); return; }
   room = r;
-  room.onPeers(ch => { for (const p of ch.joined) upsert(p); for (const p of ch.updated) upsert(p); for (const p of ch.left) dropRemote(p.peer); setNet(netState); },
-    () => { room = null; for (const k of [...remotes.keys()]) dropRemote(k); setNet('solo'); });
-  room.onConnection(c => setNet(c ? 'on' : 'wait'), () => {});
-  sentStatic = sentDyn = sentG = '';
+  attachNet(room);
+  const hm = /^#salon-([a-z0-9]{4,6})$/i.exec(location.hash || '');
+  if (hm) joinSalon(hm[1]);
 })();
+function attachNet(r) {
+  for (const u of netUnsubs) { try { u(); } catch (e) {} } netUnsubs = [];
+  net = r;
+  netUnsubs.push(r.onPeers(ch => { if (net !== r) return; for (const p of ch.joined) upsert(p); for (const p of ch.updated) upsert(p); for (const p of ch.left) dropRemote(p.peer); setNet(netState); },
+    () => { if (net !== r) return; for (const k of [...remotes.keys()]) dropRemote(k); if (r === room) { room = null; net = null; setNet('solo'); } else { salon = null; attachNet(room); resetForNewRoom(); updateSalonUI(); } }));
+  netUnsubs.push(r.onConnection(c => { if (net === r) setNet(c ? 'on' : 'wait'); }, () => {}));
+  sentStatic = sentDyn = sentG = '';
+}
+function resetForNewRoom() {
+  for (const k of [...remotes.keys()]) dropRemote(k);
+  const prev = G;
+  G = { id: Math.floor(Math.random() * 1e6) * 100, ph: 'lobby', rd: 0, sd: 1, sc: {}, pl: [], res: null, fr: null, win: null, t0: Date.now(), md: G.md || 'tournoi', rs: [], sub: 0, vt: 0, hp: null, hx: 0, hpT: 0, pn: '', ho: [], boom: null };
+  firstAdopt = true; phaseStart = performance.now(); readySince = 0;
+  ME.rdy = false; ME.fin = ME.out = null; ME.hid = 0; ME.vm = null; ME.go = null; ME.ps = null; ME.kz = null;
+  UIS.practice = null;
+  if (BODY) onPhaseChange(Object.assign({}, prev, { ph: 'play' }));
+  setNet(netState);
+}
+function salonCode() { const A = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789'; return Array.from({ length: 5 }, () => A[Math.floor(Math.random() * A.length)]).join(''); }
+async function joinSalon(code) {
+  code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6);
+  if (!room) return 'Les salons privés ne marchent que dans la page publiée sur Claude.';
+  if (code.length < 4) return 'Le code fait 5 caractères.';
+  if (salon === code) return '';
+  let r;
+  try { r = await room.join('salon-' + code.toLowerCase()); }
+  catch (e) { return e && e.code === 'limit_reached' ? 'Trop de salons ouverts sur cette page, réessaie dans un instant.' : 'Impossible de rejoindre ce salon pour le moment.'; }
+  const old = net;
+  room.presence({ n: null, g: null, p: null, rdy: null, m: 1 }).catch(() => {});
+  salon = code; attachNet(r);
+  if (old && old !== room && old.leave) old.leave().catch(() => {});
+  resetForNewRoom(); updateSalonUI();
+  return '';
+}
+async function leaveSalon() {
+  if (!salon || !room) return;
+  const old = net; salon = null; attachNet(room);
+  if (old && old !== room && old.leave) old.leave().catch(() => {});
+  resetForNewRoom(); updateSalonUI();
+}
 
 /* ---------------------------------------------------------- maillots dessinés (partagés via db) */
 let db = null;
@@ -2469,12 +2547,13 @@ function setScreen(s, opts = {}) {
   if (s === 'title') { renderTitle(); focusMenu(UIS.menuSel); }
   if (s === 'custom') renderCustom();
   if (s === 'modes') renderModes();
+  if (s === 'salon') { updateSalonUI(); $('#sErr').textContent = room ? '' : 'Les salons privés ne marchent que dans la page publiée sur Claude.'; }
   if (s === 'settings') renderSettings();
 }
 function syncScreens() {
   const s = UIS.screen, game = s === 'game' && bootDone;
   $('#boot').hidden = s !== 'boot';
-  $('#title').hidden = s !== 'title'; $('#modes').hidden = s !== 'modes'; $('#custom').hidden = s !== 'custom'; $('#howto').hidden = s !== 'howto'; $('#settings').hidden = s !== 'settings';
+  $('#title').hidden = s !== 'title'; $('#modes').hidden = s !== 'modes'; $('#salonScr').hidden = s !== 'salon'; $('#custom').hidden = s !== 'custom'; $('#howto').hidden = s !== 'howto'; $('#settings').hidden = s !== 'settings';
   $('#pause').hidden = !(game && UIS.paused);
   $('#wait').hidden = !(game && G.ph === 'lobby' && !UIS.paused && !UIS.practice);
   $('#practiceBar').hidden = !(game && UIS.practice && !UIS.paused); $('#pQuitPractice').hidden = !UIS.practice;
@@ -2527,6 +2606,7 @@ function focusMenu(i) {
 }
 function menuAct(act) {
   if (act === 'play') { UIS.back = 'title'; setScreen('modes'); }
+  else if (act === 'salon') { UIS.back = 'title'; setScreen('salon'); }
   else if (act === 'custom') { UIS.back = 'title'; setScreen('custom'); }
   else if (act === 'howto') { UIS.back = 'title'; setScreen('howto'); }
   else if (act === 'settings') { UIS.back = 'title'; setScreen('settings'); }
@@ -2543,7 +2623,7 @@ function startPlaying() {
 function renderTitle() {
   $('#tcName').textContent = cleanName(ME.n); $('#tcFace').style.setProperty('--c', COLORS[ME.c] || COLORS[0]);
   const n = 1 + [...remotes.values()].filter(r => r.pres.n).length;
-  $('#tcSub').textContent = room ? (netState === 'on' ? `En ligne · ${n} joueur${n > 1 ? 's' : ''}` : 'Connexion…') : 'Hors ligne · solo';
+  $('#tcSub').textContent = room ? (netState === 'on' ? `${salon ? 'Salon ' + salon : 'Salon public'} · ${n} joueur${n > 1 ? 's' : ''}` : 'Connexion…') : 'Hors ligne · solo';
   const rs = $('#roomState'); rs.textContent = '';
   if (G.ph === 'lobby') { const ps = players().filter(p => !p.pres.m); rs.append(document.createTextNode('Salle d\'attente : ')); rs.append(el('b', null, `${ps.length} joueur${ps.length > 1 ? 's' : ''}`)); rs.append(document.createTextNode(' prêt' + (ps.length > 1 ? 's' : '') + ' à se bousculer')); }
   else if (G.rd) { rs.append(document.createTextNode('Partie en cours : ')); rs.append(el('b', null, `manche ${G.rd} sur ${rounds().length}`)); rs.append(document.createTextNode('. Tu la regarderas en spectateur.')); }
@@ -2589,6 +2669,33 @@ function renderMapList() {
     b.addEventListener('click', () => { sfx('select'); startPractice(k); });
     ml.append(b);
   }
+}
+
+
+/* --- salons */
+function codeTiles(code) { const box = $('#sCode'); box.textContent = ''; [...code].forEach((c, i) => { const sp = el('span', null, c); sp.style.animationDelay = (i * 0.07) + 's'; box.append(sp); }); box.hidden = false; }
+function copyText(t, btn) { const done = () => { const o = btn.textContent; btn.textContent = 'Copié !'; setTimeout(() => btn.textContent = o, 1400); }; const fail = () => { btn.textContent = 'Code : ' + t; }; try { navigator.clipboard.writeText(t).then(done, fail); } catch (e) { fail(); } }
+function updateSalonUI() {
+  $('#salonTxt').textContent = salon ? 'Salon ' + salon : 'Salon public';
+  $('#salonCopy').hidden = !salon;
+  $('#sFoot').textContent = salon ? `Tu es dans le salon ${salon}.` : 'Tu es dans le salon public, ouvert à tous ceux qui ont la page.';
+  $('#sPublic').hidden = !salon;
+  $('#sCreate').querySelector('span').textContent = salon ? 'Nouveau code' : 'Créer un salon';
+  if (salon) { codeTiles(salon); $('#sCopy').hidden = false; $('#sEnter').hidden = false; } else { $('#sCode').hidden = true; $('#sCopy').hidden = true; $('#sEnter').hidden = true; }
+  lastPartyKey = ''; syncScreens();
+}
+function buildSalonUI() {
+  $('#sCreate').addEventListener('click', async e => { e.currentTarget.blur(); $('#sErr').textContent = ''; const err = await joinSalon(salonCode()); if (err) $('#sErr').textContent = err; else { sfx('go'); confetti(50, 0.3, 0.45, 10); } });
+  $('#sCopy').addEventListener('click', e => copyText(salon || '', e.currentTarget));
+  $('#salonCopy').addEventListener('click', e => copyText(salon || '', e.currentTarget));
+  $('#sEnter').addEventListener('click', () => startPlaying());
+  const inp = $('#sInput');
+  inp.addEventListener('input', () => { inp.value = inp.value.toUpperCase().replace(/[^A-Z0-9]/g, '').slice(0, 6); });
+  const join = async () => { $('#sErr').textContent = ''; const err = await joinSalon(inp.value); if (err) { $('#sErr').textContent = err; sfx('back'); } else { sfx('go'); inp.value = ''; startPlaying(); } };
+  $('#sJoin').addEventListener('click', join);
+  inp.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); join(); } });
+  $('#sPublic').addEventListener('click', async () => { await leaveSalon(); sfx('back'); });
+  $('#waitSalon').addEventListener('click', () => { UIS.back = 'game'; setScreen('salon'); });
 }
 
 /* --- personnaliser */
@@ -2723,7 +2830,7 @@ function buildCustomizer() {
     b.addEventListener('focus', () => document.querySelectorAll('[data-pact]').forEach(x => x.classList.toggle('sel', x === b)));
     b.addEventListener('click', () => pauseAct(b.dataset.pact));
   }
-  buildAtelier();
+  buildAtelier(); buildSalonUI();
   let drag = null;
   canvas.addEventListener('pointerdown', e => { if (UIS.screen === 'custom' || UIS.screen === 'title') { drag = e.clientX; } });
   addEventListener('pointermove', e => { if (drag != null) { UIS.turn += (e.clientX - drag) * 0.012; drag = e.clientX; } });
@@ -2930,6 +3037,7 @@ addEventListener('keydown', e => {
     if (e.code === 'Enter' && !UIS.practice) { e.preventDefault(); toggleReady(); return; }
     if (e.code === 'KeyC') { UIS.back = 'game'; setScreen('custom'); return; }
     if (e.code === 'KeyM' && !UIS.practice) { UIS.back = 'game'; setScreen('modes'); return; }
+    if (e.code === 'KeyP' && !UIS.practice) { UIS.back = 'game'; setScreen('salon'); return; }
   }
   if (GAME_KEYS.has(e.code)) e.preventDefault();
   if (e.repeat) return;
