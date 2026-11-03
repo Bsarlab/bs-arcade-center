@@ -403,6 +403,10 @@
   }));
 
   function afficherOnglet() {
+    // Page « À propos » masquée (onglet Mise en page) : son onglet et son bouton d'aperçu disparaissent aussi
+    const aPropos = !!donnees.miseEnPage?.options?.pageApropos;
+    document.querySelectorAll('[data-onglet="histoire"], .vue-barre [data-voir="#/a-propos"]').forEach((el) => { el.hidden = !aPropos; });
+    if (!aPropos && onglet === "histoire") { onglet = "general"; document.querySelectorAll(".onglet").forEach((x) => x.setAttribute("aria-selected", String(x.dataset.onglet === "general"))); }
     let h = "";
     if (onglet === "general") {
       h = `<div class="bloc"><h2>ACCUEIL</h2>
