@@ -242,5 +242,10 @@
     "accueil_pastille": "{jeux}",
     "accueil_bulle": "Dernières sorties",
     "une_titre": "Les actualités"
+  },
+  "comptes": {
+    "url": "https://yictpgfhhyxojaytcsra.supabase.co",
+    "cle": "sb_publishable_kGNOSCMRVd7v-hCgBLkXnQ_KIxIrp2y",
+    "actif": true
   }
 }
