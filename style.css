@@ -863,3 +863,57 @@ body.menu-ouvert .haut-flottant, body:has(dialog[open]) .haut-flottant { opacity
 @keyframes reflet { from { background-position: 150% 0; } to { background-position: -100% 0; } }
 @media (prefers-reduced-motion: reduce) { .entete-dessin { animation: none; } }
 .mosaique-compteur, .carte-jeu-media:not(:has(img)), .mosaique-case:not(:has(img)), .teaser-image:not(:has(img)), .chrono-image:not(:has(img)), .menu-jeu-image:has(img.charge), .menu-jeu-image:not(:has(img)), .citation-images a:not(:has(img)) { animation: none; background-image: none; }
+
+/* =========================================================
+   Comptes joueurs (comptes.js)
+   ========================================================= */
+.bouton-compte { display: inline-flex; align-items: center; gap: 8px; height: 44px; padding: 0 14px 0 10px; border-radius: 999px; border: 1px solid var(--trait); background: var(--carte); font-weight: 700; font-size: 14px; transition: background .2s, border-color .2s; max-width: 190px; }
+.bouton-compte svg { width: 20px; height: 20px; }
+.bouton-compte span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.bouton-compte:hover { background: var(--surface); }
+.bouton-compte.connecte { padding-left: 4px; }
+.bouton-compte img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; flex: none; }
+@media (max-width: 640px) { .bouton-compte span { display: none; } .bouton-compte { width: 44px; padding: 0; justify-content: center; } .bouton-compte.connecte { padding: 0; } }
+body.menu-ouvert .bouton-compte { visibility: hidden; }
+
+.lecteur-profil { display: inline-flex; align-items: center; gap: 8px; padding: 4px 12px 4px 4px; border-radius: 999px; background: rgba(255, 255, 255, .08); font-size: 14px; font-weight: 700; }
+.lecteur-profil img { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; }
+@media (max-width: 620px) { .lecteur-profil span { display: none; } .lecteur-profil { padding: 4px; } }
+
+.compte-grille { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, .9fr); gap: 28px; align-items: start; }
+@media (max-width: 860px) { .compte-grille { grid-template-columns: minmax(0, 1fr); } }
+.carte-compte { display: grid; gap: 16px; max-width: 520px; padding: clamp(22px, 4vw, 36px); border-radius: var(--r-l); background: var(--carte); box-shadow: var(--ombre); }
+.carte-compte.large { max-width: 760px; }
+.onglets-compte { display: grid; grid-template-columns: 1fr 1fr; gap: 4px; padding: 4px; border-radius: 999px; background: var(--surface); }
+.onglets-compte button { height: 42px; border: 0; border-radius: 999px; background: none; cursor: pointer; font-weight: 700; color: var(--doux); transition: background .25s, color .25s; }
+.onglets-compte button[aria-selected="true"] { background: var(--carte); color: var(--encre); box-shadow: 0 1px 3px rgba(0, 0, 0, .08); }
+.champ-compte { display: grid; gap: 6px; font-weight: 700; font-size: 14px; }
+.champ-compte input { height: 50px; padding: 0 16px; border-radius: var(--r-s); border: 1.5px solid var(--trait); background: var(--fond); font-size: 16px; color: var(--encre); transition: border-color .2s, box-shadow .2s; }
+.champ-compte input:focus { outline: none; border-color: var(--principal); box-shadow: 0 0 0 3px color-mix(in srgb, var(--principal) 18%, transparent); }
+.carte-compte .btn.grand { width: 100%; }
+.carte-compte .boutons .btn.grand { width: auto; }
+.lien-discret { justify-self: center; border: 0; background: none; cursor: pointer; color: var(--principal); font-weight: 700; font-size: 14px; }
+.compte-note { margin: 0; font-size: 13px; color: var(--pale); text-align: center; }
+.alerte { margin: 0; padding: 12px 16px; border-radius: var(--r-s); background: var(--surface); color: var(--encre); font-weight: 600; font-size: 15px; }
+.alerte.erreur { background: color-mix(in srgb, #C0392B 12%, var(--carte)); color: #8E2A1F; }
+.theme-sombre .alerte.erreur { color: #F2B8B0; }
+.compte-atouts { display: grid; gap: 24px; padding: 28px; border-radius: var(--r-l); background: var(--surface); }
+.compte-atouts ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px; font-weight: 700; }
+.compte-atouts li { display: flex; gap: 10px; align-items: center; }
+.compte-atouts li svg { color: var(--principal); stroke-width: 2.4; }
+.compte-avatars-demo { display: flex; }
+.compte-avatars-demo img { width: 64px; height: 64px; border-radius: 50%; border: 3px solid var(--surface); margin-left: -14px; animation: flotte 5s ease-in-out infinite; }
+.compte-avatars-demo img:first-child { margin-left: 0; }
+.compte-avatars-demo img:nth-child(2n) { animation-delay: -1.5s; }
+.compte-avatars-demo img:nth-child(3n) { animation-delay: -3s; }
+.profil-tete { display: flex; align-items: center; gap: 22px; flex-wrap: wrap; }
+.profil-avatar { width: 112px; height: 112px; border-radius: 50%; overflow: hidden; flex: none; box-shadow: 0 0 0 4px var(--carte), 0 0 0 6px var(--clair); }
+.profil-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.profil-champs { flex: 1 1 240px; display: grid; gap: 6px; }
+.grille-avatars { display: grid; grid-template-columns: repeat(auto-fill, minmax(72px, 1fr)); gap: 10px; }
+.choix-avatar { position: relative; aspect-ratio: 1; padding: 0; border: 0; border-radius: 50%; overflow: hidden; cursor: pointer; background: var(--surface); transition: transform .3s var(--ease), box-shadow .2s; }
+.choix-avatar img { width: 100%; height: 100%; object-fit: cover; }
+.choix-avatar:hover { transform: scale(1.06); }
+.choix-avatar[aria-checked="true"] { box-shadow: 0 0 0 3px var(--carte), 0 0 0 6px var(--principal); }
+.choix-avatar.photo { display: grid; place-content: center; justify-items: center; gap: 2px; color: var(--principal); font-size: 11px; font-weight: 800; border: 1.5px dashed var(--moyen); background: transparent; }
+.choix-avatar.photo svg { width: 22px; height: 22px; }

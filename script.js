@@ -774,6 +774,7 @@ function lireAdresse() {
   if ((m = h.match(/^#\/jeu\/([^?]+)/))) return { page: "jeu", id: m[1] };
   if ((m = h.match(/^#\/jeux(?:\?genre=(.+))?$/))) return { page: "jeux", genre: m[1] || "" };
   if ((m = h.match(/^#\/(a-propos|contact)$/))) return { page: m[1] };
+  if (h === "#/compte" && PAGES.compte) return { page: "compte" };
   if (h.startsWith("#/")) return { page: "introuvable" };
   return null; // ancre interne (ex. #contenu) : on ne change pas de page
 }
@@ -869,6 +870,7 @@ function afficherCommun() {
     + blocsMenu.map((b, i) => `<li><a href="#bloc-${echapper(b.id)}"><span class="menu-num">0${pages.length + i + 1}</span>${echapper(b.titre.trim())}</a></li>`).join("");
   $("menuJeux").innerHTML = jeux.slice(0, 3).map((j) => `<a class="menu-jeu" href="#/jeu/${echapper(j.id)}" ${attrCouleur(j)}><span class="menu-jeu-image">${imageJeu(j)}</span><span><b>${echapper(j.titre)}</b><small>${echapper(majuscule(j.genre || T("jeu_genre_defaut")))}</small></span></a>`).join("");
   $("menuReseaux").innerHTML = liens.map(pastilleReseau).join("");
+  window.majCompte?.();
   $("piedNom").innerHTML = (image ? `<img class="pied-logo" src="${echapper(lien(s.logo))}" alt="">` : window.LOGO_BS ? window.LOGO_BS() : "") + `<span>${echapper(s.nom || "")}</span>`;
   $("piedAccroche").textContent = s.accroche || "";
   $("pied").textContent = s.piedDePage || `© ${new Date().getFullYear()} ${s.nom || ""}`;
@@ -1096,7 +1098,11 @@ function ouvrirJeu(id) {
   $("chargement").hidden = false;
   const f = document.createElement("iframe");
   f.title = j.titre; f.allow = "fullscreen; autoplay; gamepad";
-  f.addEventListener("load", () => { $("chargement").hidden = true; f.focus(); });
+  f.addEventListener("load", () => {
+    $("chargement").hidden = true; f.focus();
+    // Profil du joueur connecté (comptes.js) transmis au jeu
+    try { f.contentWindow.postMessage({ type: "bs-profil", profil: window.BS_PROFIL || null }, "*"); } catch {}
+  });
   f.src = lien(j.fichier);
   $("scene").appendChild(f);
   if (!apercu) { recents = [id, ...recents.filter((x) => x !== id)].slice(0, 8); ecrire("bs-recents", recents); }
@@ -1288,6 +1294,7 @@ function demarrer(d) {
   pageActuelle = "";
   naviguer();
   majEntete();
+  window.demarrerComptes?.();
 }
 if (apercu) {
   // Aperçu en direct dans l'admin
