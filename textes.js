@@ -181,4 +181,5 @@ window.OPTIONS_SITE = [
   ["animations", "Animations à l'apparition des sections", true],
   ["illustrations", "Illustrations dessinées (en-têtes, étapes, contact…)", true],
   ["boutonHaut", "Bouton flottant « remonter » en bas à droite", true],
+  ["pageApropos", "Page « À propos » (menu, pied de page, aperçu sur l'accueil)", false],
 ];

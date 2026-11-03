@@ -215,7 +215,8 @@ const enteteSection = (etiquette, titre, droite = "") => `<div class="section-te
   <div><p class="etiquette">${etiquette}</p><h2>${titre}</h2></div>${droite}</div>`;
 
 function boutonsAccueil(s) {
-  if (Array.isArray(s.boutons)) return s.boutons;
+  const versApropos = (b) => /^#(\/a-propos|histoire)$/.test(b.cible || "");
+  if (Array.isArray(s.boutons)) return s.boutons.filter((b) => aPropos() || !versApropos(b));
   return [{ texte: s.boutonJeux || "Voir les jeux", cible: "#jeux", style: "plein" }, { texte: s.boutonHistoire || "Mon histoire", cible: "#histoire", style: "contour" }];
 }
 function lienBouton(b, i) {
@@ -445,7 +446,7 @@ PAGES.accueil = () => {
     </div>
   </section>`,
     blocs: () => blocsPour("accueil"),
-    apropos: () => `
+    apropos: () => !aPropos() ? "" : `
   <section class="section">
     <div class="conteneur">
       <div class="teaser">
@@ -748,14 +749,19 @@ PAGES.introuvable = () => `
 // Navigation entre les pages
 // =========================================================
 const NOMS_PAGES = {};
-const majNomsPages = () => Object.assign(NOMS_PAGES, { accueil: T("nav_accueil"), jeux: T("nav_jeux"), "a-propos": T("nav_apropos"), contact: T("nav_contact") });
+const aPropos = () => option("pageApropos");
+const majNomsPages = () => {
+  for (const k in NOMS_PAGES) delete NOMS_PAGES[k];
+  Object.assign(NOMS_PAGES, { accueil: T("nav_accueil"), jeux: T("nav_jeux"), "a-propos": T("nav_apropos"), contact: T("nav_contact") });
+  if (!aPropos()) delete NOMS_PAGES["a-propos"];
+};
 
 function lireAdresse() {
   const h = decodeURIComponent(location.hash || "");
   // Anciennes adresses du site (toujours valables)
   if (!h || h === "#" || h === "#accueil" || h === "#/") return { page: "accueil" };
   if (h === "#jeux") return { page: "jeux" };
-  if (h === "#histoire") return { page: "a-propos" };
+  if (h === "#histoire" || /^#\/a-propos$/.test(h)) return aPropos() ? { page: "a-propos" } : { page: "accueil" };
   if (h === "#une") return { page: "accueil", ancre: "une" };
   let m;
   if ((m = h.match(/^#bloc-(.+)$/))) {
@@ -829,7 +835,7 @@ function afficherCommun() {
   const s = donnees.site, jeux = jeuxTries(), liens = reseaux();
   majNomsPages();
   const txt = (sel, cle) => document.querySelectorAll(sel).forEach((el) => { el.textContent = T(cle); });
-  document.querySelectorAll(".nav a[data-page]").forEach((a) => { a.textContent = NOMS_PAGES[a.dataset.page]; });
+  document.querySelectorAll(".nav a[data-page]").forEach((a) => { a.textContent = NOMS_PAGES[a.dataset.page] ?? ""; });
   txt(".entete-cta", "entete_jouer");
   txt(".menu > div:first-child > .etiquette", "menu_titre");
   txt(".menu-bas > .etiquette", "menu_derniers");
@@ -856,7 +862,8 @@ function afficherCommun() {
   $("initialesEntete").innerHTML = window.LOGO_BS ? window.LOGO_BS() : echapper(initiales(s.nom || "?"));
   if (image) $("logoEntete").src = lien(s.logo);
   if (s.accroche) document.querySelector('meta[name="description"]').content = s.accroche;
-  const pages = [["accueil", "#/"], ["jeux", "#/jeux"], ["a-propos", "#/a-propos"], ["contact", "#/contact"]];
+  const pages = [["accueil", "#/"], ["jeux", "#/jeux"], ["a-propos", "#/a-propos"], ["contact", "#/contact"]].filter(([p]) => NOMS_PAGES[p]);
+  document.querySelectorAll('.nav a[data-page="a-propos"]').forEach((a) => { a.hidden = !aPropos(); });
   const blocsMenu = blocsPerso().filter((b) => b.dansMenu && b.titre && htmlBloc(b));
   $("menuLiens").innerHTML = pages.map(([p, href], i) => `<li><a href="${href}" data-page="${p}"><span class="menu-num">0${i + 1}</span>${NOMS_PAGES[p]}${p === "jeux" && jeux.length ? `<small>${jeux.length}</small>` : ""}</a></li>`).join("")
     + blocsMenu.map((b, i) => `<li><a href="#bloc-${echapper(b.id)}"><span class="menu-num">0${pages.length + i + 1}</span>${echapper(b.titre.trim())}</a></li>`).join("");
