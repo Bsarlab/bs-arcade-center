@@ -810,6 +810,8 @@ let view=null, reveal=-1, hitCi=-1, logs=[];
 let S = {x:500, a:-Math.PI/2, p:-0.05, zm:0};     // état local du sniper (si c'est moi)
 
 function status(t){ $('status').textContent = t; }
+let loadPct = 0, queuedStart = null;               // un clic pendant le chargement est gardé et lancé dès que tout est prêt
+function whenReady(fn){ queuedStart = fn; status('C\'est noté ! Ça démarre tout seul dès que les invités sont arrivés… ' + loadPct + ' %'); }
 function makeCode(){ const c='ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; let s=''; for(let i=0;i<5;i++) s+=c[rint(c.length)]; return s; }
 function libsOk(){
   if (typeof THREE === 'undefined'){ status('Impossible de charger le moteur 3D. Vérifie ta connexion.'); return false; }
@@ -882,7 +884,7 @@ async function roomJoin(code){
 function netFail(msg){ status(msg); $('createBtn').disabled = $('joinBtn').disabled = false; }
 
 async function createParty(){
-  if (!modelsReady) return status('Les invités arrivent, encore un instant…');
+  if (!modelsReady) return whenReady(createParty);
   ensureAudio(); if (typeof THREE === 'undefined') return status('Impossible de charger le moteur 3D. Vérifie ta connexion.');
   solo = false; isHost = true; const code = makeCode();
   $('createBtn').disabled = $('joinBtn').disabled = true;
@@ -915,7 +917,7 @@ async function createParty(){
 }
 
 async function joinParty(){
-  if (!modelsReady) return status('Les invités arrivent, encore un instant…');
+  if (!modelsReady) return whenReady(joinParty);
   ensureAudio(); if (typeof THREE === 'undefined') return status('Impossible de charger le moteur 3D. Vérifie ta connexion.');
   const code = $('codeIn').value.trim().toUpperCase();
   if (code.length !== 5) return status('Entre un code de 5 caractères.');
@@ -1005,7 +1007,7 @@ function beginGame(ci){
 /* ---------- mode solo contre un bot ---------- */
 let solo = false;
 function startSolo(mapK){
-  if (!modelsReady) return status('Les invités arrivent, encore un instant…');
+  if (!modelsReady) return whenReady(() => startSolo(mapK));
   ensureAudio();
   if (typeof THREE === 'undefined') return status('Impossible de charger le moteur 3D. Vérifie ta connexion.');
   solo = true; isHost = true; conn = null;
@@ -2080,7 +2082,8 @@ const MODEL_DATA = {};
    Chaque modèle a son propre squelette ; les animations (marche, attente,
    gestes, chute) sont transférées automatiquement sur chacun d'eux.
    ===================================================================== */
-const MODEL_DIR = 'models/', MODEL_EXT = '.json';   // glTF autonome (textures intégrées)
+const MODEL_DIR = 'models/', MODEL_EXT = '.json', MODEL_PLAIN = 'models/plain/';
+const MODEL_CACHE = 'bal-masque-models-v2';      // change le nom à chaque nouvelle version des personnages   // glTF autonome (textures intégrées)
 // fichier · sexe · squelette (détecté automatiquement si absent)
 const MODELS = {
   boss:    {file:'m3', style:'boss', bigHead:1},       young:  {file:'m0'},     jeans:  {file:'m1', fem:1},
@@ -2328,13 +2331,41 @@ function bakeProc(key, kind, st){
   return new THREE.AnimationClip(kind, dur, tracks);
 }
 
+/* les personnages sont stockés compressés (GLB gzip en base64) : ~40 % plus légers.
+   Une fois téléchargés, ils sont gardés dans le cache du navigateur : le lancement suivant est quasi instantané. */
+const CAN_GZ = typeof DecompressionStream !== 'undefined';
+async function fetchModel(file, onBytes){
+  const url = (CAN_GZ ? MODEL_DIR : MODEL_PLAIN) + file + MODEL_EXT;
+  let cache = null;
+  try { cache = await caches.open(MODEL_CACHE); const hit = await cache.match(url); if (hit){ onBytes(1, 1); return await hit.arrayBuffer(); } } catch(e){ cache = null; }
+  const r = await fetch(url); if (!r.ok) throw new Error(url + ' ' + r.status);
+  const total = +r.headers.get('content-length') || 0, chunks = []; let got = 0;
+  if (r.body && r.body.getReader){ const rd = r.body.getReader();
+    for (;;){ const {done, value} = await rd.read(); if (done) break; chunks.push(value); got += value.length; if (total) onBytes(Math.min(got, total), total); } }
+  else chunks.push(new Uint8Array(await r.arrayBuffer()));
+  let buf = await new Blob(chunks).arrayBuffer();
+  const head = new TextDecoder().decode(new Uint8Array(buf, 0, Math.min(8, buf.byteLength)));
+  if (head.startsWith('{"gz":')){
+    const b64 = JSON.parse(new TextDecoder().decode(buf)).gz, bin = Uint8Array.from(atob(b64), ch => ch.charCodeAt(0));
+    buf = await new Response(new Blob([bin]).stream().pipeThrough(new DecompressionStream('gzip'))).arrayBuffer();
+  }
+  if (cache) cache.put(url, new Response(buf.slice(0))).catch(() => {});
+  onBytes(1, 1);
+  return buf;
+}
 async function loadModels(onProgress){
   if (typeof THREE === 'undefined' || !THREE.GLTFLoader || !THREE.SkeletonUtils) throw new Error('loader');
   const loader = new THREE.GLTFLoader();
   const keys = Object.keys(MODELS); let done = 0;
-  await Promise.all(keys.map(k => new Promise((res, rej) => loader.load(MODEL_DIR + MODELS[k].file + MODEL_EXT, g => {
-    try { prepModel(k, g); } catch(e){ return rej(e); }
-    onProgress && onProgress(++done/keys.length*.9); res(); }, null, rej))));
+  const got = {}, tot = {};                                   // progression à l'octet près
+  const prog = () => { const b = keys.reduce((a, k) => a + (tot[k] ? got[k]/tot[k] : 0), 0);
+    onProgress && onProgress(Math.max(b, done)/keys.length*.97); };
+  try { (await caches.keys()).forEach(n => { if (n.startsWith('bal-masque-models') && n !== MODEL_CACHE) caches.delete(n); }); } catch(e){}
+  await Promise.all(keys.map(async k => {
+    const buf = await fetchModel(MODELS[k].file, (a, b) => { got[k] = a; tot[k] = b; prog(); });
+    const g = await new Promise((res, rej) => loader.parse(buf, '', res, rej));
+    prepModel(k, g); done++; prog();
+  }));
   keys.forEach(k => {
     const M = MODELS[k], st = Object.assign({}, STYLE.def, STYLE[M.style || (M.fem ? 'fem' : 'def')]);
     M.clips = {};
@@ -2946,8 +2977,9 @@ const urlCode = new URLSearchParams(location.search).get('partie');
 if (urlCode){ $('codeIn').value = urlCode.toUpperCase(); document.querySelector('#menu nav button[data-p="join"]').click(); status('Code de la partie détecté : clique sur Rejoindre.'); }
 if (typeof THREE === 'undefined') status("Le moteur 3D ne s'est pas chargé. Vérifie ta connexion internet.");
 status('Les invités arrivent…');
-loadModels(p => status('Les invités arrivent… ' + Math.round(p*100) + ' %'))
-  .then(() => { status(''); startMenu(); })
+loadModels(p => { loadPct = Math.round(p*100);
+    status((queuedStart ? "C'est noté ! Ça démarre tout seul dès que les invités sont arrivés… " : 'Les invités arrivent… ') + loadPct + ' %'); })
+  .then(() => { status(''); startMenu(); const q = queuedStart; queuedStart = null; if (q) q(); })
   .catch(e => { console.error(e); status("Impossible de charger les personnages. Vérifie ta connexion internet, ou utilise un navigateur récent (Chrome, Firefox, Edge, Safari)."); });
 requestAnimationFrame(frame);
 
