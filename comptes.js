@@ -55,7 +55,8 @@
   }
   async function lireProfil() {
     if (!session) { profil = null; return; }
-    const { data } = await sb.from("profils").select("pseudo, avatar").eq("id", session.user.id).maybeSingle();
+    let { data, error } = await sb.from("profils").select("pseudo, avatar, tag").eq("id", session.user.id).maybeSingle();
+    if (error) ({ data } = await sb.from("profils").select("pseudo, avatar").eq("id", session.user.id).maybeSingle());
     profil = data || { pseudo: session.user.user_metadata?.pseudo || session.user.email.split("@")[0], avatar: "" };
   }
   window.demarrerComptes = async () => {
@@ -95,6 +96,11 @@
       b.classList.remove("connecte"); b.setAttribute("aria-label", T("compte_connexion"));
     }
     window.BS_PLATEFORME?.majCloche?.();
+    const co = !!(session && profil && actifs());
+    document.querySelectorAll('.nav a[data-page="amis"]').forEach((a) => { a.hidden = !co; });
+    const ml = $("menuLiens");
+    if (ml) { ml.querySelector("[data-menu-amis]")?.remove(); if (co) ml.insertAdjacentHTML("beforeend", `<li data-menu-amis><a href="#/amis" data-page="amis"><span class="menu-num">${I.amis}</span>${esc(T("nav_amis"))}</a></li>`); }
+    if (typeof majNav === "function") requestAnimationFrame(majNav);
     const lp = $("lecteurProfil");
     if (lp) { lp.hidden = true; if (profil) lp.innerHTML = `<img src="${esc(avatarDe(profil))}" alt=""><span>${esc(profil.pseudo)}</span>`; }
   }
@@ -148,7 +154,7 @@
         <span class="profil-avatar"><img id="apercuAvatar" src="${esc(choisi)}" alt=""></span>
         <div class="profil-champs">
           ${champ("cPseudo", t("compte_pseudo"), "text", `required maxlength="30" value="${esc(p.pseudo)}" autocomplete="nickname"`)}
-          <p class="meta">${esc(session.user.email)}</p>
+          <p class="meta">${esc(session.user.email)}${p.tag ? ` · ${t("amis_mon_code")} : <b>${esc(p.pseudo)}#${esc(p.tag)}</b>` : ""}</p>
         </div>
       </div>
       <p class="sous-titre">${t("compte_choisir_avatar")}</p>
@@ -160,6 +166,7 @@
         <button class="btn plein grand" type="submit" ${etat.envoi ? "disabled" : ""}>${t("compte_enregistrer")}</button>
         <a class="btn grand" href="#/jeux">${t("compte_aller_jouer")}</a>
         <a class="btn grand" href="#/joueur/${esc(session.user.id)}">${t("joueur_mon_profil")}</a>
+        <a class="btn grand" href="#/amis">${I.amis}${t("nav_amis")}</a>
         <button class="btn grand" type="button" data-deconnexion>${t("compte_deconnexion")}</button>
       </div>
     </form>
@@ -354,6 +361,7 @@
       if (!actifs()) return;
       if (!sb) { try { await window.demarrerComptes(); } catch {} }
       try { rejoindreSalle(id); } catch (e) { console.warn(e); }
+      setTimeout(() => this.envoyerPresence?.(true), 500);
       if (!connecte()) return;
       const cles = clesDuJeu(id);
       let restaure = {};
@@ -374,6 +382,7 @@
     // Après le jeu (fermeture ou changement) : on envoie la progression
     async apresJeu(id) {
       quitterSalle();
+      setTimeout(() => this.envoyerPresence?.(true), 400);
       if (!partie || partie.id !== id) return;
       clearInterval(partie.minuterie);
       await new Promise((ok) => setTimeout(ok, 60)); // laisse le jeu finir d'écrire
@@ -423,7 +432,7 @@
             <span class="rang">${medailles[i] || i + 1}</span>
             <img src="${esc(imageSure(l.profils?.avatar) || AVATARS[i % 12])}" alt="">
             <b><a class="lien-joueur" href="#/joueur/${esc(l.joueur)}">${esc(l.profils?.pseudo || "Joueur")}</a>${l.joueur === moi ? ` <small>· ${t("classement_toi")}</small>` : ""}</b>
-            <span class="points">${esc(texteScore(l))}</span></li>`).join("")}</ol>` : `<p class="classement-vide">${t("classement_vide")}</p>`}
+            <span class="points">${esc(texteScore(l))}</span>${estModerateur() ? `<button class="lien-discret" type="button" data-retirer-score="${esc(l.joueur)}" data-jeu="${esc(id)}" title="Retirer ce score (modération)">×</button>` : ""}</li>`).join("")}</ol>` : `<p class="classement-vide">${t("classement_vide")}</p>`}
         ${session ? "" : `<a class="classement-connexion" href="#/compte">${t("classement_connexion")} ${I.droite}</a>`}
       </div></div>`;
     },
@@ -523,7 +532,7 @@
     if (!(await pret())) return vide(t("classements_off"));
     let p, parJeu;
     try {
-      ({ data: p } = await sb.from("profils").select("pseudo, avatar").eq("id", id).maybeSingle());
+      ({ data: p } = await sb.from("profils").select("pseudo, avatar, tag").eq("id", id).maybeSingle().then((r) => (r.error ? sb.from("profils").select("pseudo, avatar").eq("id", id).maybeSingle() : r)));
       parJeu = await tousLesScores();
     } catch (e) { console.warn(e); return vide(t("joueur_introuvable")); }
     if (!document.body.contains(zone)) return;
@@ -540,13 +549,13 @@
       <span class="profil-public-avatar"><img src="${esc(avatarSur(p))}" alt=""></span>
       <div>
         <p class="etiquette">${t("joueur_etiquette")}</p>
-        <h1>${esc(p.pseudo)}</h1>
+        <h1>${esc(p.pseudo)}${p.tag ? `<small class="code-joueur">#${esc(p.tag)}</small>` : ""}</h1>
         <div class="chiffres">
           <div><b>${lignes.length}</b><small>${t("joueur_stat_jeux")}</small></div>
           <div><b>${podiums}</b><small>${t("joueur_stat_podiums")}</small></div>
           <div><b>${nombre(victoires)}</b><small>${t("joueur_stat_victoires")}</small></div>
         </div>
-        ${moi ? `<div class="boutons"><a class="btn" href="#/compte">${t("compte_etiquette")}</a></div>` : ""}
+        <div class="boutons">${moi ? `<a class="btn" href="#/compte">${t("compte_etiquette")}</a><a class="btn" href="#/amis">${I.amis}${t("nav_amis")}</a>` : `<span id="boutonAmiProfil" data-joueur="${esc(id)}"></span>`}</div>
       </div>
     </div>
   </section>
@@ -562,6 +571,7 @@
   </div></section>`;
     (donnees.jeux || []).forEach(calculerCouleur);
     P.badgesHTML(id, parJeu).then((h) => { if ($("badgesJoueur")) $("badgesJoueur").innerHTML = h; });
+    P.boutonAmi?.(id);
   };
 
   // =========================================================
@@ -636,7 +646,7 @@
   const lireNotifs = () => (session ? lireLS(cleNotifs(), []) : []);
   const ecrireNotifs = (l) => { try { localStorage.setItem(cleNotifs(), JSON.stringify(l.slice(0, 30))); } catch {} };
   function ajouterNotif(n) { if (!session) return; ecrireNotifs([{ ...n, date: Date.now(), lu: false }, ...lireNotifs()]); majCloche(); }
-  const ICONES_NOTIF = { depasse: "⚡", record: "🎉", badge: "🏅" };
+  const ICONES_NOTIF = { depasse: "⚡", record: "🎉", badge: "🏅", ami: "👋" };
   function majCloche() {
     const z = $("zoneNotifs"); if (!z) return;
     z.hidden = !(actifs() && session);
@@ -665,6 +675,7 @@
   async function verifierNouveautes() {
     if (!connecte() || verification) return;
     verification = (async () => {
+      P.envoyerPresence?.(true); P.verifierAmis?.();
       const moi = session.user.id, parJeu = await tousLesScores();
       const rangs = {};
       parJeu.forEach((l, jeu) => { const i = l.findIndex((x) => x.joueur === moi); if (i >= 0 && trouverJeu(jeu)) rangs[jeu] = { rang: i + 1, devant: l.slice(0, i).map((x) => x.joueur) }; });
@@ -766,6 +777,173 @@
     if (error) { avis.erreur = /row-level|policy|42501/i.test(error.message + error.code) ? T("livre_trop") : T("livre_indispo"); dessinerAvis(); $("livreTexte").value = texte; return; }
     avis.messages = [{ ...data, profils: { pseudo: profil.pseudo, avatar: avatarDe(profil) } }, ...avis.messages];
     dessinerAvis(); setTimeout(verifierNouveautes, 500);
+  });
+
+  // =========================================================
+  // Amis : code Pseudo#1234, demandes, en ligne / vu il y a… / joue à…
+  // =========================================================
+  const codeAmi = (p) => (p?.pseudo || "Joueur") + (p?.tag ? "#" + p.tag : "");
+  const EN_LIGNE = 2.5 * 60 * 1000;
+  // Présence : envoyée toutes les minutes tant que le site est ouvert (et à chaque jeu ouvert/fermé)
+  let derniereFois = 0, presenceKO = false;
+  async function envoyerPresence(force) {
+    if (!connecte() || presenceKO) return;
+    if (!force && (document.hidden || Date.now() - derniereFois < 55000)) return;
+    derniereFois = Date.now();
+    const jeu = (typeof jeuActuel !== "undefined" && jeuActuel?.id) || null;
+    const { error } = await sb.from("presences").upsert({ joueur: session.user.id, vu: new Date().toISOString(), jeu });
+    if (error && /does not exist|PGRST205|42P01|relation/i.test(error.message + error.code)) presenceKO = true;
+  }
+  setInterval(() => envoyerPresence(false), 15000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) envoyerPresence(false); });
+  P.envoyerPresence = envoyerPresence;
+
+  // Toutes les relations du joueur connecté
+  async function relations() {
+    const moi = session.user.id;
+    const { data, error } = await sb.from("amis").select("demandeur, receveur, statut, cree").or(`demandeur.eq.${moi},receveur.eq.${moi}`);
+    if (error) throw error;
+    const ids = [...new Set(data.map((r) => (r.demandeur === moi ? r.receveur : r.demandeur)))];
+    let profils = [], presences = [];
+    if (ids.length) {
+      ({ data: profils } = await sb.from("profils").select("id, pseudo, avatar, tag").in("id", ids));
+      ({ data: presences } = await sb.from("presences").select("joueur, vu, jeu").in("joueur", ids));
+    }
+    const P_ = new Map((profils || []).map((p) => [p.id, p])), PR = new Map((presences || []).map((p) => [p.joueur, p]));
+    return data.map((r) => { const id = r.demandeur === moi ? r.receveur : r.demandeur; return { ...r, id, envoyee: r.demandeur === moi, profil: P_.get(id), presence: PR.get(id) }; });
+  }
+  P.relations = relations;
+
+  let amisEtat = { recherche: "", resultats: null, erreur: "", indispo: false, liste: [] };
+  const statutAmi = (pr) => {
+    if (!pr?.vu) return { cls: "", texte: T("amis_jamais") };
+    const enLigne = Date.now() - new Date(pr.vu).getTime() < EN_LIGNE, j = pr.jeu && trouverJeu(pr.jeu);
+    if (enLigne && j) return { cls: "en-ligne", texte: T("amis_joue", { jeu: j.titre }), jeu: j };
+    if (enLigne) return { cls: "en-ligne", texte: T("amis_en_ligne") };
+    return { cls: "", texte: T("amis_vu") + " " + ilYa(pr.vu) };
+  };
+  const carteAmi = (r, actions) => {
+    const p = r.profil || {}, st = r.statut === "accepte" ? statutAmi(r.presence) : null;
+    return `<li class="ami ${st?.cls || ""}">
+      <a class="ami-avatar" href="#/joueur/${esc(r.id)}"><img src="${esc(avatarSur(p))}" alt="">${st ? `<span class="point-statut" aria-hidden="true"></span>` : ""}</a>
+      <div class="ami-texte"><a class="lien-joueur" href="#/joueur/${esc(r.id)}"><b>${esc(p.pseudo || "Joueur")}</b>${p.tag ? `<small>#${esc(p.tag)}</small>` : ""}</a>
+        ${st ? `<span class="ami-statut">${esc(st.texte)}</span>` : ""}</div>
+      <div class="ami-actions">${actions(st)}</div></li>`;
+  };
+  function dessinerAmis() {
+    const zone = $("zoneAmis"); if (!zone) return;
+    if (!session) { zone.innerHTML = `<section class="section serree"><div class="conteneur"><a class="classement-connexion" href="#/compte">${t("amis_connexion")} ${I.droite}</a></div></section>`; return; }
+    if (amisEtat.indispo) { zone.innerHTML = `<section class="section serree"><div class="conteneur"><p class="classement-vide">${t("amis_indispo")}</p></div></section>`; return; }
+    const L = amisEtat.liste, amis = L.filter((r) => r.statut === "accepte").sort((a, b) => new Date(b.presence?.vu || 0) - new Date(a.presence?.vu || 0));
+    const recues = L.filter((r) => r.statut === "attente" && !r.envoyee), envoyees = L.filter((r) => r.statut === "attente" && r.envoyee);
+    const etatDe = (id) => { const r = L.find((x) => x.id === id); return !r ? "" : r.statut === "accepte" ? "ami" : r.envoyee ? "envoyee" : "recue"; };
+    zone.innerHTML = `<section class="section serree"><div class="conteneur amis-grille">
+      <div class="amis-colonne">
+        <div class="carte-amis mon-code"><p class="sous-titre">${t("amis_mon_code")}</p>
+          <div class="code-ligne"><b>${esc(codeAmi(profil))}</b><button class="btn petit" type="button" data-copier="${esc(codeAmi(profil))}">${I.copie}${t("amis_copier")}</button></div></div>
+        <form class="carte-amis" data-chercher-ami>
+          <label class="champ-recherche"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            <input type="search" id="rechercheAmi" placeholder="${t("amis_recherche")}" value="${esc(amisEtat.recherche)}" autocomplete="off"></label>
+          <button class="btn plein" type="submit">${t("amis_chercher")}</button>
+          ${amisEtat.erreur ? `<p class="alerte erreur">${esc(amisEtat.erreur)}</p>` : ""}
+          ${amisEtat.resultats ? (amisEtat.resultats.length ? `<ul class="liste-amis">${amisEtat.resultats.map((p) => carteAmi({ id: p.id, profil: p }, () => {
+            const e = etatDe(p.id);
+            return e === "ami" ? `<span class="meta">${t("amis_deja")}</span>` : e === "envoyee" ? `<span class="meta">${t("amis_envoyee")}</span>` : e === "recue" ? `<button class="btn plein petit" type="button" data-accepter-ami="${esc(p.id)}">${t("amis_accepter")}</button>` : `<button class="btn plein petit" type="button" data-ajouter-ami="${esc(p.id)}">${I.amis}${t("amis_ajouter")}</button>`;
+          })).join("")}</ul>` : `<p class="classement-vide">${t("amis_aucun_resultat")}</p>`) : ""}
+        </form>
+        ${recues.length ? `<div class="carte-amis"><p class="sous-titre">${t("amis_recues")} <span class="meta">${recues.length}</span></p><ul class="liste-amis">${recues.map((r) => carteAmi(r, () => `<button class="btn plein petit" type="button" data-accepter-ami="${esc(r.id)}">${t("amis_accepter")}</button><button class="lien-discret" type="button" data-retirer-ami="${esc(r.id)}">${t("amis_refuser")}</button>`)).join("")}</ul></div>` : ""}
+        ${envoyees.length ? `<div class="carte-amis"><p class="sous-titre">${t("amis_envoyees")}</p><ul class="liste-amis">${envoyees.map((r) => carteAmi(r, () => `<button class="lien-discret" type="button" data-retirer-ami="${esc(r.id)}">${t("amis_annuler")}</button>`)).join("")}</ul></div>` : ""}
+      </div>
+      <div class="carte-amis"><p class="sous-titre">${t("amis_liste")} <span class="meta">${amis.length || ""}</span></p>
+        ${amis.length ? `<ul class="liste-amis">${amis.map((r) => carteAmi(r, (st) => `${st?.jeu ? `<button class="btn plein petit" type="button" data-jouer="${esc(st.jeu.id)}">${I.jouer}${t("amis_rejoindre")}</button>` : ""}<button class="lien-discret" type="button" data-retirer-ami="${esc(r.id)}" data-confirmer>${t("amis_retirer")}</button>`)).join("")}</ul>` : `<p class="classement-vide">${t("amis_vide")}</p>`}
+      </div>
+    </div></section>`;
+  }
+  async function chargerAmis() {
+    try { amisEtat.liste = await relations(); amisEtat.indispo = false; }
+    catch (e) { console.warn("Amis pas encore installés dans Supabase ?", e); amisEtat.indispo = true; }
+  }
+  PAGES.amis = () => `<section class="entete-page"><div class="conteneur entete-illu"><div><p class="etiquette">${t("amis_etiquette")}</p><h1>${t("amis_titre")}</h1><p class="accroche">${t("amis_texte")}</p></div>${dessin("partager", "entete-dessin")}</div></section>
+    <div id="zoneAmis"><section class="section serree"><div class="conteneur"><div class="chargement-zone"><span class="roue" aria-hidden="true"></span></div></div></section></div>`;
+  let minuterieAmis = null;
+  P.afficherAmis = async () => {
+    clearInterval(minuterieAmis);
+    if (!(await pret())) { dessinerAmis(); return; }
+    if (session) { envoyerPresence(true); await chargerAmis(); }
+    dessinerAmis();
+    // Rafraîchit les statuts toutes les 30 s tant que la page est ouverte
+    minuterieAmis = setInterval(async () => { if (pageActuelle !== "amis") return clearInterval(minuterieAmis); if (document.hidden || document.activeElement?.id === "rechercheAmi") return; await chargerAmis(); dessinerAmis(); }, 30000);
+  };
+  async function chercher(q) {
+    q = q.trim(); amisEtat.recherche = q; amisEtat.erreur = "";
+    const m = q.match(/^(.*?)#\s*(\d{4})$/);
+    if (!m) { amisEtat.resultats = null; amisEtat.erreur = "Tape le code complet, par exemple Lina#4821 ou #4821."; return; }
+    let req = sb.from("profils").select("id, pseudo, avatar, tag").eq("tag", m[2]).neq("id", session.user.id).limit(20);
+    if (m[1].trim()) req = req.ilike("pseudo", m[1].trim().replace(/[%_]/g, ""));
+    const { data, error } = await req;
+    if (error) { amisEtat.resultats = null; amisEtat.erreur = T("amis_indispo"); return; }
+    amisEtat.resultats = data;
+  }
+  async function ajouterAmi(id) {
+    const moi = session.user.id;
+    // S'il nous avait déjà demandé, on accepte directement
+    const inverse = amisEtat.liste.find((r) => r.id === id && !r.envoyee && r.statut === "attente");
+    const { error } = inverse ? await sb.from("amis").update({ statut: "accepte" }).eq("demandeur", id).eq("receveur", moi)
+      : await sb.from("amis").insert({ demandeur: moi, receveur: id });
+    if (error && !/duplicate|23505/i.test(error.message + error.code)) { notifier(T("amis_indispo")); return false; }
+    return true;
+  }
+  document.addEventListener("submit", async (e) => {
+    const f = e.target.closest("[data-chercher-ami]"); if (!f || !session) return;
+    e.preventDefault(); await chercher($("rechercheAmi").value); dessinerAmis(); $("rechercheAmi")?.focus();
+  });
+  document.addEventListener("click", async (e) => {
+    const aj = e.target.closest("[data-ajouter-ami]"), ac = e.target.closest("[data-accepter-ami]"), re = e.target.closest("[data-retirer-ami]");
+    if (!(aj || ac || re)) return;
+    if (!session) { location.hash = "#/compte"; return; }
+    const moi = session.user.id;
+    if (aj) { if (await ajouterAmi(aj.dataset.ajouterAmi)) notifier(T("amis_envoyee")); }
+    if (ac) await sb.from("amis").update({ statut: "accepte" }).eq("demandeur", ac.dataset.accepterAmi).eq("receveur", moi);
+    if (re) {
+      if (re.hasAttribute("data-confirmer") && !confirm(T("amis_retirer") + " ?")) return;
+      const id = re.dataset.retirerAmi;
+      await sb.from("amis").delete().or(`and(demandeur.eq.${moi},receveur.eq.${id}),and(demandeur.eq.${id},receveur.eq.${moi})`);
+    }
+    if ($("zoneAmis")) { await chargerAmis(); dessinerAmis(); }
+    if ($("boutonAmiProfil")) P.boutonAmi?.($("boutonAmiProfil").dataset.joueur);
+  });
+  // Bouton « Ajouter en ami » sur un profil public
+  P.boutonAmi = async (id) => {
+    const z = $("boutonAmiProfil"); if (!z) return;
+    if (!session || session.user.id === id) { z.innerHTML = ""; return; }
+    try { amisEtat.liste = await relations(); } catch { z.innerHTML = ""; return; }
+    const r = amisEtat.liste.find((x) => x.id === id);
+    z.innerHTML = !r ? `<button class="btn plein" type="button" data-ajouter-ami="${esc(id)}">${I.amis}${t("amis_ajouter")}</button>`
+      : r.statut === "accepte" ? `<span class="pastille-joueurs">${I.amis}${t("amis_deja")}</span>`
+      : r.envoyee ? `<span class="pastille-joueurs">${t("amis_envoyee")}</span>`
+      : `<button class="btn plein" type="button" data-accepter-ami="${esc(id)}">${t("amis_accepter")}</button>`;
+  };
+  // Notifications : nouvelle demande reçue, demande acceptée
+  P.verifierAmis = async () => {
+    if (!connecte()) return;
+    let L; try { L = await relations(); } catch { return; }
+    const moi = session.user.id, cle = "bs-amis-" + moi, avant = lireLS(cle, null);
+    const etat = Object.fromEntries(L.map((r) => [r.id, r.statut + (r.envoyee ? ":e" : ":r")]));
+    if (avant) L.forEach((r) => {
+      const a = avant[r.id], nom = r.profil?.pseudo || "Quelqu'un";
+      if (r.statut === "attente" && !r.envoyee && !a) ajouterNotif({ type: "ami", texte: T("notif_demande", { pseudo: nom }), lien: "#/amis" });
+      if (r.statut === "accepte" && a === "attente:e") ajouterNotif({ type: "ami", texte: T("notif_accepte", { pseudo: nom }), lien: "#/amis" });
+    });
+    try { localStorage.setItem(cle, JSON.stringify(etat)); } catch {}
+  };
+
+  // Modération : retirer un score truqué (seulement le compte qui a l'e-mail de l'onglet Contact)
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-retirer-score]"); if (!b || !estModerateur()) return;
+    if (!confirm("Retirer ce score du classement ?")) return;
+    const { error, count } = await sb.from("scores").delete({ count: "exact" }).eq("joueur", b.dataset.retirerScore).eq("jeu", b.dataset.jeu);
+    notifier(error || !count ? "Impossible : relance le code SQL (admin → Comptes) et connecte-toi avec l'e-mail de l'onglet Contact." : "Score retiré du classement.");
+    P.afficherClassement(b.dataset.jeu);
   });
 
   // Si la page est fermée pendant une partie, on tente un dernier envoi

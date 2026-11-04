@@ -2516,7 +2516,7 @@ function showResults() {
 }
 function showPodium() {
   const w = G.fr && G.fr[0];
-  try { if (w && w[0] === myPeer && window.BS) BS.victoire(); } catch (e) {}
+  try { if (w && w[0] === myPeer && (G.fr || []).length >= 2 && window.BS) BS.victoire(); } catch (e) {}
   letters($('#champName'), w ? cleanName(w[1]) : 'Personne', 0.06);
   $('#champSub').textContent = w ? (w[0] === myPeer ? `C'est toi ! ${w[2]} points, la couronne est à toi` : `${w[2]} points, la couronne est à lui`) : 'Aucun gagnant cette fois';
   const box = $('#podList'); box.textContent = '';

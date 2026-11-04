@@ -1114,3 +1114,33 @@ body.menu-ouvert .bouton-compte { visibility: hidden; }
 .livre-auteur .lien-discret { margin-left: auto; font-size: 13px; }
 .livre-texte { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
 #avisJeu:empty { display: none; }
+
+/* =========================================================
+   Amis
+   ========================================================= */
+.amis-grille { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 16px; align-items: start; }
+.amis-colonne { display: grid; gap: 16px; }
+@media (max-width: 860px) { .amis-grille { grid-template-columns: minmax(0, 1fr); } }
+.carte-amis { display: grid; gap: 12px; padding: clamp(18px, 3vw, 26px); border-radius: var(--r-l); background: var(--carte); box-shadow: var(--ombre); }
+.carte-amis .sous-titre { margin: 0; }
+.carte-amis .champ-recherche { max-width: none; box-shadow: none; background: var(--fond); border: 1px solid var(--trait); }
+.carte-amis .champ-recherche input { flex: 1; min-width: 0; border: 0; background: none; font: inherit; color: var(--encre); outline: none; }
+form.carte-amis > .btn { justify-self: start; }
+.code-ligne { display: flex; align-items: center; justify-content: space-between; gap: 10px; flex-wrap: wrap; padding: 12px 12px 12px 18px; border-radius: var(--r-s); background: var(--surface); }
+.code-ligne b { font-family: var(--f-titres); font-size: 22px; font-weight: 800; letter-spacing: -.01em; }
+.liste-amis { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.ami { display: flex; align-items: center; gap: 12px; padding: 10px 12px 10px 10px; border-radius: var(--r-s); background: var(--fond); }
+.ami-avatar { position: relative; flex: none; }
+.ami-avatar img { width: 46px; height: 46px; border-radius: 50%; object-fit: cover; background: var(--surface); display: block; }
+.point-statut { position: absolute; right: 0; bottom: 0; width: 14px; height: 14px; border-radius: 50%; background: var(--clair); box-shadow: 0 0 0 3px var(--fond); }
+.ami.en-ligne .point-statut { background: #3FB36B; }
+.ami-texte { flex: 1; min-width: 0; display: grid; }
+.ami-texte b { font-weight: 800; }
+.ami-texte small { margin-left: 3px; color: var(--pale); font-weight: 700; }
+.ami-statut { color: var(--doux); font-size: 13.5px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.ami.en-ligne .ami-statut { color: #2E8A52; font-weight: 700; }
+.ami-actions { display: flex; align-items: center; gap: 10px; flex: none; }
+.code-joueur { margin-left: 10px; font-size: .45em; font-weight: 700; color: var(--pale); letter-spacing: 0; vertical-align: middle; }
+.classement-liste [data-retirer-score] { flex: none; width: 28px; height: 28px; border-radius: 50%; font-size: 18px; color: var(--pale); }
+.classement-liste [data-retirer-score]:hover { background: var(--surface); color: #B4432F; }
+.menu-liens .menu-num svg { width: 16px; height: 16px; vertical-align: -3px; }

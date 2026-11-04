@@ -877,6 +877,7 @@ function lireAdresse() {
   if ((m = h.match(/^#\/jeux(?:\?genre=(.+))?$/))) return { page: "jeux", genre: m[1] || "" };
   if ((m = h.match(/^#\/(a-propos|contact)$/))) return { page: m[1] };
   if (h === "#/compte" && PAGES.compte) return { page: "compte" };
+  if (h === "#/amis" && PAGES.amis) return { page: "amis" };
   if (h.startsWith("#/")) return { page: "introuvable" };
   return null; // ancre interne (ex. #contenu) : on ne change pas de page
 }
@@ -901,13 +902,14 @@ function afficherPage(page, id) {
   vue.innerHTML = PAGES[page](id);
   vue.classList.remove("entree"); void vue.offsetWidth; vue.classList.add("entree");
   const j = page === "jeu" ? trouverJeu(id) : null;
-  document.title = (j ? j.titre + " · " : page === "joueur" ? T("joueur_etiquette") + " · " : NOMS_PAGES[page] && page !== "accueil" ? NOMS_PAGES[page] + " · " : "") + (donnees.site.nom || "");
+  document.title = (j ? j.titre + " · " : page === "joueur" ? T("joueur_etiquette") + " · " : page === "amis" ? T("nav_amis") + " · " : NOMS_PAGES[page] && page !== "accueil" ? NOMS_PAGES[page] + " · " : "") + (donnees.site.nom || "");
   majNav();
   if (page === "accueil") initCarrousel();
   if (page === "jeux") majListeJeux();
   if (page === "jeu") { window.BS_PLATEFORME?.afficherClassement?.(id); window.BS_PLATEFORME?.afficherAvis?.(id); if (invitation?.jeu === id) window.BS_PLATEFORME?.afficherInvitation?.(invitation.de, trouverJeu(id)); }
   if (page === "classements") window.BS_PLATEFORME?.afficherClassements?.();
   if (page === "joueur") window.BS_PLATEFORME?.afficherJoueur?.(id);
+  if (page === "amis") window.BS_PLATEFORME?.afficherAmis?.();
   (donnees.jeux || []).forEach(calculerCouleur);
   activerRevele();
   majDefilement();
@@ -941,7 +943,7 @@ function afficherCommun() {
   const s = donnees.site, jeux = jeuxTries(), liens = reseaux();
   majNomsPages();
   const txt = (sel, cle) => document.querySelectorAll(sel).forEach((el) => { el.textContent = T(cle); });
-  document.querySelectorAll(".nav a[data-page]").forEach((a) => { a.textContent = NOMS_PAGES[a.dataset.page] ?? ""; });
+  document.querySelectorAll(".nav a[data-page]").forEach((a) => { a.textContent = NOMS_PAGES[a.dataset.page] ?? (a.dataset.page === "amis" ? T("nav_amis") : ""); });
   txt(".entete-cta", "entete_jouer");
   txt(".menu > div:first-child > .etiquette", "menu_titre");
   txt(".menu-bas > .etiquette", "menu_derniers");

@@ -188,7 +188,7 @@
   </section>
 </div>
 
-<script src="textes.js?v=36"></script>
+<script src="textes.js?v=37"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -278,6 +278,7 @@ begin
   -- Le jeu a changé sa façon de compter (ex. nuits tenues -> temps) : l'ancien score est remplacé
   if ancien is not null and p_ordre <> 'cumul' and (ancien_ordre is distinct from p_ordre or ancien_libelle is distinct from left(p_libelle, 20)) then ancien := null; end if;
   if p_ordre = 'cumul' then
+    if exists (select 1 from scores where joueur = auth.uid() and jeu = left(p_jeu, 40) and maj > now() - interval '45 seconds') then return ancien; end if;
     insert into scores (joueur, jeu, score, ordre, libelle, maj) values (auth.uid(), left(p_jeu, 40), 1, 'cumul', p_libelle, now())
     on conflict (joueur, jeu) do update set score = scores.score + 1, maj = now();
     return coalesce(ancien, 0) + 1;
@@ -334,6 +335,51 @@ create policy "ecrire un message" on public.messages for insert with check (
 create policy "supprimer un message" on public.messages for delete using (
   auth.uid() = joueur${modo ? ` or lower(auth.jwt() ->> 'email') = '${modo}'` : ""}
 );
+
+-- Modération des classements : le modérateur peut retirer un score truqué
+drop policy if exists "moderer les scores" on public.scores;
+${modo ? `create policy "moderer les scores" on public.scores for delete using (lower(auth.jwt() ->> 'email') = '${modo}');` : "-- (renseigne ton e-mail dans l'onglet Contact pour activer la modération)"}
+
+-- Amis : chaque profil reçoit un numéro à 4 chiffres (Pseudo#1234) pour être retrouvé
+alter table public.profils add column if not exists tag text;
+alter table public.profils alter column tag set default lpad(floor(random() * 10000)::int::text, 4, '0');
+update public.profils set tag = lpad(floor(random() * 10000)::int::text, 4, '0') where tag is null;
+create index if not exists profils_tag on public.profils (tag);
+
+create table if not exists public.amis (
+  demandeur uuid references public.profils(id) on delete cascade,
+  receveur uuid references public.profils(id) on delete cascade,
+  statut text not null default 'attente' check (statut in ('attente', 'accepte')),
+  cree timestamptz default now(),
+  primary key (demandeur, receveur),
+  check (demandeur <> receveur)
+);
+alter table public.amis enable row level security;
+drop policy if exists "voir ses amis" on public.amis;
+drop policy if exists "demander en ami" on public.amis;
+drop policy if exists "accepter un ami" on public.amis;
+drop policy if exists "retirer un ami" on public.amis;
+create policy "voir ses amis" on public.amis for select using (auth.uid() in (demandeur, receveur));
+create policy "demander en ami" on public.amis for insert with check (auth.uid() = demandeur and statut = 'attente');
+create policy "accepter un ami" on public.amis for update using (auth.uid() = receveur) with check (auth.uid() = receveur and statut = 'accepte');
+create policy "retirer un ami" on public.amis for delete using (auth.uid() in (demandeur, receveur));
+
+-- En ligne / vu il y a… / joue à… : visible seulement par ses amis
+create table if not exists public.presences (
+  joueur uuid primary key references public.profils(id) on delete cascade,
+  vu timestamptz default now(),
+  jeu text check (char_length(jeu) <= 40)
+);
+alter table public.presences enable row level security;
+drop policy if exists "presence des amis" on public.presences;
+drop policy if exists "ma presence" on public.presences;
+drop policy if exists "maj ma presence" on public.presences;
+create policy "presence des amis" on public.presences for select using (
+  joueur = auth.uid() or exists (select 1 from public.amis a where a.statut = 'accepte'
+    and ((a.demandeur = auth.uid() and a.receveur = presences.joueur) or (a.receveur = auth.uid() and a.demandeur = presences.joueur)))
+);
+create policy "ma presence" on public.presences for insert with check (auth.uid() = joueur);
+create policy "maj ma presence" on public.presences for update using (auth.uid() = joueur) with check (auth.uid() = joueur);
 `;
   };
   const DEFAUT_APP = {
