@@ -174,6 +174,16 @@ window.TEXTES_SITE = [
     ["compte_enregistrer", "Bouton enregistrer", "Enregistrer"],
     ["compte_aller_jouer", "Bouton aller jouer", "Aller jouer"],
     ["compte_deconnexion", "Bouton déconnexion", "Se déconnecter"],
+    ["classement_etiquette", "Classement : petit titre", "Classement"],
+    ["classement_titre", "Classement : titre", "Les meilleurs joueurs"],
+    ["classement_vide", "Classement vide", "Personne n'a encore marqué de points. Sois le premier !"],
+    ["classement_connexion", "Classement : invitation à se connecter", "Connecte-toi pour apparaître dans le classement et garder ta progression."],
+    ["classement_toi", "Classement : ta ligne", "Toi"],
+    ["classement_score", "Classement : nom de la colonne score", "Meilleur score"],
+    ["classement_victoires", "Classement : nom de la colonne victoires", "Victoires"],
+    ["sauvegarde_ok", "Message de sauvegarde", "Progression sauvegardée sur ton compte"],
+    ["presents_titre_1", "Barre du lecteur : un seul joueur", "Dans le jeu :"],
+    ["presents_titre_n", "Barre du lecteur : plusieurs joueurs (après le nombre)", "joueurs dans le jeu :"],
   ]},
   { groupe: "Page introuvable", page: "#/introuvable", textes: [
     ["erreur_etiquette", "Petit titre", "Erreur 404"],
@@ -192,7 +202,7 @@ window.SECTIONS_SITE = {
   jeux: { nom: "Jeux", lien: "#/jeux", sections: [
     ["entete", "Titre de la page"], ["reprendre", "Reprendre une partie"], ["outils", "Recherche, filtres et tri"], ["grille", "Liste des jeux"], ["blocs", "Tes blocs"]] },
   jeu: { nom: "Page d'un jeu", lien: "#/jeux", sections: [
-    ["fiche", "Fiche du jeu"], ["suite", "Jeu précédent / suivant"], ["autres", "Tu aimeras aussi"], ["blocs", "Tes blocs"]] },
+    ["fiche", "Fiche du jeu"], ["classement", "Classement des joueurs"], ["suite", "Jeu précédent / suivant"], ["autres", "Tu aimeras aussi"], ["blocs", "Tes blocs"]] },
   "a-propos": { nom: "À propos", lien: "#/a-propos", sections: [
     ["histoire", "Ton histoire"], ["debut", "Bandeau « Ce n'est que le début »"], ["prochains", "Prochains jeux"], ["chrono", "Chronologie"], ["blocs", "Tes blocs"]] },
   contact: { nom: "Contact", lien: "#/contact", sections: [

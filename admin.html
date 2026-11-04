@@ -188,7 +188,7 @@
   </section>
 </div>
 
-<script src="textes.js?v=31"></script>
+<script src="textes.js?v=32"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -239,6 +239,56 @@ drop policy if exists "remplacer son avatar" on storage.objects;
 create policy "avatars lisibles" on storage.objects for select using (bucket_id = 'avatars');
 create policy "envoyer son avatar" on storage.objects for insert with check (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
 create policy "remplacer son avatar" on storage.objects for update using (bucket_id = 'avatars' and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Sauvegardes des jeux (chaque joueur ne voit que les siennes)
+create table if not exists public.sauvegardes (
+  joueur uuid references auth.users on delete cascade,
+  jeu text not null,
+  donnees jsonb not null default '{}',
+  maj timestamptz default now(),
+  primary key (joueur, jeu)
+);
+alter table public.sauvegardes enable row level security;
+drop policy if exists "ses sauvegardes" on public.sauvegardes;
+create policy "ses sauvegardes" on public.sauvegardes for all using (auth.uid() = joueur) with check (auth.uid() = joueur);
+
+-- Classements : le meilleur score (ou le nombre de victoires) de chaque joueur pour chaque jeu
+create table if not exists public.scores (
+  joueur uuid references public.profils(id) on delete cascade,
+  jeu text not null,
+  score numeric not null,
+  ordre text not null default 'haut',
+  libelle text,
+  maj timestamptz default now(),
+  primary key (joueur, jeu)
+);
+alter table public.scores enable row level security;
+drop policy if exists "scores lisibles" on public.scores;
+create policy "scores lisibles" on public.scores for select using (true);
+
+-- Les scores ne s'écrivent que par cette fonction (garde le meilleur, ou additionne les victoires)
+create or replace function public.envoyer_score(p_jeu text, p_score numeric, p_ordre text default 'haut', p_libelle text default null)
+returns numeric language plpgsql security definer set search_path = public as $$
+declare ancien numeric;
+begin
+  if auth.uid() is null then return null; end if;
+  if p_ordre not in ('haut', 'bas', 'cumul') then p_ordre := 'haut'; end if;
+  insert into profils (id, pseudo) select auth.uid(), 'Joueur' where not exists (select 1 from profils where id = auth.uid());
+  select score into ancien from scores where joueur = auth.uid() and jeu = left(p_jeu, 40);
+  if p_ordre = 'cumul' then
+    insert into scores (joueur, jeu, score, ordre, libelle, maj) values (auth.uid(), left(p_jeu, 40), 1, 'cumul', p_libelle, now())
+    on conflict (joueur, jeu) do update set score = scores.score + 1, maj = now();
+    return coalesce(ancien, 0) + 1;
+  end if;
+  if ancien is null or (p_ordre = 'haut' and p_score > ancien) or (p_ordre = 'bas' and p_score < ancien) then
+    insert into scores (joueur, jeu, score, ordre, libelle, maj) values (auth.uid(), left(p_jeu, 40), p_score, p_ordre, left(p_libelle, 20), now())
+    on conflict (joueur, jeu) do update set score = excluded.score, ordre = excluded.ordre, libelle = excluded.libelle, maj = now();
+    return p_score;
+  end if;
+  return ancien;
+end $$;
+revoke all on function public.envoyer_score(text, numeric, text, text) from public, anon;
+grant execute on function public.envoyer_score(text, numeric, text, text) to authenticated;
 `;
   const DEFAUT_APP = {
     v: 4, teinte: "#8C7963", mode: "clair", titres: "Manrope", corps: "Manrope", poidsTitres: 800, tailleTitres: 100,
@@ -539,8 +589,8 @@ create policy "remplacer son avatar" on storage.objects for update using (bucket
         <label class="caseMenu"><input type="checkbox" data-champ="comptes.actif" ${cp.actif ? "checked" : ""}> Activer les comptes (bouton « Connexion » en haut du site)</label>
         <span class="aide">Les visiteurs créent un compte avec un pseudo et un avatar. Ils les retrouvent automatiquement dans tes jeux. Le site reste jouable sans compte.</span>
         ${texte("comptes.url", "Project URL (Supabase)", 200)}
-        ${texte("comptes.cle", "Clé « anon public » (Supabase)", 400)}
-        <span class="aide">Cette clé est faite pour être publique : elle ne donne accès qu'à ce que les règles ci-dessous autorisent. Ne colle jamais ici la clé « service_role ».</span>
+        ${texte("comptes.cle", "Clé publique : « Publishable key » (sb_publishable_…) ou « anon » (eyJ…)", 400)}
+        <span class="aide">Cette clé est faite pour être publique : elle ne donne accès qu'à ce que les règles ci-dessous autorisent. Ne colle jamais ici une clé « secret » (sb_secret_…) ni « service_role ».</span>
         <button class="btn petit" type="button" data-tester-comptes style="justify-self:start">Tester la connexion</button>
         <span class="aide" id="resultatTest"></span>
       </div>
@@ -551,7 +601,7 @@ create policy "remplacer son avatar" on storage.objects for update using (bucket
           <li>Menu de gauche <b>SQL Editor</b> → <b>New query</b> : colle le code ci-dessous (bouton « Copier ») et clique sur <b>Run</b>. Tu dois voir « Success ».</li>
           <li>Menu <b>Authentication → URL Configuration</b> : dans <b>Site URL</b>, mets <b>${echapper($("lienSite").href)}</b> puis <b>Save</b>.</li>
           <li>Conseillé : <b>Authentication → Sign In / Providers → Email</b>, désactive <b>Confirm email</b> puis <b>Save</b>. Tes amis pourront jouer dès l'inscription, sans attendre d'e-mail.</li>
-          <li>Menu <b>Project Settings → API</b> (ou <b>Data API</b>) : copie <b>Project URL</b> et la clé <b>anon public</b> dans les deux cases au-dessus.</li>
+          <li>En haut de la page de ton projet, clique sur le bouton <b>Connect</b> : copie l'adresse <b>Project URL</b> (elle finit par <b>.supabase.co</b>) et la clé publique (<b>Publishable key</b> qui commence par <b>sb_publishable_</b>, ou <b>anon</b> qui commence par <b>eyJ</b>) dans les deux cases au-dessus. Tu les trouves aussi dans <b>Project Settings → API Keys</b> (et <b>Data API</b> pour l'adresse).</li>
           <li>Coche « Activer les comptes », clique sur <b>Tester la connexion</b>, puis <b>Publier</b>.</li>
         </ol>
         <div class="champ"><label for="sqlComptes">Code à coller dans le SQL Editor</label>
@@ -559,6 +609,7 @@ create policy "remplacer son avatar" on storage.objects for update using (bucket
         <button class="btn petit" type="button" data-copier-sql style="justify-self:start">Copier le code</button>
       </div>
       <div class="bloc"><h2>DANS TES JEUX</h2>
+        <span class="aide"><b>Sauvegardes</b> : automatiques. Quand un joueur connecté quitte un jeu, sa progression part sur son compte et revient quand il relance le jeu, même sur un autre appareil.<br><b>Classements</b> : sur la fiche de chaque jeu. Un jeu envoie un score avec <code>BS.score(valeur)</code> (ou <code>BS.score(valeur, { ordre: "bas" })</code> quand le plus petit gagne) et une victoire avec <code>BS.victoire()</code>, après avoir ajouté <code>&lt;script src="../bs-jeux.js"&gt;&lt;/script&gt;</code>.</span>
         <span class="aide">Quand un joueur connecté lance un jeu, son profil est disponible dans le jeu : <code>JSON.parse(localStorage.getItem("bs-profil"))</code> donne <code>{ id, pseudo, avatar }</code> (avatar = adresse d'une image). Le jeu reçoit aussi un message <code>{ type: "bs-profil", profil }</code> à son ouverture. Demande à Claude d'adapter un jeu en lui collant cette phrase.</span>
       </div>`;
     } else if (onglet === "textes") {
@@ -855,7 +906,7 @@ create policy "remplacer son avatar" on storage.objects for update using (bucket
         if (!/^https:\/\/.+/.test(base) || cle.length < 20) throw new Error("Remplis d'abord les deux cases.");
         const r1 = await fetch(base + "/auth/v1/settings", { headers: { apikey: cle } });
         if (!r1.ok) throw new Error("Adresse ou clé incorrecte (" + r1.status + ").");
-        const r2 = await fetch(base + "/rest/v1/profils?select=id&limit=1", { headers: { apikey: cle, Authorization: "Bearer " + cle } });
+        const r2 = await fetch(base + "/rest/v1/profils?select=id&limit=1", { headers: { apikey: cle } });
         if (!r2.ok) throw new Error("Connexion OK, mais la table « profils » est introuvable : refais l'étape 3 (SQL).");
         const conf = await r1.json();
         res.textContent = "✓ Tout fonctionne !" + (conf.mailer_autoconfirm ? "" : " (Les joueurs devront confirmer leur e-mail : voir l'étape 5 pour l'éviter.)");

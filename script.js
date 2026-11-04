@@ -601,6 +601,7 @@ PAGES.jeu = (id) => {
       <div class="grille-jeux">${autres.map((x) => carteJeu(x)).join("")}</div>
     </div>
   </section>`,
+    classement: () => window.BS_PLATEFORME?.actif?.() ? `<section class="section serree" id="classementJeu" data-jeu="${echapper(j.id)}"></section>` : "",
     blocs: () => blocsPour("jeu"),
   });
 };
@@ -803,6 +804,7 @@ function afficherPage(page, id) {
   majNav();
   if (page === "accueil") initCarrousel();
   if (page === "jeux") majListeJeux();
+  if (page === "jeu") window.BS_PLATEFORME?.afficherClassement?.(id);
   (donnees.jeux || []).forEach(calculerCouleur);
   activerRevele();
   majDefilement();
@@ -1088,6 +1090,7 @@ let jeuActuel = null;
 function ouvrirJeu(id) {
   const j = trouverJeu(id);
   if (!j) return;
+  const ancien = $("scene").querySelector("iframe") ? jeuActuel : null;
   jeuActuel = j;
   ouvrirMenu(false);
   $("lecteurTitre").textContent = j.titre;
@@ -1095,6 +1098,7 @@ function ouvrirJeu(id) {
   $("btnSuivant").hidden = donnees.jeux.length < 2;
   if (!$("lecteur").open) $("lecteur").showModal();
   $("scene").querySelector("iframe")?.remove();
+  if (ancien) window.BS_PLATEFORME?.apresJeu?.(ancien.id);
   $("chargement").hidden = false;
   const f = document.createElement("iframe");
   f.title = j.titre; f.allow = "fullscreen; autoplay; gamepad";
@@ -1103,12 +1107,16 @@ function ouvrirJeu(id) {
     // Profil du joueur connecté (comptes.js) transmis au jeu
     try { f.contentWindow.postMessage({ type: "bs-profil", profil: window.BS_PROFIL || null }, "*"); } catch {}
   });
-  f.src = lien(j.fichier);
-  $("scene").appendChild(f);
+  // Joueur connecté : sa sauvegarde est remise en place avant que le jeu démarre (3,5 s maximum)
+  const charger = () => { if (jeuActuel !== j || f.isConnected) return; f.src = lien(j.fichier); $("scene").appendChild(f); };
+  const avant = window.BS_PLATEFORME?.avantJeu?.(j.id);
+  if (avant) Promise.race([avant, new Promise((ok) => setTimeout(ok, 3500))]).catch(() => {}).then(charger);
+  else charger();
   if (!apercu) { recents = [id, ...recents.filter((x) => x !== id)].slice(0, 8); ecrire("bs-recents", recents); }
 }
 $("lecteur").addEventListener("close", () => {
   $("scene").querySelector("iframe")?.remove();
+  if (jeuActuel) window.BS_PLATEFORME?.apresJeu?.(jeuActuel.id);
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
   if (location.hash.startsWith("#jouer-") && jeuActuel) history.replaceState(null, "", "#/jeu/" + jeuActuel.id);
   jeuActuel = null;

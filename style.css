@@ -917,3 +917,32 @@ body.menu-ouvert .bouton-compte { visibility: hidden; }
 .choix-avatar[aria-checked="true"] { box-shadow: 0 0 0 3px var(--carte), 0 0 0 6px var(--principal); }
 .choix-avatar.photo { display: grid; place-content: center; justify-items: center; gap: 2px; color: var(--principal); font-size: 11px; font-weight: 800; border: 1.5px dashed var(--moyen); background: transparent; }
 .choix-avatar.photo svg { width: 22px; height: 22px; }
+
+/* ===== Classement sur la fiche d'un jeu ===== */
+.classement { padding: clamp(20px, 4vw, 32px); border-radius: var(--r-l); background: var(--carte); box-shadow: var(--ombre); }
+.classement-tete { display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; margin-bottom: 18px; }
+.classement-tete .etiquette { margin-bottom: 4px; }
+.classement-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; counter-reset: rang; }
+.classement-liste li { display: flex; align-items: center; gap: 14px; padding: 10px 16px 10px 10px; border-radius: var(--r-s); background: var(--fond); transition: transform .3s var(--ease); }
+.classement-liste li:hover { transform: translateX(4px); }
+.classement-liste li:nth-child(-n+3) { background: var(--surface); }
+.classement-liste li.moi { box-shadow: inset 0 0 0 2px var(--principal); }
+.classement-liste .rang { width: 30px; text-align: center; font-weight: 800; font-size: 18px; color: var(--doux); flex: none; }
+.classement-liste img { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex: none; background: var(--surface); }
+.classement-liste b { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.classement-liste b small { font-weight: 600; color: var(--principal); }
+.classement-liste .points { font-family: var(--f-titres); font-weight: 800; font-size: 20px; font-variant-numeric: tabular-nums; }
+.classement-vide { margin: 0; padding: 22px; border-radius: var(--r-s); background: var(--surface); text-align: center; color: var(--doux); font-weight: 600; }
+.classement-connexion { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: 14px; padding: 14px 18px; border-radius: var(--r-s); background: var(--principal); color: var(--sur-principal); font-weight: 700; }
+.classement-connexion svg { width: 18px; height: 18px; flex: none; }
+#classementJeu:empty { display: none; }
+
+/* ===== Joueurs présents dans un jeu (barre du lecteur) ===== */
+.lecteur-joueurs { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; min-width: 0; }
+.presents-titre { font-size: 13px; font-weight: 700; opacity: .65; margin-right: 2px; }
+.present { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px 3px 3px; border-radius: 999px; background: rgba(255, 255, 255, .08); font-size: 13px; animation: fondu .4s ease; }
+.present img { width: 28px; height: 28px; border-radius: 50%; object-fit: cover; }
+.present b { max-width: 110px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.present.moi { background: rgba(255, 255, 255, .16); }
+.present.plus { padding: 6px 10px; font-weight: 700; }
+@media (max-width: 760px) { .presents-titre { display: none; } .present b { display: none; } .present { padding: 3px; } }

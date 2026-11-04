@@ -93,7 +93,7 @@
       b.classList.remove("connecte"); b.setAttribute("aria-label", T("compte_connexion"));
     }
     const lp = $("lecteurProfil");
-    if (lp) { lp.hidden = !(session && profil); if (profil) lp.innerHTML = `<img src="${esc(avatarDe(profil))}" alt=""><span>${esc(profil.pseudo)}</span>`; }
+    if (lp) { lp.hidden = true; if (profil) lp.innerHTML = `<img src="${esc(avatarDe(profil))}" alt=""><span>${esc(profil.pseudo)}</span>`; }
   }
   window.majCompte = majBouton;
 
@@ -258,4 +258,152 @@
     // On garde ce qui a été tapé après un message d'erreur
     if (etat.erreur) { if ($("cEmail") && garder.email) $("cEmail").value = garder.email; if ($("cPseudo") && garder.pseudo && !session) $("cPseudo").value = garder.pseudo; }
   });
+
+  // =========================================================
+  // Sauvegardes liées au compte + classements (utilisés par les jeux)
+  // =========================================================
+  const EXCLUES = /^(bs-|sb-)/;
+  const REGISTRE = "bs-cles-jeux"; // { idDuJeu: [clés localStorage écrites par ce jeu] }
+  const lireLS = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch { return d; } };
+  const clesDuJeu = (id) => new Set(lireLS(REGISTRE, {})[id] || []);
+  function noterCles(id, cles) {
+    const r = lireLS(REGISTRE, {}); r[id] = [...new Set([...(r[id] || []), ...cles])];
+    try { localStorage.setItem(REGISTRE, JSON.stringify(r)); } catch {}
+  }
+  const instantane = () => { const m = new Map(); for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (!EXCLUES.test(k)) m.set(k, localStorage.getItem(k)); } return m; };
+  let partie = null; // { id, avant: Map, cles: Set, envoye: string, minuterie }
+  const connecte = () => !!(sb && session);
+
+  async function envoyerSauvegarde(final) {
+    const p = partie; if (!p || !connecte()) return;
+    const maintenant = instantane();
+    maintenant.forEach((v, k) => { if (p.avant.get(k) !== v) p.cles.add(k); });
+    noterCles(p.id, p.cles);
+    const donneesJeu = {}; p.cles.forEach((k) => { const v = localStorage.getItem(k); if (v !== null) donneesJeu[k] = v; });
+    const texte = JSON.stringify(donneesJeu);
+    if (texte === p.envoye || texte === "{}") return;
+    p.envoye = texte;
+    try {
+      const { error } = await sb.from("sauvegardes").upsert({ joueur: session.user.id, jeu: p.id, donnees: { cles: donneesJeu }, maj: new Date().toISOString() });
+      if (error) throw error;
+      if (final) notifier(T("sauvegarde_ok"));
+    } catch (e) { console.warn("Sauvegarde non envoyée", e); p.envoye = ""; }
+  }
+
+  // ---------- Joueurs présents dans un jeu (temps réel Supabase) ----------
+  let salle = null;
+  const imageSure = (u) => { u = String(u || ""); return /^data:image\/svg\+xml,[A-Za-z0-9%._~!*()-]+$/.test(u) || /^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/avatars\/[A-Za-z0-9\/_.-]+(\?v=\d+)?$/.test(u) ? u : ""; };
+  function afficherPresents(liste) {
+    const z = $("lecteurJoueurs"); if (!z) return;
+    z.hidden = !liste.length;
+    $("lecteurProfil") && ($("lecteurProfil").hidden = true);
+    const moi = session?.user?.id, max = 6;
+    z.innerHTML = `<span class="presents-titre">${liste.length > 1 ? liste.length + " " + esc(T("presents_titre_n")) : esc(T("presents_titre_1"))}</span>`
+      + liste.slice(0, max).map((p) => `<span class="present ${p.id === moi ? "moi" : ""}" title="${esc(p.pseudo)}"><img src="${esc(imageSure(p.avatar) || AVATARS[0])}" alt=""><b>${esc(p.id === moi ? T("classement_toi") : p.pseudo)}</b></span>`).join("")
+      + (liste.length > max ? `<span class="present plus">+${liste.length - max}</span>` : "");
+  }
+  async function rejoindreSalle(id) {
+    quitterSalle();
+    if (!sb?.channel) return;
+    const moi = session?.user?.id;
+    salle = sb.channel("jeu-" + id, { config: { presence: { key: moi || "invite-" + Math.random().toString(36).slice(2) } } });
+    salle.on("presence", { event: "sync" }, () => {
+      const etat = salle.presenceState(), vus = new Map();
+      Object.values(etat).flat().forEach((p) => { if (p.id && p.pseudo && !vus.has(p.id)) vus.set(p.id, { id: p.id, pseudo: String(p.pseudo).slice(0, 30), avatar: p.avatar }); });
+      const liste = [...vus.values()].sort((a, b) => (a.id === moi ? -1 : b.id === moi ? 1 : 0));
+      afficherPresents(liste);
+    });
+    salle.subscribe(async (statut) => {
+      if (statut === "SUBSCRIBED" && session && profil) await salle.track({ id: session.user.id, pseudo: profil.pseudo, avatar: avatarDe(profil) });
+    });
+  }
+  function quitterSalle() {
+    if (salle) { try { sb.removeChannel(salle); } catch {} salle = null; }
+    const z = $("lecteurJoueurs"); if (z) { z.hidden = true; z.innerHTML = ""; }
+  }
+
+  window.BS_PLATEFORME = {
+    actif: () => actifs(),
+    // Avant d'ouvrir un jeu : on remet la sauvegarde du joueur connecté
+    async avantJeu(id) {
+      if (partie) await this.apresJeu(partie.id);
+      if (!actifs()) return;
+      if (!sb) { try { await window.demarrerComptes(); } catch {} }
+      try { rejoindreSalle(id); } catch (e) { console.warn(e); }
+      if (!connecte()) return;
+      const cles = clesDuJeu(id);
+      let restaure = {};
+      try {
+        const { data } = await sb.from("sauvegardes").select("donnees").eq("joueur", session.user.id).eq("jeu", id).maybeSingle();
+        restaure = data?.donnees?.cles || {};
+      } catch (e) { console.warn(e); }
+      // On efface ce qu'un autre joueur aurait laissé sur cet appareil, puis on remet la partie de ce joueur
+      const proprios = lireLS("bs-proprio-jeux", {});
+      if (Object.keys(restaure).length || (proprios[id] && proprios[id] !== session.user.id)) {
+        cles.forEach((k) => { if (!(k in restaure)) localStorage.removeItem(k); });
+        Object.entries(restaure).forEach(([k, v]) => { try { localStorage.setItem(k, v); } catch {} cles.add(k); });
+      }
+      proprios[id] = session.user.id;
+      try { localStorage.setItem("bs-proprio-jeux", JSON.stringify(proprios)); } catch {}
+      partie = { id, avant: instantane(), cles, envoye: JSON.stringify(restaure), minuterie: setInterval(() => envoyerSauvegarde(false), 20000) };
+    },
+    // Après le jeu (fermeture ou changement) : on envoie la progression
+    async apresJeu(id) {
+      quitterSalle();
+      if (!partie || partie.id !== id) return;
+      clearInterval(partie.minuterie);
+      await new Promise((ok) => setTimeout(ok, 60)); // laisse le jeu finir d'écrire
+      await envoyerSauvegarde(true);
+      partie = null;
+    },
+    // Score : ordre "haut" (plus c'est grand mieux c'est) ou "bas" (golf)
+    async score(valeur, o = {}) {
+      const id = (typeof jeuActuel !== "undefined" && jeuActuel?.id) || partie?.id;
+      if (!id || !connecte() || !Number.isFinite(valeur)) return null;
+      const ordre = ["haut", "bas"].includes(o.ordre) ? o.ordre : "haut";
+      const { data, error } = await sb.rpc("envoyer_score", { p_jeu: id, p_score: valeur, p_ordre: ordre, p_libelle: String(o.libelle || "").slice(0, 20) });
+      if (error) { console.warn(error); return null; }
+      return data;
+    },
+    // Victoire : +1 au compteur du joueur (une seule fois par partie)
+    async victoire() {
+      const id = (typeof jeuActuel !== "undefined" && jeuActuel?.id) || partie?.id;
+      if (!id || !connecte()) return null;
+      const k = "v-" + id, now = Date.now();
+      if (this[k] && now - this[k] < 20000) return null;
+      this[k] = now;
+      const { data, error } = await sb.rpc("envoyer_score", { p_jeu: id, p_score: 1, p_ordre: "cumul", p_libelle: "victoires" });
+      if (error) { console.warn(error); return null; }
+      return data;
+    },
+    async classement(id) {
+      if (!sb) return [];
+      const { data, error } = await sb.from("scores").select("score, ordre, libelle, joueur, profils(pseudo, avatar)").eq("jeu", id).limit(100);
+      if (error) { console.warn(error); return []; }
+      const ordre = data[0]?.ordre || "haut";
+      return data.sort((a, b) => (ordre === "bas" ? a.score - b.score : b.score - a.score)).slice(0, 10);
+    },
+    async afficherClassement(id) {
+      const zone = document.getElementById("classementJeu"); if (!zone || !actifs()) return;
+      if (!sb) { try { await window.demarrerComptes(); } catch {} }
+      const lignes = await this.classement(id);
+      if (!document.body.contains(zone)) return;
+      const moi = session?.user?.id, unite = lignes[0]?.ordre === "cumul" ? T("classement_victoires") : lignes[0]?.libelle || T("classement_score");
+      const medailles = ["🥇", "🥈", "🥉"];
+      zone.innerHTML = `<div class="conteneur"><div class="classement">
+        <div class="classement-tete"><div><p class="etiquette">${t("classement_etiquette")}</p><h2>${t("classement_titre")}</h2></div>${lignes.length ? `<span class="meta">${esc(unite)}</span>` : ""}</div>
+        ${lignes.length ? `<ol class="classement-liste">${lignes.map((l, i) => `<li class="${l.joueur === moi ? "moi" : ""}">
+            <span class="rang">${medailles[i] || i + 1}</span>
+            <img src="${esc(l.profils?.avatar || AVATARS[i % 12])}" alt="">
+            <b>${esc(l.profils?.pseudo || "Joueur")}${l.joueur === moi ? ` <small>· ${t("classement_toi")}</small>` : ""}</b>
+            <span class="points">${Number(l.score).toLocaleString("fr-FR")}</span></li>`).join("")}</ol>` : `<p class="classement-vide">${t("classement_vide")}</p>`}
+        ${session ? "" : `<a class="classement-connexion" href="#/compte">${t("classement_connexion")} ${I.droite}</a>`}
+      </div></div>`;
+    },
+  };
+  // Si la page est fermée pendant une partie, on tente un dernier envoi
+  addEventListener("pagehide", () => { if (partie) envoyerSauvegarde(false); });
+  // À la déconnexion, la progression des jeux est retirée de l'appareil (elle reste sur le compte)
+  const deconnexionOriginale = () => { const r = lireLS(REGISTRE, {}); Object.values(r).flat().forEach((k) => { try { localStorage.removeItem(k); } catch {} }); };
+  document.addEventListener("click", (e) => { if (e.target.closest("[data-deconnexion]")) deconnexionOriginale(); }, true);
 })();
