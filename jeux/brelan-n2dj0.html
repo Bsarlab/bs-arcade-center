@@ -480,6 +480,34 @@ input{font:inherit;color:inherit}
 .pkact{display:flex;flex-direction:column;align-items:center;gap:8px;width:min(100%,520px)}
 .pkslide{display:flex;flex-direction:column;gap:6px;width:100%}
 .pkslide input{width:100%;accent-color:var(--brass)}
+/* Skyjo on wide screens: piles left of the grid, grid sized to the height */
+@media (min-aspect-ratio:5/4){
+  .stage.st-skyjo{display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:auto minmax(0,1fr) auto;column-gap:clamp(16px,4vw,48px)}
+  .stage.st-skyjo .opps{grid-column:1/-1}
+  .stage.st-skyjo .center{grid-column:1;grid-row:2;--cw:clamp(48px,min(10vw,calc((100vh - 230px) / 3.4)),92px)}
+  .stage.st-skyjo .mine{grid-column:2;grid-row:2;align-self:center;--cw:clamp(34px,min(9vw,calc((100vh - 300px) / 4.6)),84px)}
+  .stage.st-skyjo .bar{grid-column:1/-1}
+}
+/* never hide play areas on short screens: the table scrolls instead */
+.stage{overflow-y:auto;overflow-x:hidden}
+.stage>.center{flex:1 0 auto;overflow:visible}
+.stage>.center.dek{flex:1 1 0;overflow-y:auto}
+@media (max-height:640px){
+  .opps{--cw:16px;--dsize:44px;gap:6px}
+  .opp{padding:5px 8px;gap:4px;min-width:84px}
+  .opp .who .nm small{font-size:10.5px}
+  .center{--cw:clamp(42px,min(12vw,12vh),80px);gap:12px}
+  .mine{--cw:clamp(44px,min(14vw,13vh),84px)}
+  .hand{padding-top:12px;padding-bottom:6px}
+  .pkhole .card:not(.xs){--cw:30px}
+  .pkcenter{padding:10px 18px;gap:6px}
+  .pkboard{--cw:clamp(38px,min(10vw,11vh),64px)}
+  .mine.pk{--cw:clamp(44px,min(13vw,13vh),76px)}
+  .trslots{--cw:clamp(40px,min(11vw,12vh),66px)}
+  .trgrid{--cw:clamp(26px,min(8vw,8vh),44px)}
+  .mine.trio{--cw:clamp(32px,min(9vw,10vh),56px)}
+  .rows{--cw:clamp(34px,min(9vw,8vh),56px)}
+}
 @media (max-width:420px){.hide-xs{display:none}}
 @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
 </style>
@@ -2519,7 +2547,7 @@ function renderTable(force){
     if (T.ph === 'lobby') body = lobbyHTML(ctx);
     else {
       const v = VIEWS[T.gm](ctx);
-      body = `<div class="stage">
+      body = `<div class="stage st-${T.gm}">
         <div class="opps">${v.opps}</div>
         <div class="center ${v.centerCls || ''}">${v.center}</div>
         ${v.mine ? `<div class="mine ${v.mineCls || ''}">${v.mine}</div>` : ''}
