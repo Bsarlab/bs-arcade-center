@@ -230,6 +230,27 @@ window.TEXTES_SITE = [
     ["joueur_stat_victoires", "Profil : chiffre 3", "victoires"],
     ["joueur_mon_profil", "Bouton sur « Mon compte »", "Voir mon profil public"],
   ]},
+  { groupe: "Communauté : badges, avis, notifications", page: "#/classements", textes: [
+    ["avis_etiquette", "Page d'un jeu : petit titre", "Communauté"],
+    ["avis_titre", "Page d'un jeu : titre", "Ce qu'en pensent les joueurs"],
+    ["avis_reagir", "Texte au-dessus des réactions", "Ta réaction"],
+    ["avis_connexion", "Si on n'est pas connecté", "Connecte-toi pour réagir et laisser un mot."],
+    ["livre_titre", "Livre d'or : titre", "Livre d'or"],
+    ["livre_placeholder", "Livre d'or : texte dans la case", "Un mot sur le jeu, un record, une idée…"],
+    ["livre_envoyer", "Livre d'or : bouton", "Publier"],
+    ["livre_vide", "Livre d'or : aucun message", "Personne n'a encore écrit. Sois le premier !"],
+    ["livre_regle", "Livre d'or : petite règle sous la case", "Sois sympa : les messages sont visibles par tout le monde."],
+    ["livre_supprimer", "Livre d'or : bouton supprimer", "Supprimer"],
+    ["livre_trop", "Livre d'or : trop de messages", "Doucement ! Réessaie dans un moment."],
+    ["livre_indispo", "Si le livre d'or n'est pas encore installé dans Supabase", "Le livre d'or arrive bientôt."],
+    ["badges_titre", "Profil : titre des badges", "Badges"],
+    ["badges_aide", "Profil : aide sous un badge pas encore gagné", "À débloquer"],
+    ["notifs_titre", "Notifications : titre du panneau", "Notifications"],
+    ["notifs_vide", "Notifications : aucune", "Rien de neuf pour l'instant. Va battre quelques records !"],
+    ["notif_depasse", "Notification : dépassé ({pseudo}, {jeu}, {rang})", "{pseudo} t'a dépassé sur {jeu}. Tu es maintenant {rang}."],
+    ["notif_record", "Notification : nouveau record ({jeu}, {score})", "Nouveau record sur {jeu} : {score} !"],
+    ["notif_badge", "Notification : nouveau badge ({badge})", "Nouveau badge débloqué : {badge}"],
+  ]},
   { groupe: "Page introuvable", page: "#/introuvable", textes: [
     ["erreur_etiquette", "Petit titre", "Erreur 404"],
     ["erreur_titre", "Titre", "Cette page n'existe pas"],
@@ -247,7 +268,7 @@ window.SECTIONS_SITE = {
   jeux: { nom: "Jeux", lien: "#/jeux", sections: [
     ["entete", "Titre de la page"], ["reprendre", "Reprendre une partie"], ["outils", "Recherche, filtres et tri"], ["grille", "Liste des jeux"], ["blocs", "Tes blocs"]] },
   jeu: { nom: "Page d'un jeu", lien: "#/jeux", sections: [
-    ["fiche", "Fiche du jeu"], ["captures", "Captures d'écran"], ["classement", "Classement des joueurs"], ["suite", "Jeu précédent / suivant"], ["autres", "Tu aimeras aussi"], ["blocs", "Tes blocs"]] },
+    ["fiche", "Fiche du jeu"], ["captures", "Captures d'écran"], ["classement", "Classement des joueurs"], ["avis", "Réactions et livre d'or"], ["suite", "Jeu précédent / suivant"], ["autres", "Tu aimeras aussi"], ["blocs", "Tes blocs"]] },
   "a-propos": { nom: "À propos", lien: "#/a-propos", sections: [
     ["histoire", "Ton histoire"], ["debut", "Bandeau « Ce n'est que le début »"], ["prochains", "Prochains jeux"], ["chrono", "Chronologie"], ["blocs", "Tes blocs"]] },
   contact: { nom: "Contact", lien: "#/contact", sections: [
@@ -269,4 +290,5 @@ window.OPTIONS_SITE = [
   ["illustrations", "Illustrations dessinées (en-têtes, étapes, contact…)", true],
   ["boutonHaut", "Bouton flottant « remonter » en bas à droite", true],
   ["pageApropos", "Page « À propos » (menu, pied de page, aperçu sur l'accueil)", false],
+  ["livreDor", "Réactions et livre d'or sur la page de chaque jeu (comptes activés)", true],
 ];

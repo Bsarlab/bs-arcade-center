@@ -188,7 +188,7 @@
   </section>
 </div>
 
-<script src="textes.js?v=35"></script>
+<script src="textes.js?v=36"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -290,6 +290,50 @@ end $$;
 revoke all on function public.envoyer_score(text, numeric, text, text) from public, anon;
 grant execute on function public.envoyer_score(text, numeric, text, text) to authenticated;
 `;
+  // Partie 3 : réactions et livre d'or. L'adresse de l'onglet Contact devient celle du modérateur
+  // (le compte joueur créé avec cette adresse peut supprimer n'importe quel message).
+  const sqlComptes = () => {
+    const mail = String(donnees?.contact?.email || "").trim().toLowerCase();
+    const modo = /^[^\s'@]+@[^\s'@]+\.[^\s'@]+$/.test(mail) ? mail : "";
+    return SQL_COMPTES + `
+-- Réactions sur les jeux (une de chaque sorte par joueur)
+create table if not exists public.reactions (
+  joueur uuid references public.profils(id) on delete cascade,
+  jeu text not null check (char_length(jeu) <= 40),
+  emoji text not null check (emoji in ('aime', 'rire', 'feu', 'wow', 'bravo')),
+  maj timestamptz default now(),
+  primary key (joueur, jeu, emoji)
+);
+alter table public.reactions enable row level security;
+drop policy if exists "reactions lisibles" on public.reactions;
+drop policy if exists "ajouter sa reaction" on public.reactions;
+drop policy if exists "retirer sa reaction" on public.reactions;
+create policy "reactions lisibles" on public.reactions for select using (true);
+create policy "ajouter sa reaction" on public.reactions for insert with check (auth.uid() = joueur);
+create policy "retirer sa reaction" on public.reactions for delete using (auth.uid() = joueur);
+
+-- Livre d'or : petits mots sur la page de chaque jeu (5 par heure maximum et par joueur)
+create table if not exists public.messages (
+  id bigint generated always as identity primary key,
+  joueur uuid not null default auth.uid() references public.profils(id) on delete cascade,
+  jeu text not null check (char_length(jeu) <= 40),
+  texte text not null check (char_length(texte) between 1 and 280),
+  cree timestamptz default now()
+);
+alter table public.messages enable row level security;
+drop policy if exists "messages lisibles" on public.messages;
+drop policy if exists "ecrire un message" on public.messages;
+drop policy if exists "supprimer un message" on public.messages;
+create policy "messages lisibles" on public.messages for select using (true);
+create policy "ecrire un message" on public.messages for insert with check (
+  auth.uid() = joueur
+  and (select count(*) from public.messages m where m.joueur = auth.uid() and m.cree > now() - interval '1 hour') < 5
+);
+create policy "supprimer un message" on public.messages for delete using (
+  auth.uid() = joueur${modo ? ` or lower(auth.jwt() ->> 'email') = '${modo}'` : ""}
+);
+`;
+  };
   const DEFAUT_APP = {
     v: 4, teinte: "#8C7963", mode: "clair", titres: "Manrope", corps: "Manrope", poidsTitres: 800, tailleTitres: 100,
     arrondi: 22, ombre: "douce", densite: "normale",
@@ -605,7 +649,7 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
           <li>Coche « Activer les comptes », clique sur <b>Tester la connexion</b>, puis <b>Publier</b>.</li>
         </ol>
         <div class="champ"><label for="sqlComptes">Code à coller dans le SQL Editor</label>
-        <textarea class="code" id="sqlComptes" readonly style="min-height:200px">${echapper(SQL_COMPTES)}</textarea></div>
+        <textarea class="code" id="sqlComptes" readonly style="min-height:200px">${echapper(sqlComptes())}</textarea></div>
         <button class="btn petit" type="button" data-copier-sql style="justify-self:start">Copier le code</button>
       </div>
       <div class="bloc"><h2>DANS TES JEUX</h2>
@@ -913,7 +957,7 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
   });
   let dernierePageTexte = "";
   $("corps").addEventListener("click", async (e) => {
-    if (e.target.closest("[data-copier-sql]")) { navigator.clipboard?.writeText(SQL_COMPTES).then(() => statut("Code copié ! Colle-le dans le SQL Editor de Supabase.", "ok"), () => { $("sqlComptes").select(); }); return; }
+    if (e.target.closest("[data-copier-sql]")) { navigator.clipboard?.writeText(sqlComptes()).then(() => statut("Code copié ! Colle-le dans le SQL Editor de Supabase.", "ok"), () => { $("sqlComptes").select(); }); return; }
     if (e.target.closest("[data-tester-comptes]")) {
       const cp = donnees.comptes || {}, res = $("resultatTest");
       res.textContent = "Test en cours…";
@@ -925,7 +969,16 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
         const r2 = await fetch(base + "/rest/v1/profils?select=id&limit=1", { headers: { apikey: cle } });
         if (!r2.ok) throw new Error("Connexion OK, mais la table « profils » est introuvable : refais l'étape 3 (SQL).");
         const conf = await r1.json();
-        res.textContent = "✓ Tout fonctionne !" + (conf.mailer_autoconfirm ? "" : " (Les joueurs devront confirmer leur e-mail : voir l'étape 5 pour l'éviter.)");
+        // Classements : la table des scores et la fonction qui les enregistre
+        const r3 = await fetch(base + "/rest/v1/scores?select=jeu", { headers: { apikey: cle, Prefer: "count=exact", Range: "0-0" } });
+        if (!r3.ok) throw new Error("Connexion OK, mais la table « scores » (classements) est introuvable : copie le code SQL ci-dessous et lance-le dans Supabase (étape 3).");
+        const nbScores = Number((r3.headers.get("content-range") || "").split("/")[1]) || 0;
+        const r4 = await fetch(base + "/rest/v1/rpc/envoyer_score", { method: "POST", headers: { apikey: cle, "Content-Type": "application/json" }, body: JSON.stringify({ p_jeu: "test-admin", p_score: 0 }) });
+        if (r4.status === 404) throw new Error("Connexion OK, mais la fonction qui enregistre les scores manque : copie le code SQL ci-dessous et lance-le dans Supabase (étape 3).");
+        const r5 = await fetch(base + "/rest/v1/messages?select=id&limit=1", { headers: { apikey: cle } });
+        res.textContent = "✓ Tout fonctionne ! " + nbScores + " score" + (nbScores > 1 ? "s" : "") + " enregistré" + (nbScores > 1 ? "s" : "") + " pour l'instant."
+          + (r5.ok ? "" : " Réactions et livre d'or pas encore installés : relance le code SQL (étape 3).")
+          + (conf.mailer_autoconfirm ? "" : " (Les joueurs devront confirmer leur e-mail : voir l'étape 5 pour l'éviter.)");
       } catch (err) { res.textContent = "✗ " + (err.message === "Failed to fetch" ? "Impossible de joindre cette adresse : vérifie la Project URL." : err.message); }
       return;
     }

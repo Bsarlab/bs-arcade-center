@@ -668,6 +668,7 @@ PAGES.jeu = (id) => {
     </div>
   </section>`,
     classement: () => window.BS_PLATEFORME?.actif?.() ? `<section class="section serree" id="classementJeu" data-jeu="${echapper(j.id)}"></section>` : "",
+    avis: () => window.BS_PLATEFORME?.actif?.() && option("livreDor") ? `<section class="section serree" id="avisJeu" data-jeu="${echapper(j.id)}"></section>` : "",
     blocs: () => blocsPour("jeu"),
   });
 };
@@ -904,7 +905,7 @@ function afficherPage(page, id) {
   majNav();
   if (page === "accueil") initCarrousel();
   if (page === "jeux") majListeJeux();
-  if (page === "jeu") { window.BS_PLATEFORME?.afficherClassement?.(id); if (invitation?.jeu === id) window.BS_PLATEFORME?.afficherInvitation?.(invitation.de, trouverJeu(id)); }
+  if (page === "jeu") { window.BS_PLATEFORME?.afficherClassement?.(id); window.BS_PLATEFORME?.afficherAvis?.(id); if (invitation?.jeu === id) window.BS_PLATEFORME?.afficherInvitation?.(invitation.de, trouverJeu(id)); }
   if (page === "classements") window.BS_PLATEFORME?.afficherClassements?.();
   if (page === "joueur") window.BS_PLATEFORME?.afficherJoueur?.(id);
   (donnees.jeux || []).forEach(calculerCouleur);
@@ -1142,6 +1143,9 @@ async function copier(url, message) {
 const adresseSite = () => location.origin + location.pathname;
 let minuterie;
 function notifier(texte, duree = 2600) {
+  // Pendant une partie, le message s'affiche par-dessus le jeu
+  const parent = $("lecteur").open ? $("lecteur") : document.body;
+  if ($("toast").parentNode !== parent) parent.appendChild($("toast"));
   $("toast").textContent = texte; $("toast").classList.add("visible");
   clearTimeout(minuterie); minuterie = setTimeout(() => $("toast").classList.remove("visible"), duree);
 }

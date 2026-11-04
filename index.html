@@ -25,7 +25,7 @@
   <!-- Icônes officielles des réseaux sociaux (Font Awesome) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/fontawesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/brands.min.css">
-  <link rel="stylesheet" href="style.css?v=35">
+  <link rel="stylesheet" href="style.css?v=36">
 </head>
 <body>
   <a class="lien-evitement" href="#contenu">Aller au contenu</a>
@@ -74,6 +74,13 @@
           <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
         </button>
         <a class="btn plein petit entete-cta" href="#/jeux">Jouer</a>
+        <div class="notifs" id="zoneNotifs" hidden>
+          <button class="bouton-rond" type="button" id="btnNotifs" aria-label="Notifications" aria-expanded="false" aria-controls="panneauNotifs">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 16V11a6 6 0 0 1 12 0v5l1.5 2h-15z"/><path d="M10 20.5a2 2 0 0 0 4 0"/></svg>
+            <span class="notifs-nb" id="notifsNb" hidden></span>
+          </button>
+          <div class="panneau-notifs" id="panneauNotifs" hidden></div>
+        </div>
         <a class="bouton-compte" id="btnCompte" href="#/compte" hidden></a>
         <button class="burger" id="burger" type="button" aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="menu">
           <span></span><span></span>
@@ -171,9 +178,9 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="textes.js?v=35"></script>
+  <script src="textes.js?v=36"></script>
   <script src="illustrations.js?v=29"></script>
-  <script src="script.js?v=35"></script>
-  <script src="comptes.js?v=35"></script>
+  <script src="script.js?v=36"></script>
+  <script src="comptes.js?v=36"></script>
 </body>
 </html>

@@ -68,10 +68,12 @@
       ({ data: { session } } = await sb.auth.getSession());
       await lireProfil();
       partagerProfil();
+      setTimeout(() => window.BS_PLATEFORME.verifierNouveautes?.(), 1200);
       sb.auth.onAuthStateChange(async (evt, s) => {
         session = s;
         if (evt === "PASSWORD_RECOVERY") { etat.mode = "nouveau-mdp"; }
         await lireProfil(); partagerProfil();
+        if (evt === "SIGNED_IN") setTimeout(() => window.BS_PLATEFORME.verifierNouveautes?.(), 1200);
         if (typeof pageActuelle !== "undefined" && pageActuelle === "compte") rafraichir();
       });
       if (typeof pageActuelle !== "undefined" && pageActuelle === "compte") rafraichir();
@@ -92,6 +94,7 @@
       b.innerHTML = `<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg><span>${esc(T("compte_connexion"))}</span>`;
       b.classList.remove("connecte"); b.setAttribute("aria-label", T("compte_connexion"));
     }
+    window.BS_PLATEFORME?.majCloche?.();
     const lp = $("lecteurProfil");
     if (lp) { lp.hidden = true; if (profil) lp.innerHTML = `<img src="${esc(avatarDe(profil))}" alt=""><span>${esc(profil.pseudo)}</span>`; }
   }
@@ -323,6 +326,13 @@
     const z = $("lecteurJoueurs"); if (z) { z.hidden = true; z.innerHTML = ""; }
   }
 
+  // Si Supabase refuse un score, on le dit au lieu de l'ignorer
+  function erreurScore(e) {
+    const m = String((e && (e.code + " " + e.message)) || "");
+    notifier(/PGRST202|42883|does not exist|Could not find/i.test(m)
+      ? "Score non enregistré : la base des classements n'est pas installée (admin → Comptes → code SQL)."
+      : /JWT|401|expired/i.test(m) ? "Score non enregistré : reconnecte-toi à ton compte." : "Score non enregistré : " + (e?.message || "erreur inconnue"), 6000);
+  }
   window.BS_PLATEFORME = {
     actif: () => actifs(),
     // Avant d'ouvrir un jeu : on remet la sauvegarde du joueur connecté
@@ -356,6 +366,7 @@
       await new Promise((ok) => setTimeout(ok, 60)); // laisse le jeu finir d'écrire
       await envoyerSauvegarde(true);
       partie = null;
+      setTimeout(() => this.verifierNouveautes?.(), 2500);
     },
     // Score : ordre "haut" (plus c'est grand mieux c'est) ou "bas" (golf)
     async score(valeur, o = {}) {
@@ -363,7 +374,7 @@
       if (!id || !connecte() || !Number.isFinite(valeur)) return null;
       const ordre = ["haut", "bas"].includes(o.ordre) ? o.ordre : "haut";
       const { data, error } = await sb.rpc("envoyer_score", { p_jeu: id, p_score: valeur, p_ordre: ordre, p_libelle: String(o.libelle || "").slice(0, 20) });
-      if (error) { console.warn(error); return null; }
+      if (error) { console.warn(error); erreurScore(error); return null; }
       return data;
     },
     // Victoire : +1 au compteur du joueur (une seule fois par partie)
@@ -374,13 +385,14 @@
       if (this[k] && now - this[k] < 20000) return null;
       this[k] = now;
       const { data, error } = await sb.rpc("envoyer_score", { p_jeu: id, p_score: 1, p_ordre: "cumul", p_libelle: "victoires" });
-      if (error) { console.warn(error); return null; }
+      if (error) { console.warn(error); erreurScore(error); return null; }
       return data;
     },
     async classement(id) {
       if (!sb) return [];
       const { data, error } = await sb.from("scores").select("score, ordre, libelle, joueur, profils(pseudo, avatar)").eq("jeu", id).limit(100);
-      if (error) { console.warn(error); return []; }
+      if (error) { console.warn("Classement illisible", error); this.erreurClassement = error.message; return []; }
+      this.erreurClassement = "";
       const ordre = data[0]?.ordre || "haut";
       return data.sort((a, b) => (ordre === "bas" ? a.score - b.score : b.score - a.score)).slice(0, 10);
     },
@@ -393,6 +405,7 @@
       const medailles = ["🥇", "🥈", "🥉"];
       zone.innerHTML = `<div class="conteneur"><div class="classement">
         <div class="classement-tete"><div><p class="etiquette">${t("classement_etiquette")}</p><h2>${t("classement_titre")}</h2></div>${lignes.length ? `<span class="meta">${esc(unite)}</span>` : ""}</div>
+        ${this.erreurClassement ? `<p class="alerte erreur">Classement indisponible : ${esc(this.erreurClassement)}</p>` : ""}
         ${lignes.length ? `<ol class="classement-liste">${lignes.map((l, i) => `<li class="${l.joueur === moi ? "moi" : ""}">
             <span class="rang">${medailles[i] || i + 1}</span>
             <img src="${esc(imageSure(l.profils?.avatar) || AVATARS[i % 12])}" alt="">
@@ -525,6 +538,7 @@
     </div>
   </section>
   <section class="section serree"><div class="conteneur">
+    <div id="badgesJoueur"></div>
     <p class="sous-titre">${t("joueur_jeux")}</p>
     ${lignes.length ? `<div class="liste-records">${lignes.map(({ j, l, rang, total }) => `
       <a class="record" href="#/jeu/${esc(j.id)}" style="--c:${couleurJeu(j)}" data-couleur="${esc(j.id)}">
@@ -534,7 +548,212 @@
       </a>`).join("")}</div>` : `<p class="classement-vide">${t("joueur_vide")}</p>`}
   </div></section>`;
     (donnees.jeux || []).forEach(calculerCouleur);
+    P.badgesHTML(id, parJeu).then((h) => { if ($("badgesJoueur")) $("badgesJoueur").innerHTML = h; });
   };
+
+  // =========================================================
+  // Partie 3 : communauté (badges, réactions, livre d'or, notifications)
+  // =========================================================
+  const ordinal = (n) => (n === 1 ? "1er" : n + "e");
+  const ilYa = (d) => {
+    const s = (Date.now() - new Date(d).getTime()) / 1000;
+    if (s < 60) return "à l'instant";
+    if (s < 3600) return "il y a " + Math.floor(s / 60) + " min";
+    if (s < 86400) return "il y a " + Math.floor(s / 3600) + " h";
+    if (s < 7 * 86400) return "il y a " + Math.floor(s / 86400) + " j";
+    return new Date(d).toLocaleDateString("fr-FR", { day: "numeric", month: "short" });
+  };
+  const jeuDuDefi = () => {
+    const jeux = [...(donnees.jeux || [])].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+    return jeux.length ? jeux[semaine().numero % jeux.length] : null;
+  };
+  const estModerateur = () => !!session && !!donnees.contact?.email && session.user.email?.toLowerCase() === String(donnees.contact.email).trim().toLowerCase();
+
+  // ---------- Badges (calculés à partir des classements, rien à installer) ----------
+  const G = { // petits dessins au centre des badges
+    etoile: '<path d="M12 4.5l2.2 4.6 5 .7-3.6 3.5.9 5-4.5-2.4-4.5 2.4.9-5-3.6-3.5 5-.7z"/>',
+    grille: '<rect x="5" y="5" width="6" height="6" rx="1.5"/><rect x="13" y="5" width="6" height="6" rx="1.5"/><rect x="5" y="13" width="6" height="6" rx="1.5"/><rect x="13" y="13" width="6" height="6" rx="1.5"/>',
+    pile: '<rect x="4" y="8" width="10" height="12" rx="2"/><path d="M8 5h9a2 2 0 0 1 2 2v10"/>',
+    podium: '<path d="M4 19v-5h5v5M9 19V9h6v10M15 19v-7h5v7M3 19h18"/>',
+    couronne: '<path d="M4 17 3 7l5 4 4-6 4 6 5-4-1 10z"/><path d="M5 20h14"/>',
+    diamant: '<path d="M7 4h10l4 5-9 11L3 9z"/><path d="M3 9h18M12 20 9 9l3-5 3 5z"/>',
+    coupe: '<path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H5a3 3 0 0 0 3 4M16 6h3a3 3 0 0 1-3 4M12 13v4M8.5 20h7M10 17h4"/>',
+    flamme: '<path d="M12 21c-4 0-6-2.7-6-6 0-4 4-6 4-10 3 2 4 4 4 6 1-1 1.5-2 1.5-3 2 2 2.5 4.5 2.5 7 0 3.3-2 6-6 6z"/>',
+    cible: '<circle cx="12" cy="12" r="8"/><circle cx="12" cy="12" r="4.5"/><circle cx="12" cy="12" r="1.2"/>',
+    plume: '<path d="M20 4c-8 0-13 5-14 13l-2 3M20 4c0 7-5 12-12 12M9 13l4-4"/>',
+  };
+  const BADGES = [
+    ["premier", "Premier score", "Marque des points dans un jeu", "etoile", (c) => c.jeux >= 1],
+    ["touche", "Touche-à-tout", "Sois classé dans 3 jeux différents", "grille", (c) => c.jeux >= 3],
+    ["collection", "Collectionneur", "Sois classé dans tous les jeux du site", "pile", (c) => c.total > 0 && c.jeux >= c.total],
+    ["podium", "Sur le podium", "Finis dans le top 3 d'un classement", "podium", (c) => c.podiums >= 1],
+    ["champion", "Champion", "Sois 1er d'un classement", "couronne", (c) => c.premiers >= 1],
+    ["legende", "Légende", "Sois 1er dans 3 classements", "diamant", (c) => c.premiers >= 3],
+    ["victoire", "Première victoire", "Gagne une partie", "coupe", (c) => c.victoires >= 1],
+    ["serie", "Inarrêtable", "Cumule 10 victoires", "flamme", (c) => c.victoires >= 10],
+    ["defi", "Défi relevé", "Bats ton record sur le jeu du défi de la semaine", "cible", (c) => c.defi],
+    ["plume", "Belle plume", "Écris dans un livre d'or", "plume", (c) => c.messages >= 1],
+  ];
+  function statsDe(id, parJeu, messages = 0) {
+    const c = { jeux: 0, podiums: 0, premiers: 0, victoires: 0, defi: false, messages, total: (donnees.jeux || []).length };
+    const defi = jeuDuDefi(), debut = semaine().debut;
+    parJeu.forEach((l, jeu) => {
+      if (!trouverJeu(jeu)) return;
+      const i = l.findIndex((x) => x.joueur === id); if (i < 0) return;
+      c.jeux++; if (i < 3) c.podiums++; if (i === 0) c.premiers++;
+      if (l[i].ordre === "cumul") c.victoires += Number(l[i].score) || 0;
+      if (defi && jeu === defi.id && new Date(l[i].maj) >= debut) c.defi = true;
+    });
+    return c;
+  }
+  const badgesDe = (c) => BADGES.map(([cle, nom, aide, dessin, test]) => ({ cle, nom, aide, dessin, obtenu: !!test(c) }));
+  const htmlBadge = (b) => `<div class="badge-jeu ${b.obtenu ? "obtenu" : ""}" title="${esc(b.aide)}">
+    <span class="badge-medaille"><svg viewBox="0 0 24 24" aria-hidden="true">${G[b.dessin]}</svg></span>
+    <b>${esc(b.nom)}</b><small>${b.obtenu ? esc(b.aide) : esc(T("badges_aide")) + " · " + esc(b.aide)}</small></div>`;
+  async function nbMessages(id) {
+    try { const { count, error } = await sb.from("messages").select("id", { count: "exact", head: true }).eq("joueur", id); return error ? 0 : count || 0; } catch { return 0; }
+  }
+  P.badgesHTML = async (id, parJeu) => {
+    const liste = badgesDe(statsDe(id, parJeu, await nbMessages(id)));
+    return `<p class="sous-titre">${t("badges_titre")} <span class="meta">${liste.filter((b) => b.obtenu).length} / ${liste.length}</span></p><div class="grille-badges">${liste.map(htmlBadge).join("")}</div>`;
+  };
+
+  // ---------- Notifications (gardées sur l'appareil, par joueur) ----------
+  const cleNotifs = () => "bs-notifs-" + (session?.user?.id || "");
+  const lireNotifs = () => (session ? lireLS(cleNotifs(), []) : []);
+  const ecrireNotifs = (l) => { try { localStorage.setItem(cleNotifs(), JSON.stringify(l.slice(0, 30))); } catch {} };
+  function ajouterNotif(n) { if (!session) return; ecrireNotifs([{ ...n, date: Date.now(), lu: false }, ...lireNotifs()]); majCloche(); }
+  const ICONES_NOTIF = { depasse: "⚡", record: "🎉", badge: "🏅" };
+  function majCloche() {
+    const z = $("zoneNotifs"); if (!z) return;
+    z.hidden = !(actifs() && session);
+    const nb = lireNotifs().filter((n) => !n.lu).length;
+    $("notifsNb").hidden = !nb; $("notifsNb").textContent = nb > 9 ? "9+" : nb;
+    $("btnNotifs").setAttribute("aria-label", T("notifs_titre") + (nb ? ` (${nb})` : ""));
+  }
+  function ouvrirNotifs(ouvrir) {
+    const p = $("panneauNotifs"); if (!p) return;
+    p.hidden = !ouvrir; $("btnNotifs").setAttribute("aria-expanded", String(ouvrir));
+    if (!ouvrir) return;
+    const l = lireNotifs();
+    p.innerHTML = `<p class="panneau-titre">${t("notifs_titre")}</p>` + (l.length ? `<ul>${l.map((n) => `<li class="${n.lu ? "" : "nouvelle"}"><a href="${esc(n.lien || "#/classements")}" data-fermer-notifs>
+      <span class="notif-icone" aria-hidden="true">${ICONES_NOTIF[n.type] || "•"}</span><span><span class="notif-texte">${esc(n.texte)}</span><small>${ilYa(n.date)}</small></span></a></li>`).join("")}</ul>` : `<p class="panneau-vide">${t("notifs_vide")}</p>`);
+    ecrireNotifs(l.map((n) => ({ ...n, lu: true }))); majCloche();
+  }
+  document.addEventListener("click", (e) => {
+    if (e.target.closest("#btnNotifs")) { ouvrirNotifs($("panneauNotifs").hidden); return; }
+    if (e.target.closest("[data-fermer-notifs]") || !e.target.closest("#panneauNotifs")) ouvrirNotifs(false);
+  });
+  document.addEventListener("keydown", (e) => { if (e.key === "Escape" && !$("panneauNotifs")?.hidden) ouvrirNotifs(false); });
+  addEventListener("hashchange", () => ouvrirNotifs(false));
+
+  // Compare la situation actuelle à la dernière visite : dépassements et nouveaux badges
+  let verification = null;
+  async function verifierNouveautes() {
+    if (!connecte() || verification) return;
+    verification = (async () => {
+      const moi = session.user.id, parJeu = await tousLesScores();
+      const rangs = {};
+      parJeu.forEach((l, jeu) => { const i = l.findIndex((x) => x.joueur === moi); if (i >= 0 && trouverJeu(jeu)) rangs[jeu] = { rang: i + 1, devant: l.slice(0, i).map((x) => x.joueur) }; });
+      const cleR = "bs-rangs-" + moi, avant = lireLS(cleR, null);
+      if (avant) Object.entries(rangs).forEach(([jeu, r]) => {
+        const a = avant[jeu]; if (!a || r.rang <= a.rang) return;
+        const nouveau = r.devant.find((x) => !a.devant.includes(x)); if (!nouveau) return;
+        const pseudo = parJeu.get(jeu).find((x) => x.joueur === nouveau)?.profils?.pseudo || "Quelqu'un";
+        ajouterNotif({ type: "depasse", texte: T("notif_depasse", { pseudo, jeu: trouverJeu(jeu).titre, rang: ordinal(r.rang) }), lien: "#/jeu/" + jeu });
+      });
+      try { localStorage.setItem(cleR, JSON.stringify(rangs)); } catch {}
+      const obtenus = badgesDe(statsDe(moi, parJeu, await nbMessages(moi))).filter((b) => b.obtenu);
+      const cleB = "bs-badges-" + moi, avantB = lireLS(cleB, null);
+      if (avantB) obtenus.filter((b) => !avantB.includes(b.cle)).forEach((b) => ajouterNotif({ type: "badge", texte: T("notif_badge", { badge: b.nom }), lien: "#/joueur/" + moi }));
+      try { localStorage.setItem(cleB, JSON.stringify(obtenus.map((b) => b.cle))); } catch {}
+    })().catch((e) => console.warn(e)).finally(() => { verification = null; });
+    return verification;
+  }
+  P.verifierNouveautes = verifierNouveautes;
+  P.majCloche = majCloche;
+
+  // Nouveau record : message pendant la partie + notification
+  const scoreOriginal = P.score;
+  P.score = async function (valeur, o = {}) {
+    const id = (typeof jeuActuel !== "undefined" && jeuActuel?.id) || partie?.id;
+    let avant = null;
+    if (id && connecte()) { try { avant = (await sb.from("scores").select("score").eq("joueur", session.user.id).eq("jeu", id).maybeSingle()).data?.score ?? null; } catch {} }
+    const res = await scoreOriginal.call(this, valeur, o);
+    if (res !== null && res !== undefined && Number(res) === Number(valeur) && (avant === null || Number(avant) !== Number(valeur))) {
+      const j = trouverJeu(id), texte = T("notif_record", { jeu: j?.titre || "", score: nombre(valeur) + (o.libelle ? " " + o.libelle : "") });
+      notifier(texte, 4000); ajouterNotif({ type: "record", texte, lien: "#/jeu/" + id });
+    }
+    return res;
+  };
+
+  // ---------- Réactions et livre d'or (page d'un jeu) ----------
+  const REACTIONS = [["aime", "❤️", "J'adore"], ["rire", "😂", "Trop drôle"], ["feu", "🔥", "Addictif"], ["wow", "😮", "Bluffant"], ["bravo", "👏", "Bravo"]];
+  let avis = { jeu: null, reactions: [], messages: [], indispo: false, envoi: false, erreur: "" };
+  function dessinerAvis() {
+    const zone = $("avisJeu"); if (!zone || zone.dataset.jeu !== avis.jeu) return;
+    const moi = session?.user?.id, modo = estModerateur();
+    const compte = (e) => avis.reactions.filter((r) => r.emoji === e).length, mien = (e) => avis.reactions.some((r) => r.emoji === e && r.joueur === moi);
+    zone.innerHTML = `<div class="conteneur"><div class="avis">
+      <div class="classement-tete"><div><p class="etiquette">${t("avis_etiquette")}</p><h2>${t("avis_titre")}</h2></div></div>
+      ${avis.indispo ? `<p class="classement-vide">${t("livre_indispo")}</p>` : `
+      <p class="sous-titre">${t("avis_reagir")}</p>
+      <div class="reactions" role="group" aria-label="${t("avis_reagir")}">${REACTIONS.map(([k, e, nom]) => `<button class="reaction" type="button" data-reaction="${k}" aria-pressed="${mien(k)}" title="${nom}"><span class="reaction-emoji" aria-hidden="true">${e}</span><b>${compte(k)}</b><small>${nom}</small></button>`).join("")}</div>
+      <p class="sous-titre">${t("livre_titre")} <span class="meta">${avis.messages.length || ""}</span></p>
+      ${session ? `<form class="livre-form" data-livre>
+        <img src="${esc(avatarDe(profil))}" alt="">
+        <div><textarea id="livreTexte" maxlength="280" rows="2" placeholder="${t("livre_placeholder")}" required></textarea>
+        <div class="livre-bas"><small>${t("livre_regle")}</small><button class="btn plein petit" type="submit" ${avis.envoi ? "disabled" : ""}>${t("livre_envoyer")}</button></div>
+        ${avis.erreur ? `<p class="alerte erreur">${esc(avis.erreur)}</p>` : ""}</div>
+      </form>` : `<a class="classement-connexion" href="#/compte">${t("avis_connexion")} ${I.droite}</a>`}
+      ${avis.messages.length ? `<ul class="livre">${avis.messages.map((m) => `<li>
+        <img src="${esc(avatarSur(m.profils))}" alt="">
+        <div><p class="livre-auteur"><a class="lien-joueur" href="#/joueur/${esc(m.joueur)}">${esc(m.profils?.pseudo || "Joueur")}</a><small>${ilYa(m.cree)}</small>
+          ${m.joueur === moi || modo ? `<button class="lien-discret" type="button" data-supprimer-message="${esc(m.id)}">${t("livre_supprimer")}</button>` : ""}</p>
+        <p class="livre-texte">${esc(m.texte)}</p></div></li>`).join("")}</ul>` : `<p class="classement-vide">${t("livre_vide")}</p>`}`}
+    </div></div>`;
+  }
+  P.afficherAvis = async (id) => {
+    if (!$("avisJeu") || !(await pret())) return;
+    avis = { jeu: id, reactions: [], messages: [], indispo: false, envoi: false, erreur: "" };
+    try {
+      const [r, m] = await Promise.all([
+        sb.from("reactions").select("joueur, emoji").eq("jeu", id).limit(2000),
+        sb.from("messages").select("id, joueur, texte, cree, profils(pseudo, avatar)").eq("jeu", id).order("cree", { ascending: false }).limit(40),
+      ]);
+      if (r.error || m.error) throw r.error || m.error;
+      avis.reactions = r.data; avis.messages = m.data;
+    } catch (e) { console.warn("Livre d'or pas encore installé dans Supabase ?", e); avis.indispo = true; }
+    dessinerAvis();
+  };
+  document.addEventListener("click", async (e) => {
+    const r = e.target.closest("[data-reaction]");
+    if (r && avis.jeu) {
+      if (!session) { location.hash = "#/compte"; return; }
+      const k = r.dataset.reaction, moi = session.user.id, deja = avis.reactions.some((x) => x.emoji === k && x.joueur === moi);
+      avis.reactions = deja ? avis.reactions.filter((x) => !(x.emoji === k && x.joueur === moi)) : [...avis.reactions, { joueur: moi, emoji: k }];
+      dessinerAvis();
+      const q = deja ? sb.from("reactions").delete().eq("joueur", moi).eq("jeu", avis.jeu).eq("emoji", k) : sb.from("reactions").insert({ joueur: moi, jeu: avis.jeu, emoji: k });
+      const { error } = await q; if (error) { console.warn(error); P.afficherAvis(avis.jeu); }
+      return;
+    }
+    const sup = e.target.closest("[data-supprimer-message]");
+    if (sup && avis.jeu) {
+      const { error } = await sb.from("messages").delete().eq("id", sup.dataset.supprimerMessage);
+      if (!error) { avis.messages = avis.messages.filter((m) => String(m.id) !== sup.dataset.supprimerMessage); dessinerAvis(); }
+    }
+  });
+  document.addEventListener("submit", async (e) => {
+    const f = e.target.closest("[data-livre]"); if (!f || !session) return;
+    e.preventDefault();
+    const texte = $("livreTexte").value.trim().slice(0, 280); if (!texte) return;
+    avis.envoi = true; avis.erreur = ""; dessinerAvis();
+    const { data, error } = await sb.from("messages").insert({ joueur: session.user.id, jeu: avis.jeu, texte }).select("id, joueur, texte, cree").single();
+    avis.envoi = false;
+    if (error) { avis.erreur = /row-level|policy|42501/i.test(error.message + error.code) ? T("livre_trop") : T("livre_indispo"); dessinerAvis(); $("livreTexte").value = texte; return; }
+    avis.messages = [{ ...data, profils: { pseudo: profil.pseudo, avatar: avatarDe(profil) } }, ...avis.messages];
+    dessinerAvis(); setTimeout(verifierNouveautes, 500);
+  });
 
   // Si la page est fermée pendant une partie, on tente un dernier envoi
   addEventListener("pagehide", () => { if (partie) envoyerSauvegarde(false); });

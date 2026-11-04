@@ -1488,7 +1488,7 @@ body.three .seat.sel::after,body.three .seat.wolfsel::after{display:none}
     </div>
     <h3>Le déroulé d’une veillée</h3>
     <ol class="steps">
-      <li>La nuit tombe. La première nuit, le Chien-Loup, Cupidon et l’Enfant Sauvage s’éveillent. Puis chaque nuit : Salvateur, Voyante, Renard, Corbeau, la meute (et la Petite Fille qui espionne), l’Infect Père des Loups, le Grand Méchant Loup, le Loup Blanc, la Sorcière et le Joueur de Flûte.</li>
+      <li>La nuit tombe. La première nuit, le Chien-Loup, Cupidon et l’Enfant Sauvage s’éveillent. Puis chaque nuit : Salvateur, Voyante, Renard, Corbeau, la meute (et la Petite Fille qui espionne), le Loup contaminé, le Loup vorace, le Loup solitaire, la Sorcière et le Joueur de Flûte.</li>
       <li>L’aube révèle les victimes de la nuit, et leur carte se retourne.</li>
       <li>Le village débat autour du feu, puis vote pour bannir un suspect. En cas d’égalité, personne n’est banni, sauf si le Bouc Émissaire est en jeu.</li>
       <li>Fais glisser l’écran pour tourner autour du feu, molette pour zoomer.</li>
@@ -1800,9 +1800,9 @@ const COLORS = CHARS.map(c => c.acc);
 const R_ = (key, name, art, team, motto, desc, extra = {}) => Object.assign({ key, name, art, team, camp: team === 'w' ? 'La Meute' : team === 's' ? 'Solitaire' : 'Le Village', motto, desc }, extra);
 const ROLES = {
   L: R_('L', 'Loup-Garou', 'un Loup-Garou', 'w', 'La nuit, il a faim.', 'Chaque nuit, avec la meute, tu choisis une victime. Le jour, tu te caches parmi les villageois et tu votes comme eux.', { max: 5 }),
-  B: R_('B', 'Loup-Garou Blanc', 'le Loup-Garou Blanc', 'w', 'Il chasse même les siens.', 'Tu chasses avec la meute, qui te croit des leurs. Une nuit sur deux, tu peux dévorer un loup. Tu gagnes seul, dernier survivant.', { camp: 'Meute · solitaire' }),
-  I: R_('I', 'Infect Père des Loups', 'l’Infect Père des Loups', 'w', 'Sa morsure ne tue pas : elle transforme.', 'Une fois par partie, tu peux infecter la victime de la meute : au lieu de mourir, elle devient loup en secret et garde ses pouvoirs.'),
-  M: R_('M', 'Grand Méchant Loup', 'le Grand Méchant Loup', 'w', 'Il ne rassasie jamais sa faim.', 'Tant qu’aucun loup n’est mort, tu dévores seul une seconde victime chaque nuit, après la meute.'),
+  B: R_('B', 'Loup solitaire', 'le Loup solitaire', 'w', 'Il chasse même les siens.', 'Tu chasses avec la meute, qui te croit des leurs. Une nuit sur deux, tu peux dévorer un loup. Tu gagnes seul, dernier survivant.', { camp: 'Meute · solitaire' }),
+  I: R_('I', 'Loup contaminé', 'le Loup contaminé', 'w', 'Sa morsure ne tue pas : elle transforme.', 'Une fois par partie, tu peux infecter la victime de la meute : au lieu de mourir, elle devient loup en secret et garde ses pouvoirs.'),
+  M: R_('M', 'Loup vorace', 'le Loup vorace', 'w', 'Il ne rassasie jamais sa faim.', 'Tant qu’aucun loup n’est mort, tu dévores seul une seconde victime chaque nuit, après la meute.'),
   V: R_('V', 'Villageois', 'un simple Villageois', 'v', 'Une fourche et du bon sens.', 'Aucun pouvoir, sinon ta voix et ton flair. Écoute, accuse, vote juste.', { max: 8 }),
   Y: R_('Y', 'Voyante', 'la Voyante', 'v', 'Elle voit ce que la nuit cache.', 'Chaque nuit, tu découvres la vraie carte d’un joueur. Guide le village sans te faire dévorer.'),
   S: R_('S', 'Sorcière', 'la Sorcière', 'v', 'Une fiole pour la vie, une pour la mort.', 'Tu apprends qui la meute a attaqué. Une potion de vie pour le sauver, une potion de mort pour tuer : chacune une seule fois.'),
@@ -1830,7 +1830,7 @@ const ROLE_GROUPS = [['La Meute', ['L', 'B', 'I', 'M']], ['Le Village', ['V', 'Y
 const SPECIALS = ROLE_ORDER.filter(k => k !== 'L' && k !== 'V');
 const PRESETS = {
   classique: { nm: 'Classique', comp: { L: 0, Y: 1, S: 1, C: 1, Q: 1, G: 1 } },
-  thiercelieux: { nm: 'Thiercelieux', comp: { L: 0, Y: 1, S: 1, C: 1, Q: 1, P: 1, A: 1, E: 1 } },
+  thiercelieux: { nm: 'Grande veillée', comp: { L: 0, Y: 1, S: 1, C: 1, Q: 1, P: 1, A: 1, E: 1 } },
   nouvelle: { nm: 'Nouvelle Lune', comp: { L: 0, Y: 1, S: 1, G: 1, R: 1, F: 1, K: 1, O: 1, D: 1, I: 1 } },
   chaos: { nm: 'Chaos', comp: { L: 0, B: 1, M: 1, Y: 1, S: 1, C: 1, Q: 1, W: 1, H: 1, N: 1, U: 1, Z: 1 } },
   debutant: { nm: 'Débutant', comp: { L: 0, Y: 1, C: 1 } }
@@ -4509,9 +4509,9 @@ const STEP = {
   F: ['Le Renard sort de son terrier.', 'Il flaire trois âmes, en quête de l’odeur du loup.', 'Le Renard'],
   R: ['Le Corbeau prend son envol.', 'Il se pose sur un toit et croasse un nom.', 'Le Corbeau'],
   L: ['Les Loups-Garous ouvrent les yeux…', 'On entend des griffes sur les pavés.', 'Les Loups-Garous'],
-  I: ['L’Infect Père des Loups renifle la proie.', 'Sa morsure peut changer un homme en bête.', 'L’Infect Père des Loups'],
-  M: ['Le Grand Méchant Loup a encore faim.', 'Il part seul chasser une seconde proie.', 'Le Grand Méchant Loup'],
-  B: ['Le Loup Blanc rôde parmi les siens.', 'Cette nuit, il pourrait trahir la meute.', 'Le Loup-Garou Blanc'],
+  I: ['Le Loup contaminé renifle la proie.', 'Sa morsure peut changer un homme en bête.', 'Le Loup contaminé'],
+  M: ['Le Loup vorace a encore faim.', 'Il part seul chasser une seconde proie.', 'Le Loup vorace'],
+  B: ['Le Loup Blanc rôde parmi les siens.', 'Cette nuit, il pourrait trahir la meute.', 'Le Loup solitaire'],
   S: ['La Sorcière débouche ses fioles.', 'Une potion pour la vie, une pour la mort.', 'La Sorcière'],
   U: ['Le Joueur de Flûte porte l’instrument à ses lèvres.', 'Une mélodie douce enveloppe les dormeurs.', 'Le Joueur de Flûte']
 };

@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Brelan, le salon de cartes entre amis : Poker, Skyjo, Flip 7, Uno, Trio, Dobble, 6 qui prend, Dékal, Président, Mistigri et Solitaire.">
+<meta name="description" content="Brelan, le salon de cartes entre amis : Poker, Colonnes, Sept de chance, Dernière carte, Triplette, Coup d’œil, Têtes de bœuf, Dékal, Président, Mistigri et Solitaire.">
 <style>:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
@@ -688,7 +688,7 @@ const SKYJO = (() => {
     return { t: 'swap', i: hidden.length ? rh() : (wk >= 0 ? wk : g.findIndex(x => x >= 0)) };
   }
   const turns = s => s.ph === 'reveal' ? range(s.n).filter(q => nUp(s, q) < 2) : (s.ph === 'play' || s.ph === 'last') ? [s.turn] : [];
-  return { id: 'skyjo', name: 'Skyjo', min: 2, max: 8, setup, next, act, bot, turns, val, visible, nUp, OPTS };
+  return { id: 'skyjo', name: 'Colonnes', min: 2, max: 8, setup, next, act, bot, turns, val, visible, nUp, OPTS };
 })();
 
 /* =================== PRÉSIDENT =================== */
@@ -926,14 +926,14 @@ const UNO = (() => {
     s = clone(s);
     if (s.ph !== 'play') throw E('La manche est terminée.');
     if (a.t === 'uno') {
-      if (s.h[p].length > 2) throw E('Tu as encore trop de cartes pour crier UNO.');
-      if (!s.uno[p]) { s.uno[p] = 1; if (s.risk === p) s.risk = -1; log(s, `@${p} crie UNO !`); }
+      if (s.h[p].length > 2) throw E('Tu as encore trop de cartes pour crier « Dernière ! ».');
+      if (!s.uno[p]) { s.uno[p] = 1; if (s.risk === p) s.risk = -1; log(s, `@${p} crie « Dernière ! »`); }
       return s;
     }
     if (a.t === 'catch') {
       const i = a.i | 0;
       if (i === p || s.risk !== i || s.h[i].length !== 1 || s.uno[i]) throw E('Trop tard !');
-      give(s, i, 2); s.risk = -1; log(s, `Contre-UNO ! @${i} a oublié de crier et pioche 2 cartes.`);
+      give(s, i, 2); s.risk = -1; log(s, `Oublié ! @${i} a oublié de crier et pioche 2 cartes.`);
       return s;
     }
     if (p !== s.turn) throw E('Ce n’est pas ton tour.');
@@ -1010,7 +1010,7 @@ const UNO = (() => {
     return { t: 'draw' };
   }
   const turns = s => s.ph === 'play' ? [s.turn] : [];
-  return { id: 'uno', name: 'Uno', min: 2, max: 10, setup, next, act, bot, turns, playable, pts, col, sym, COL, NAME, OPTS };
+  return { id: 'uno', name: 'Dernière carte', min: 2, max: 10, setup, next, act, bot, turns, playable, pts, col, sym, COL, NAME, OPTS };
 })();
 
 
@@ -1156,7 +1156,7 @@ const FLIP7 = (() => {
     return { t: 'stay' };
   }
   const turns = s => s.ph === 'play' ? [s.turn] : s.ph === 'target' ? [s.ch] : [];
-  return { id: 'flip7', name: 'Flip 7', min: 3, max: 8, setup, next, act, bot, sys, sysDelay: 650, turns, K, V, roundPts, CARDS };
+  return { id: 'flip7', name: 'Sept de chance', min: 3, max: 8, setup, next, act, bot, sys, sysDelay: 650, turns, K, V, roundPts, CARDS };
 })();
 
 /* =================== DÉKAL =================== */
@@ -1318,7 +1318,7 @@ const TRIO = (() => {
     return ov.length && Math.random() < .5 ? { t: 'rv', w: 'p', i, e: Math.random() < .5 ? 'lo' : 'hi' } : explore(null);
   }
   const turns = s => s.ph === 'play' ? [s.turn] : [];
-  return { id: 'trio', name: 'Trio', min: 3, max: 6, setup, next, act, bot, sys, sysDelay: 1700, turns, val, avail };
+  return { id: 'trio', name: 'Triplette', min: 3, max: 6, setup, next, act, bot, sys, sysDelay: 1700, turns, val, avail };
 })();
 
 /* =================== POKER (Texas Hold'em, no limit) =================== */
@@ -1594,7 +1594,7 @@ const SIXQ = (() => {
     return { t: 'pick', c: best };
   }
   const turns = s => s.ph === 'pick' ? range(s.n).filter(i => !s.sel[i]) : s.ph === 'choose' ? [s.ch] : [];
-  return { id: 'sixq', name: '6 qui prend', min: 2, max: 10, setup, next, act, bot, sys, sysDelay: 850, turns, heads, sumH, rowFor };
+  return { id: 'sixq', name: 'Têtes de bœuf', min: 2, max: 10, setup, next, act, bot, sys, sysDelay: 850, turns, heads, sumH, rowFor };
 })();
 
 /* =================== DOBBLE =================== */
@@ -1629,7 +1629,7 @@ const DOBBLE = (() => {
   function bot(s, i){ if (s.ph !== 'play') return null; const c = s.ctr[s.ctr.length - 1]; return { t: 'claim', c, y: common(c, s.top[i]) }; }
   const botDelay = () => 2600 + Math.random() * 3600;
   const turns = s => s.ph === 'play' ? range(s.n) : [];
-  return { id: 'dobble', name: 'Dobble', min: 2, max: 8, setup, next, act, bot, botDelay, rt: 1, turns, CARDS, common };
+  return { id: 'dobble', name: 'Coup d’œil', min: 2, max: 8, setup, next, act, bot, botDelay, rt: 1, turns, CARDS, common };
 })();
 
 /* =================== KLONDIKE SOLVER (also runs in a Worker) =================== */
@@ -2342,11 +2342,11 @@ function leaveTable(){
 const ORDER = ['poker', 'skyjo', 'flip7', 'uno', 'trio', 'dobble', 'sixq', 'dekal', 'president', 'mistigri'];
 const GAMES_UI = {
   poker: { blurb: 'Le Texas Hold’em : deux cartes cachées, cinq cartes communes, et des jetons à faire tomber. Relance, bluffe, fais tapis. Jetons fictifs.', time: '30–60 min', isNew: 1, art: () => `<div class="fan">${face(12)}${face(11)}${face(10)}${face(9)}${face(8)}</div>` },
-  flip7: { blurb: 'Pioche tant que tu oses : un doublon et ta manche vaut zéro. Sept numéros différents, c’est le Flip 7 et 15 points de bonus.', time: '20 min', isNew: 1, art: () => `<div class="fan">${f7(78)}${f7(56)}${f7(85)}${f7(83)}</div>` },
+  flip7: { blurb: 'Pioche tant que tu oses : un doublon et ta manche vaut zéro. Sept numéros différents, c’est le « Sept de chance » et 15 points de bonus.', time: '20 min', isNew: 1, art: () => `<div class="fan">${f7(78)}${f7(56)}${f7(85)}${f7(83)}</div>` },
   trio: { blurb: 'Demande la plus petite ou la plus grande carte d’un joueur, fouille le centre, et réunis trois cartes identiques. Le trio de 7 gagne tout de suite.', time: '15 min', isNew: 1, art: () => `<div class="fan">${trioC(18)}${trioC(19)}${trioC(20)}</div>` },
   dekal: { blurb: 'Une grille de seize cartes cachées. Chaque tour, révèle, échange et pousse une ligne pour coller les cartes identiques qui s’annulent.', time: '20 min', isNew: 1, art: () => `<div class="fan">${dekC(3)}${dekC(13)}${dekC(7)}${dekC(29)}</div>` },
   skyjo: { blurb: 'Retourne tes douze cartes, aligne trois cartes identiques en colonne pour les faire disparaître, et finis avec le moins de points.', time: '20–30 min', art: () => `<div class="fan">${sky(2)}${sky(25)}${sky(78)}${sky(149)}</div>` },
-  uno: { blurb: 'Couleur ou symbole, +2, +4, Inversion et Passe. Pense à crier « UNO ! » quand il te reste une carte, sinon gare au contre.', time: '15–30 min', art: () => `<div class="fan">${uno(57)}${uno(20)}${uno(97)}${uno(105)}</div>` },
+  uno: { blurb: 'Couleur ou symbole, +2, +4, Inversion et Passe. Pense à crier « Dernière ! » quand il te reste une carte, sinon gare au contre.', time: '15–30 min', art: () => `<div class="fan">${uno(57)}${uno(20)}${uno(97)}${uno(105)}</div>` },
   dobble: { blurb: 'Le jeu de rapidité : entre deux cartes il y a toujours un seul symbole en commun. Le premier qui le trouve gagne la carte.', time: '5 min', isNew: 1, art: () => `<div class="fan" style="--dsize:118px">${dob(3)}${dob(40)}</div>` },
   sixq: { blurb: 'Tout le monde pose en même temps. La sixième carte d’une rangée ramasse les cinq autres et leurs têtes de bœuf.', time: '20 min', isNew: 1, art: () => `<div class="fan">${bull(7)}${bull(33)}${bull(55)}${bull(90)}</div>` },
   president: { blurb: 'Pose plus fort que les autres, du 3 jusqu’au 2. Le premier sorti devient Président, le dernier Trouduc.', time: '15 min', art: () => `<div class="fan">${face(0)}${face(13)}${face(26)}${face(39)}</div>` },
@@ -2730,8 +2730,8 @@ VIEWS.uno = ctx => {
   const s = ctx.s, me = ctx.me;
   const opps = ctx.others.map(i => {
     const one = s.h[i].length === 1 && s.ph === 'play';
-    const b = (s.uno[i] && s.h[i].length <= 2 && s.ph === 'play' ? '<span class="tag gold">UNO</span>' : '')
-      + (one && !s.uno[i] && s.risk === i && me >= 0 ? `<button class="btn sm pri" data-a="un-catch" data-i="${i}">Contre-UNO</button>` : '');
+    const b = (s.uno[i] && s.h[i].length <= 2 && s.ph === 'play' ? '<span class="tag gold">Dernière</span>' : '')
+      + (one && !s.uno[i] && s.risk === i && me >= 0 ? `<button class="btn sm pri" data-a="un-catch" data-i="${i}">Oublié !</button>` : '');
     return pod(ctx, i, miniBacks(s.h[i], 9), `${s.h[i].length} carte${s.h[i].length > 1 ? 's' : ''} · ${s.sc[i]} pts`, b);
   }).join('');
   const myTurn = me >= 0 && s.ph === 'play' && s.turn === me;
@@ -2753,7 +2753,7 @@ VIEWS.uno = ctx => {
     else if (s.dr) p = `<p class="prompt me">La carte piochée peut se jouer : pose-la ou passe</p>`;
     else if (canAny) p = `<p class="prompt me">À toi : ${s.su >= 0 ? `du ${UNO.COL[s.su]}, ` : ''}${what} ou un joker</p>`;
     else p = `<p class="prompt me">Rien à poser : pioche une carte</p>`;
-    const unoBtn = s.ph === 'play' && s.h[me].length <= 2 && !s.uno[me] ? `<button class="btn pri" data-a="un-uno">UNO !</button>` : '';
+    const unoBtn = s.ph === 'play' && s.h[me].length <= 2 && !s.uno[me] ? `<button class="btn pri" data-a="un-uno">Dernière !</button>` : '';
     bar = p + `<div class="btns">${unoBtn}${myTurn ? (s.pd ? `<button class="btn" data-a="un-draw">Piocher ${s.pd}</button>` : !s.dr ? `<button class="btn" data-a="un-draw">Piocher</button>` : `<button class="btn pri" data-a="un-pass">Passer</button>`) : ''}</div>`;
   } else bar = `<p class="prompt">Tu regardes la partie</p>`;
   if (App.ui.pickW != null && myTurn) {
@@ -2849,7 +2849,7 @@ VIEWS.flip7 = ctx => {
   } else bar = `<p class="prompt">Tu regardes la partie</p>`;
   const order = range(ctx.n).sort((a, b) => s.tot[b] - s.tot[a]);
   const over = `<h2>${s.ph === 'over' ? `${ctx.subj(order[0])} ${order[0] === me ? 'gagnes' : 'gagne'} la partie !` : `Fin de la manche ${s.rnd}`}</h2>
-    <p>${s.f7 >= 0 ? `${s.f7 === me ? 'Tu as' : ctx.name(s.f7) + ' a'} réussi un Flip 7 (+15). ` : ''}Un doublon fait 0, le ×2 double les numéros, les bonus s’ajoutent. Premier à 200 points.</p>
+    <p>${s.f7 >= 0 ? `${s.f7 === me ? 'Tu as' : ctx.name(s.f7) + ' a'} réussi un Sept de chance (+15). ` : ''}Un doublon fait 0, le ×2 double les numéros, les bonus s’ajoutent. Premier à 200 points.</p>
     <table class="score"><thead><tr><th>Joueur</th><th class="n">Manche</th><th class="n">Total</th></tr></thead><tbody>
     ${order.map((i, k) => `<tr class="${k === 0 ? 'lead' : ''}"><td><span class="pn">${avatar(ctx.T.seats[i])}${ctx.name(i)}</span></td><td class="n">+${s.rs[i] || 0}</td><td class="n">${s.tot[i]}</td></tr>`).join('')}
     </tbody></table>`;
@@ -3274,11 +3274,11 @@ document.addEventListener('pointercancel', () => { if (SOL.drag) { SOL.drag = nu
 /* =================== rules =================== */
 const RULES = {
   poker: ['Texas Hold’em sans limite, avec des jetons fictifs. Chacun commence avec 1000 jetons.', 'Avant chaque main, les deux joueurs après le donneur posent la petite blinde (PB) et la grosse blinde (GB). À deux joueurs, le donneur pose la petite blinde.', 'Chacun reçoit deux cartes cachées. Quatre tours d’enchères : avant le flop, après le flop (3 cartes communes), après le tournant (4e carte) et après la rivière (5e carte).', 'À ton tour : te coucher, parler (checker) si personne n’a misé, suivre la mise, ou relancer. Une relance doit au moins égaler la relance précédente. Tu peux toujours faire tapis.', 'À l’abattage, chacun fait sa meilleure main de 5 cartes avec ses 2 cartes et les 5 communes. Ordre : carte haute, paire, double paire, brelan, quinte, couleur, full, carré, quinte flush.', 'Un joueur à tapis ne peut gagner que ce qu’il a pu suivre : le reste forme un pot secondaire entre les autres. En cas d’égalité, le pot est partagé.', 'Option : les blindes doublent toutes les 10 mains. Un joueur sans jetons est éliminé ; le dernier qui en a gagne la partie.'],
-  flip7: ['Le paquet : des numéros de 0 à 12 (un seul 0, un 1, deux 2… jusqu’à douze 12), des cartes bonus (+2 à +10 et ×2) et des cartes action.', 'À ton tour, prends une carte de plus ou arrête-toi pour garder tes points.', 'Si tu tires un numéro que tu as déjà, tu es éliminé de la manche et tu marques 0.', 'Gel : le joueur visé s’arrête tout de suite et garde ses points. Trois cartes : le joueur visé pioche 3 cartes d’affilée. Seconde chance : annule ton prochain doublon.', 'Quand tu tires une carte Gel ou Trois cartes, tu choisis qui la subit (toi compris).', 'Sept numéros différents : Flip 7 ! La manche s’arrête et tu gagnes 15 points de bonus.', 'Score : somme des numéros, doublée par le ×2, plus les bonus. Premier à 200 points.'],
+  flip7: ['Le paquet : des numéros de 0 à 12 (un seul 0, un 1, deux 2… jusqu’à douze 12), des cartes bonus (+2 à +10 et ×2) et des cartes action.', 'À ton tour, prends une carte de plus ou arrête-toi pour garder tes points.', 'Si tu tires un numéro que tu as déjà, tu es éliminé de la manche et tu marques 0.', 'Gel : le joueur visé s’arrête tout de suite et garde ses points. Trois cartes : le joueur visé pioche 3 cartes d’affilée. Seconde chance : annule ton prochain doublon.', 'Quand tu tires une carte Gel ou Trois cartes, tu choisis qui la subit (toi compris).', 'Sept numéros différents : Sept de chance ! La manche s’arrête et tu gagnes 15 points de bonus.', 'Score : somme des numéros, doublée par le ×2, plus les bonus. Premier à 200 points.'],
   trio: ['36 cartes, trois exemplaires de chaque nombre de 1 à 12. Une partie des cartes est en main, triée, le reste au centre face cachée.', 'À ton tour, révèle une carte à la fois : la plus petite ou la plus grande carte de la main d’un joueur (toi compris), ou une carte du centre.', 'Tant que les cartes révélées sont identiques, continue. Dès qu’une carte diffère, ton tour s’arrête et tout redevient caché : mémorise bien !', 'Trois cartes identiques : tu gagnes ce trio.', 'Victoire avec 3 trios, ou immédiatement avec le trio de 7.'],
   dekal: ['100 cartes de 1 à 10. Chacun a 16 cartes cachées en grille de 4 × 4.', 'Chaque tour, tout le monde retourne en même temps une carte cachée de sa grille vers le centre, ce qui laisse un trou.', 'Puis, chacun son tour, on reprend une carte du centre et on la pousse dans sa grille par le bord d’une ligne ou d’une colonne qui contient le trou. Les cartes glissent pour le reboucher.', 'On ne peut pas poser la carte directement dans le trou.', 'Après 16 tours, toutes les cartes sont visibles. Les cartes identiques côte à côte (horizontalement ou verticalement) valent 0. Le reste s’additionne.', 'Le plus petit total gagne. La partie s’arrête quand quelqu’un atteint 100 points.'],
   skyjo: ['150 cartes de −2 à 12. Chacun a 12 cartes cachées en grille de 4 colonnes × 3 rangées et en retourne 2 au départ.', 'Celui qui a la plus forte somme visible commence. Aux manches suivantes, c’est celui qui a terminé la manche précédente.', 'À ton tour : prends la carte de la défausse et échange-la avec une de tes cartes (visible ou cachée), ou pioche une carte.', 'Une carte piochée peut être échangée avec une de tes cartes, ou jetée sur la défausse : tu retournes alors une de tes cartes cachées.', 'Trois cartes identiques dans une même colonne sont défaussées.', 'Quand un joueur a retourné toutes ses cartes, chacun des autres joue un dernier tour, puis on retourne tout et on compte.', 'Si celui qui a terminé n’a pas strictement le plus petit score de la manche, et que son score est positif, ses points sont doublés.', 'La partie s’arrête quand un joueur atteint 100 points. Le plus petit total gagne.', 'Option (règle maison) : retourner une de ses cartes cachées à la place de piocher ou de prendre la défausse.'],
-  uno: ['108 cartes : 4 couleurs de 0 à 9, des +2, Inversion et Passe, 4 jokers et 4 jokers +4. 7 cartes chacun.', 'Pose une carte de la même couleur, du même chiffre ou du même symbole que la défausse, ou un joker.', 'Si tu ne peux pas ou ne veux pas jouer, pioche une carte. Si elle peut se poser, tu peux la jouer tout de suite ; sinon ton tour s’arrête.', '+2 : le suivant pioche 2 cartes et passe son tour. Passe : le suivant saute son tour. Inversion : le sens change (à deux, elle fait rejouer).', 'Joker : tu choisis la couleur. Joker +4 : tu choisis la couleur et le suivant pioche 4 cartes et passe son tour. Le +4 n’est permis que si tu n’as aucune carte de la couleur demandée (la partie le vérifie pour toi).', 'Première carte retournée : un +2 fait piocher le premier joueur, un Passe le fait sauter, une Inversion change le sens, un joker laisse la couleur libre, un +4 est remis dans la pioche.', 'Crie « UNO ! » quand tu poses ton avant-dernière carte. Si tu oublies et qu’un joueur appuie sur « Contre-UNO » avant le coup suivant, tu pioches 2 cartes.', 'Option (règle maison) : cumul des +2 et des +4. Le joueur visé peut répondre avec la même carte et le suivant pioche le total.', 'Le premier sans carte marque les cartes restées chez les autres : chiffres à leur valeur, +2, Inversion et Passe = 20, jokers = 50. Si la dernière carte est un +2 ou un +4, le suivant pioche quand même. Premier à 500 points.'],
+  uno: ['108 cartes : 4 couleurs de 0 à 9, des +2, Inversion et Passe, 4 jokers et 4 jokers +4. 7 cartes chacun.', 'Pose une carte de la même couleur, du même chiffre ou du même symbole que la défausse, ou un joker.', 'Si tu ne peux pas ou ne veux pas jouer, pioche une carte. Si elle peut se poser, tu peux la jouer tout de suite ; sinon ton tour s’arrête.', '+2 : le suivant pioche 2 cartes et passe son tour. Passe : le suivant saute son tour. Inversion : le sens change (à deux, elle fait rejouer).', 'Joker : tu choisis la couleur. Joker +4 : tu choisis la couleur et le suivant pioche 4 cartes et passe son tour. Le +4 n’est permis que si tu n’as aucune carte de la couleur demandée (la partie le vérifie pour toi).', 'Première carte retournée : un +2 fait piocher le premier joueur, un Passe le fait sauter, une Inversion change le sens, un joker laisse la couleur libre, un +4 est remis dans la pioche.', 'Crie « Dernière ! » quand tu poses ton avant-dernière carte. Si tu oublies et qu’un joueur appuie sur « Oublié ! » avant le coup suivant, tu pioches 2 cartes.', 'Option (règle maison) : cumul des +2 et des +4. Le joueur visé peut répondre avec la même carte et le suivant pioche le total.', 'Le premier sans carte marque les cartes restées chez les autres : chiffres à leur valeur, +2, Inversion et Passe = 20, jokers = 50. Si la dernière carte est un +2 ou un +4, le suivant pioche quand même. Premier à 500 points.'],
   dobble: ['Chaque joueur a une carte devant lui, la pioche est au centre.', 'Entre n’importe quelles deux cartes, il y a toujours un et un seul symbole en commun.', 'Trouve le symbole commun entre ta carte et celle du centre, et touche-le : tu gagnes la carte du centre, qui devient ta nouvelle carte.', 'Une erreur te bloque une seconde.', 'Quand la pioche est vide, celui qui a le plus de cartes gagne la manche.'],
   sixq: ['104 cartes numérotées. Chaque carte porte des têtes de bœuf : ce sont des points de pénalité.', 'Quatre rangées sont ouvertes au centre. Chacun reçoit 10 cartes.', 'Tout le monde choisit une carte en secret, puis on les révèle et on les pose de la plus petite à la plus grande.', 'Une carte va au bout de la rangée qui se termine par le nombre le plus proche en dessous d’elle.', 'Si c’est la sixième carte de la rangée, tu ramasses les cinq premières et ta carte démarre la rangée.', 'Si ta carte est plus petite que toutes les fins de rangée, tu choisis une rangée à ramasser.', 'Quand un joueur atteint 66 têtes ou plus, la partie s’arrête à la fin de la manche. Le moins de têtes gagne.'],
   president: ['Jeu de 52 cartes, toutes distribuées. Ordre : 3, 4, 5, 6, 7, 8, 9, 10, V, D, R, As, et le 2 au sommet.', 'Le joueur qui a la dame de cœur ouvre la première manche. Il pose 1, 2, 3 ou 4 cartes de même valeur.', 'Chacun son tour, on pose le même nombre de cartes, de valeur égale ou plus forte, ou on passe.', '« Ou rien » (option) : si quelqu’un pose la même valeur que la carte d’avant, les suivants doivent poser cette valeur ou passer. Exemple : 6, puis 6, « 6 ou rien ! ».', 'Le pli se ferme quand les 4 cartes d’une même valeur ont été posées (le carré), quand quelqu’un pose un 2, ou quand tout le monde a passé. Celui qui a posé en dernier ouvre le pli suivant.', 'Option : un joueur qui a passé peut rejouer dans le même pli quand son tour revient.', 'Le premier à vider sa main est Président, puis Vice-président ; l’avant-dernier est Vice-trouduc et le dernier Trouduc (Vice dès 4 joueurs).', 'Option : il est interdit de finir sur un 2. Celui qui pose un 2 comme dernière carte devient Trouduc.', 'Manche suivante : le Trouduc donne ses 2 meilleures cartes au Président, qui lui rend 2 cartes de son choix ; le Vice-trouduc donne sa meilleure carte au Vice-président, qui lui en rend 1. Le Trouduc commence.', 'Points : Président +2, Vice +1, Vice-trouduc −1, Trouduc −2.'],

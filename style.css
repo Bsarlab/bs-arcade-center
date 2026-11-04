@@ -1052,3 +1052,65 @@ body.menu-ouvert .bouton-compte { visibility: hidden; }
 .record-texte small { color: var(--doux); }
 .record-rang { display: grid; justify-items: center; font-size: 22px; font-weight: 800; line-height: 1.1; }
 .record-rang small { font-size: 12px; color: var(--pale); font-weight: 700; }
+
+/* =========================================================
+   Partie 3 : communauté
+   ========================================================= */
+/* Cloche des notifications */
+.notifs { position: relative; }
+.notifs .bouton-rond { position: relative; }
+.notifs-nb { position: absolute; top: -3px; right: -3px; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 999px; background: var(--principal); color: var(--sur-principal); font-size: 11px; font-weight: 800; display: grid; place-items: center; box-shadow: 0 0 0 2px var(--fond); animation: invitation .4s var(--ease) both; }
+.panneau-notifs { position: absolute; right: 0; top: calc(100% + 10px); z-index: 90; width: min(360px, calc(100vw - 32px)); max-height: min(70vh, 480px); overflow: auto; padding: 10px; border-radius: var(--r); background: var(--carte); box-shadow: var(--ombre-forte); animation: invitation .3s var(--ease) both; }
+.panneau-titre { margin: 4px 8px 8px; font-weight: 800; }
+.panneau-vide { margin: 0; padding: 18px 12px; color: var(--doux); text-align: center; }
+.panneau-notifs ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 4px; }
+.panneau-notifs a { display: flex; gap: 12px; align-items: flex-start; padding: 10px; border-radius: var(--r-s); color: var(--encre); transition: background .2s; }
+.panneau-notifs a:hover { background: var(--surface); }
+.panneau-notifs li.nouvelle a { background: color-mix(in srgb, var(--surface) 70%, transparent); }
+.notif-icone { font-size: 20px; line-height: 1.2; }
+.notif-texte { display: block; font-size: 14px; font-weight: 600; }
+.panneau-notifs small { color: var(--pale); font-size: 12px; }
+@media (max-width: 640px) { .panneau-notifs { position: fixed; right: 16px; top: 70px; } }
+
+/* Badges */
+.grille-badges { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 170px), 1fr)); gap: 10px; margin-bottom: 34px; }
+.badge-jeu { display: grid; justify-items: center; text-align: center; gap: 6px; padding: 18px 12px 16px; border-radius: var(--r); background: var(--carte); box-shadow: var(--ombre); transition: transform .35s var(--ease); }
+.badge-jeu:hover { transform: translateY(-3px); }
+.badge-medaille { width: 64px; height: 64px; display: grid; place-items: center; border-radius: 22px; transform: rotate(45deg); background: var(--surface); }
+.badge-medaille svg { width: 28px; height: 28px; transform: rotate(-45deg); stroke: var(--pale); stroke-width: 1.8; }
+.badge-jeu.obtenu .badge-medaille { background: linear-gradient(145deg, var(--moyen), var(--principal)); box-shadow: 0 10px 22px -10px var(--principal); }
+.badge-jeu.obtenu .badge-medaille svg { stroke: var(--sur-principal); }
+.badge-jeu b { margin-top: 8px; font-weight: 800; }
+.badge-jeu small { color: var(--doux); font-size: 12.5px; line-height: 1.35; }
+.badge-jeu:not(.obtenu) { background: color-mix(in srgb, var(--carte) 55%, transparent); box-shadow: none; }
+.badge-jeu:not(.obtenu) b { color: var(--pale); }
+
+/* Réactions et livre d'or */
+.avis { padding: clamp(20px, 4vw, 32px); border-radius: var(--r-l); background: var(--carte); box-shadow: var(--ombre); display: grid; gap: 14px; }
+.avis .classement-tete { margin-bottom: 0; }
+.avis .sous-titre { margin: 8px 0 0; }
+.reactions { display: flex; flex-wrap: wrap; gap: 8px; }
+.reaction { display: inline-flex; align-items: center; gap: 8px; height: 48px; padding: 0 16px 0 12px; border-radius: 999px; border: 0; background: var(--surface); color: var(--encre); cursor: pointer; font: inherit; transition: transform .3s var(--ease), background .2s; }
+.reaction:hover { transform: translateY(-2px); background: var(--clair); }
+.reaction[aria-pressed="true"] { background: var(--principal); color: var(--sur-principal); }
+.reaction[aria-pressed="true"] .reaction-emoji { animation: rebond .5s var(--ease); }
+.reaction-emoji { font-size: 22px; line-height: 1; }
+.reaction b { font-variant-numeric: tabular-nums; }
+.reaction small { font-size: 13px; opacity: .8; }
+@keyframes rebond { 40% { transform: scale(1.35) rotate(-8deg); } }
+@media (max-width: 560px) { .reaction small { display: none; } }
+.livre-form { display: flex; gap: 12px; align-items: flex-start; }
+.livre-form > img, .livre img { width: 42px; height: 42px; border-radius: 50%; object-fit: cover; flex: none; background: var(--surface); }
+.livre-form > div { flex: 1; min-width: 0; display: grid; gap: 8px; }
+.livre-form textarea { width: 100%; min-height: 60px; padding: 12px 14px; border-radius: var(--r-s); border: 1px solid var(--trait); background: var(--fond); color: var(--encre); font: inherit; resize: vertical; }
+.livre-form textarea:focus { outline: 2px solid var(--principal); outline-offset: 1px; }
+.livre-bas { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; }
+.livre-bas small { color: var(--pale); font-size: 13px; }
+.livre { list-style: none; margin: 0; padding: 0; display: grid; gap: 8px; }
+.livre li { display: flex; gap: 12px; padding: 12px 14px; border-radius: var(--r-s); background: var(--fond); }
+.livre li > div { flex: 1; min-width: 0; }
+.livre-auteur { display: flex; align-items: baseline; gap: 10px; flex-wrap: wrap; margin: 0 0 2px; font-weight: 800; }
+.livre-auteur small { color: var(--pale); font-weight: 600; font-size: 13px; }
+.livre-auteur .lien-discret { margin-left: auto; font-size: 13px; }
+.livre-texte { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+#avisJeu:empty { display: none; }
