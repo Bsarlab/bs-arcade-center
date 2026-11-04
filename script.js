@@ -167,7 +167,7 @@ function appliquerApparence(a = {}) {
   // Avant ce design (v4), on repart des réglages « Pierre »
   const v = a.v >= 4 ? { ...DEFAUT, ...a, effets: { ...DEFAUT.effets, ...(a.effets || {}) } } : { ...DEFAUT, css: a.css };
   reglages = v;
-  const h = document.documentElement, r = h.style, sombre = v.mode === "sombre";
+  const h = document.documentElement, r = h.style, sombre = v.mode === "sombre" || (v.mode === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
   const tons = tonsDe(v.teinte, sombre);
   Object.entries(tons).forEach(([k, val]) => r.setProperty("--" + k, val));
   r.setProperty("--r", Math.max(0, Math.min(40, Number(v.arrondi) || 0)) + "px");
@@ -189,6 +189,18 @@ function appliquerApparence(a = {}) {
   if (e.logosCouleur) classes.push("logos-couleur");
   h.className = classes.join(" ");
 }
+// Mode automatique : le site change de thème quand l'appareil passe en sombre ou en clair
+matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (reglages.mode === "auto" && donnees) appliquerApparence(donnees.apparence); });
+// Dernière visite : retenue pour montrer ce qui est nouveau depuis (une fois par session)
+const derniereVisite = (() => {
+  try {
+    let v = sessionStorage.getItem("bs-visite-precedente");
+    if (v === null) { v = localStorage.getItem("bs-derniere-visite") || ""; sessionStorage.setItem("bs-visite-precedente", v); }
+    localStorage.setItem("bs-derniere-visite", String(Date.now()));
+    return Number(v) || 0;
+  } catch { return 0; }
+})();
+const nouveauPourToi = (j) => derniereVisite > 0 && aUneDate(j) && dateJeu(j) > derniereVisite && !estNouveau(j);
 const effet = (cle) => !mouvementReduit && !!reglages.effets?.[cle];
 
 // =========================================================
@@ -199,7 +211,8 @@ function carteJeu(j, { grande = false } = {}) {
   return `<article class="carte-jeu ${grande ? "grande" : ""}" ${attrCouleur(j)}>
     <a class="carte-jeu-media" href="#/jeu/${echapper(j.id)}" aria-label="${echapper(j.titre)}">
       ${imageJeu(j)}
-      ${estNouveau(j) ? `<span class="badge">${t("carte_nouveau")}</span>` : ""}
+      ${j.video ? `<video class="apercu-video" src="${echapper(lien(j.video))}" muted loop playsinline preload="none" aria-hidden="true"></video>` : ""}
+      ${estNouveau(j) ? `<span class="badge">${t("carte_nouveau")}</span>` : nouveauPourToi(j) ? `<span class="badge">${t("pourtoi_badge")}</span>` : ""}
     </a>
     <button class="bouton-fav" type="button" data-favori="${echapper(j.id)}" aria-pressed="${fav}" aria-label="${fav ? "Retirer des" : "Ajouter aux"} favoris">${I.coeur}</button>
     <div class="carte-jeu-texte">
@@ -351,6 +364,27 @@ PAGES.accueil = () => {
       </div>` : a || s.banniere ? `<div class="mosaique seule"><a class="mosaique-case" href="${a ? "#/jeu/" + echapper(a.id) : "#/jeux"}">${a ? imageJeu(a) : `<img src="${echapper(lien(s.banniere))}" alt="">`}</a></div>` : ""}
     </div>
   </section>`,
+    pourtoi: () => {
+      if (apercu) return "";
+      const rep = recents.map(trouverJeu).filter(Boolean).slice(0, 3);
+      const nouveaux = derniereVisite ? jeux.filter((j) => aUneDate(j) && dateJeu(j) > derniereVisite) : [];
+      if (!rep.length && !nouveaux.length) return "";
+      const p = window.BS_PROFIL;
+      const ligne = (j, etiquette) => `<a class="pourtoi-jeu" href="#/jeu/${echapper(j.id)}"><span class="pourtoi-image">${imageJeu(j)}</span><span><small>${etiquette}</small><b>${echapper(j.titre)}</b></span>
+        <button class="jouer-rapide" type="button" data-jouer="${echapper(j.id)}" aria-label="Jouer à ${echapper(j.titre)}">${I.jouer}</button></a>`;
+      return `
+  <section class="section serree">
+    <div class="conteneur">
+      <div class="pourtoi">
+        <div class="pourtoi-tete">${p?.avatar ? `<img class="pourtoi-avatar" src="${echapper(p.avatar)}" alt="">` : ""}<div><p class="etiquette">${t("pourtoi_etiquette")}</p><h2>${t("pourtoi_titre")}${p?.pseudo ? ", " + echapper(p.pseudo) : ""}</h2></div></div>
+        <div class="pourtoi-listes">
+          ${nouveaux.length ? `<div><p class="sous-titre">${t("pourtoi_nouveau")}</p>${nouveaux.slice(0, 3).map((j) => ligne(j, T("pourtoi_badge"))).join("")}</div>` : ""}
+          ${rep.length ? `<div><p class="sous-titre">${t("pourtoi_reprendre")}</p>${rep.map((j) => ligne(j, T("jeux_continuer"))).join("")}</div>` : ""}
+        </div>
+      </div>
+    </div>
+  </section>`;
+    },
     defilant: () => {
       const mots = T("defilant_mots").split(/[·|,]/).map((x) => x.trim()).filter(Boolean);
       let items = mots.flatMap((m, i) => (jeux[i] ? [m, jeux[i].titre] : [m]));
@@ -564,6 +598,7 @@ PAGES.jeu = (id) => {
       <div class="jeu-grille">
         <button class="jeu-visuel" type="button" data-jouer="${echapper(j.id)}" aria-label="Jouer à ${echapper(j.titre)}">
           ${imageJeu(j)}
+          ${j.video && !mouvementReduit ? `<video class="apercu-video visible" src="${echapper(lien(j.video))}" muted loop playsinline autoplay aria-hidden="true"></video>` : ""}
           <span class="jeu-visuel-jouer">${I.jouer}</span>
         </button>
         <div class="jeu-infos">
@@ -599,6 +634,13 @@ PAGES.jeu = (id) => {
     <div class="conteneur">
       ${enteteSection(t("jeu_autres_etiquette"), t("jeu_autres_titre"), `<a class="lien-fleche" href="#/jeux">${t("jeu_autres_lien")} ${I.droite}</a>`)}
       <div class="grille-jeux">${autres.map((x) => carteJeu(x)).join("")}</div>
+    </div>
+  </section>`,
+    captures: () => !(j.captures || []).length ? "" : `
+  <section class="section serree">
+    <div class="conteneur">
+      ${enteteSection(t("captures_etiquette"), t("captures_titre"), `<span class="meta">${t("galerie_aide")}</span>`)}
+      <div class="captures">${j.captures.map((c, i) => `<button class="capture" type="button" data-zoom="${echapper(lien(c))}" data-legende="${echapper(j.titre)} · ${i + 1}/${j.captures.length}"><img src="${echapper(lien(c))}" alt="Capture ${i + 1} de ${echapper(j.titre)}" loading="lazy"></button>`).join("")}</div>
     </div>
   </section>`,
     classement: () => window.BS_PLATEFORME?.actif?.() ? `<section class="section serree" id="classementJeu" data-jeu="${echapper(j.id)}"></section>` : "",
@@ -1193,6 +1235,19 @@ function activerRevele() {
   }
   if (compteurs) document.querySelectorAll("#vue [data-compteur]").forEach((el) => observateur.observe(el));
 }
+
+// Vidéo d'aperçu : se lance au survol d'une carte de jeu
+document.addEventListener("pointerover", (e) => {
+  if (e.pointerType !== "mouse" || mouvementReduit) return;
+  const carte = e.target.closest?.(".carte-jeu"), v = carte?.querySelector(".apercu-video");
+  if (!v || carte.contains(e.relatedTarget)) return;
+  v.classList.add("visible"); v.play?.().catch(() => {});
+});
+document.addEventListener("pointerout", (e) => {
+  const carte = e.target.closest?.(".carte-jeu"), v = carte?.querySelector(".apercu-video");
+  if (!v || carte.contains(e.relatedTarget)) return;
+  v.classList.remove("visible"); v.pause?.(); try { v.currentTime = 0; } catch {}
+});
 
 // Effets qui suivent la souris : inclinaison 3D et halo lumineux sur les cartes
 let carteSurvolee = null;

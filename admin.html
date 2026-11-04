@@ -188,7 +188,7 @@
   </section>
 </div>
 
-<script src="textes.js?v=32"></script>
+<script src="textes.js?v=34"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -522,7 +522,7 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
         <div class="teintes">${TEINTES.map(([nom, c]) => `<button class="teinte ${String(ap.teinte).toLowerCase() === c.toLowerCase() ? "choisie" : ""}" type="button" data-teinte="${c}">${nuancier(c)}<b>${nom}</b></button>`).join("")}</div>
         <div class="couleurs">
           <label class="couleur"><input type="color" id="f-apparence.teinte" data-champ="apparence.teinte" value="${echapper(ap.teinte)}"><span>Ma couleur</span></label>
-          ${choixVL("apparence.mode", "Mode", [["clair", "Clair"], ["sombre", "Sombre"]])}
+          ${choixVL("apparence.mode", "Mode", [["clair", "Clair"], ["sombre", "Sombre"], ["auto", "Automatique (suit l'appareil du visiteur)"]])}
         </div>
       </div>
       <div class="bloc"><h2>TYPOGRAPHIE</h2>
@@ -676,12 +676,21 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
         <span>${j.fichier ? echapper(j.fichier.split("/").pop()) : "Aucun fichier choisi"}</span></div></div>
       ${champJeu(j, "titre", "Titre", 80)}
       ${champJeu(j, "genre", "Genre", 30)}
-      <div class="champ"><label for="j-${j.id}-description">Description</label><textarea id="j-${j.id}-description" data-jeu="${j.id}" data-cle="description" maxlength="500">${echapper(j.description)}</textarea></div>
+      <div class="champ"><label for="j-${j.id}-description">Description</label><textarea id="j-${j.id}-description" data-jeu="${j.id}" data-cle="description" maxlength="1500" style="min-height:110px">${echapper(j.description)}</textarea><span class="aide">Affichée sur la fiche du jeu. Laisse une ligne vide entre deux paragraphes.</span></div>
       <div class="champ"><span class="lbl">Jaquette</span><div class="image">
         ${j.image ? `<img class="vignette" src="${echapper(url(j.image))}" alt="">` : `<span class="vignette"></span>`}
         <div class="actions"><label class="btn petit" for="ji-${j.id}">${j.image ? "Remplacer" : "Importer une image"}<input type="file" id="ji-${j.id}" data-image-jeu="${j.id}" accept="image/png,image/jpeg,image/webp,image/gif"></label>
         ${j.image ? `<button class="btn petit danger" type="button" data-action="retirer-jaquette" data-id="${j.id}">Retirer</button>` : ""}</div></div>
         <span class="aide">Sans image, une jaquette est générée avec les initiales.</span></div>
+      <div class="champ"><span class="lbl">Captures d'écran</span><div class="galerieAdmin">${(j.captures || []).map((c, k) =>
+          `<div class="vg"><img src="${echapper(url(c))}" alt=""><button class="ico" type="button" data-action="retirer-capture" data-id="${j.id}" data-k="${k}" aria-label="Retirer">×</button></div>`).join("")}</div>
+        <label class="btn petit" for="jc-${j.id}" style="justify-self:start">+ Ajouter des captures<input type="file" id="jc-${j.id}" data-captures-jeu="${j.id}" accept="image/png,image/jpeg,image/webp,image/gif" multiple style="position:absolute;width:1px;height:1px;opacity:0"></label>
+        <span class="aide">Des images de la partie : elles s'affichent sur la fiche du jeu et s'agrandissent au clic.</span></div>
+      <div class="champ"><span class="lbl">Vidéo d'aperçu (facultatif)</span><div class="fichier">
+        <label class="btn petit" for="jv-${j.id}">${j.video ? "Remplacer" : "Choisir une vidéo"}<input type="file" id="jv-${j.id}" data-video-jeu="${j.id}" accept="video/mp4,video/webm"></label>
+        <span>${j.video ? echapper(j.video.split("/").pop()) : "Aucune vidéo"}</span>
+        ${j.video ? `<button class="btn petit danger" type="button" data-action="retirer-video" data-id="${j.id}">Retirer</button>` : ""}</div>
+        <span class="aide">MP4 ou WebM, 15 Mo maximum, sans son de préférence. Elle se lance au survol de la jaquette et en fond sur la fiche du jeu. Une boucle de 5 à 10 secondes suffit.</span></div>
       ${jeuASupprimer === j.id
         ? `<div class="confirmer"><span>Supprimer ce jeu du site ?</span><button class="btn petit danger" type="button" data-action="supprimer-oui" data-id="${j.id}">Supprimer</button><button class="btn petit" type="button" data-action="supprimer-non">Garder</button></div>`
         : `<div><button class="btn petit danger" type="button" data-action="supprimer" data-id="${j.id}">Supprimer ce jeu</button></div>`}
@@ -1002,6 +1011,8 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
       case "supprimer-non": jeuASupprimer = null; afficherOnglet(); return;
       case "supprimer-oui": liste.splice(i, 1); jeuASupprimer = null; jeuOuvert = null; break;
       case "retirer-jaquette": liste[i].image = ""; break;
+      case "retirer-capture": liste[i].captures.splice(Number(a.dataset.k), 1); break;
+      case "retirer-video": liste[i].video = ""; break;
     }
     changement(); afficherOnglet();
   });
@@ -1025,6 +1036,21 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
       changement(); afficherOnglet(); return;
     }
     if (f.size > 25 * 1048576) { statut("Ce fichier dépasse 25 Mo, GitHub le refusera.", "ko"); return; }
+    if (el.dataset.capturesJeu) {
+      const j = trouverJeu(el.dataset.capturesJeu); j.captures = j.captures || [];
+      for (const img of el.files) {
+        if (!EXT[img.type] || img.size > 25 * 1048576) { statut(`« ${echapper(img.name)} » ignorée : format ou taille non pris en charge.`, "ko"); continue; }
+        j.captures.push(ajouterEnAttente(img, "images", (j.titre || "jeu") + "-capture", EXT[img.type]));
+      }
+      changement(); afficherOnglet(); return;
+    }
+    if (el.dataset.videoJeu) {
+      const ext = { "video/mp4": "mp4", "video/webm": "webm" }[f.type];
+      if (!ext) { statut("Vidéo non prise en charge : utilise MP4 ou WebM.", "ko"); return; }
+      if (f.size > 15 * 1048576) { statut("Vidéo trop lourde (15 Mo maximum). Raccourcis-la ou baisse sa qualité.", "ko"); return; }
+      const j = trouverJeu(el.dataset.videoJeu); j.video = ajouterEnAttente(f, "images", (j.titre || "jeu") + "-apercu", ext);
+      changement(); afficherOnglet(); return;
+    }
     if (el.dataset.image || el.dataset.imageJeu) {
       if (!EXT[f.type]) { statut("Image non prise en charge : utilise PNG, JPG, WebP, GIF ou SVG.", "ko"); return; }
       if (el.dataset.image) ecrire(el.dataset.image, ajouterEnAttente(f, "images", el.dataset.image.split(".").pop(), EXT[f.type]));
@@ -1043,7 +1069,7 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
 
   // ---------- Publication (un seul envoi sur GitHub) ----------
   function references(d) {
-    return [d.site?.logo, d.site?.banniere, d.histoire?.image, ...(d.jeux || []).flatMap((j) => [j.fichier, j.image]),
+    return [d.site?.logo, d.site?.banniere, d.histoire?.image, ...(d.jeux || []).flatMap((j) => [j.fichier, j.image, j.video, ...(j.captures || [])]),
       ...(d.blocs || []).flatMap((b) => [b.image, ...(b.images || [])]), ...(d.slides || []).map((s) => s.image)]
       .filter((c) => c && /^(images|jeux)\//.test(c));
   }

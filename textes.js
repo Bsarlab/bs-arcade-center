@@ -45,6 +45,13 @@ window.TEXTES_SITE = [
     ["teaser_chiffre1", "À propos : légende chiffre 1", "jeux en ligne"],
     ["teaser_chiffre2", "À propos : légende chiffre 2", "en préparation"],
     ["galerie_etiquette", "Galerie : petit titre", "En images"],
+    ["pourtoi_etiquette", "Retour d'un visiteur : petit titre", "Pour toi"],
+    ["pourtoi_titre", "Retour d'un visiteur : titre (suivi du pseudo)", "Content de te revoir"],
+    ["pourtoi_nouveau", "Retour d'un visiteur : nouveautés", "Nouveau depuis ta dernière visite"],
+    ["pourtoi_reprendre", "Retour d'un visiteur : reprendre", "Reprendre une partie"],
+    ["pourtoi_badge", "Badge des jeux sortis depuis la dernière visite", "Nouveau pour toi"],
+    ["captures_etiquette", "Fiche d'un jeu : captures, petit titre", "En images"],
+    ["captures_titre", "Fiche d'un jeu : captures, titre", "Aperçu du jeu"],
     ["galerie_titre", "Galerie : titre", "La galerie"],
     ["galerie_aide", "Galerie : petit texte à droite", "Clique sur une image pour l'agrandir"],
   ]},
@@ -196,13 +203,13 @@ window.TEXTES_SITE = [
 // Sections de chaque page : on peut les masquer et changer leur ordre (onglet « Mise en page »)
 window.SECTIONS_SITE = {
   accueil: { nom: "Accueil", lien: "#/", sections: [
-    ["hero", "Grand titre et mosaïque"], ["defilant", "Bande de mots qui défile"], ["atouts", "4 blocs d'atouts"], ["une", "Carrousel « À la une »"],
+    ["hero", "Grand titre et mosaïque"], ["pourtoi", "« Content de te revoir » (visiteurs qui reviennent)"], ["defilant", "Bande de mots qui défile"], ["atouts", "4 blocs d'atouts"], ["une", "Carrousel « À la une »"],
     ["derniers", "Liste des jeux"], ["genres", "Par genre"], ["galerie", "Galerie d'images"], ["citation", "Bande foncée avec citation"], ["etapes", "Comment ça marche"],
     ["prochains", "Prochains jeux"], ["blocs", "Tes blocs (onglet Blocs)"], ["apropos", "Aperçu À propos"], ["contact", "Bandeau contact"]] },
   jeux: { nom: "Jeux", lien: "#/jeux", sections: [
     ["entete", "Titre de la page"], ["reprendre", "Reprendre une partie"], ["outils", "Recherche, filtres et tri"], ["grille", "Liste des jeux"], ["blocs", "Tes blocs"]] },
   jeu: { nom: "Page d'un jeu", lien: "#/jeux", sections: [
-    ["fiche", "Fiche du jeu"], ["classement", "Classement des joueurs"], ["suite", "Jeu précédent / suivant"], ["autres", "Tu aimeras aussi"], ["blocs", "Tes blocs"]] },
+    ["fiche", "Fiche du jeu"], ["captures", "Captures d'écran"], ["classement", "Classement des joueurs"], ["suite", "Jeu précédent / suivant"], ["autres", "Tu aimeras aussi"], ["blocs", "Tes blocs"]] },
   "a-propos": { nom: "À propos", lien: "#/a-propos", sections: [
     ["histoire", "Ton histoire"], ["debut", "Bandeau « Ce n'est que le début »"], ["prochains", "Prochains jeux"], ["chrono", "Chronologie"], ["blocs", "Tes blocs"]] },
   contact: { nom: "Contact", lien: "#/contact", sections: [
