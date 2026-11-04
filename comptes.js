@@ -326,6 +326,19 @@
     const z = $("lecteurJoueurs"); if (z) { z.hidden = true; z.innerHTML = ""; }
   }
 
+  // Affichage d'un score. Formats spéciaux (choisis par le jeu avec « libelle ») :
+  //   "chrono"         -> le score est un temps en secondes
+  //   "chrono+argent"  -> temps en secondes, moins l'argent final / 10 000 000 (le plus rapide gagne, puis le plus riche)
+  const FORMATS = { chrono: "Temps", "chrono+argent": "Temps · argent final" };
+  const duree = (s) => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return h ? `${h} h ${String(m).padStart(2, "0")} min` : `${m} min ${String(x).padStart(2, "0")} s`; };
+  function texteScore(l) {
+    const v = Number(l?.score);
+    if (l?.libelle === "chrono") return duree(v);
+    if (l?.libelle === "chrono+argent") { const sec = Math.ceil(v - 1e-9), argent = Math.round((sec - v) * 1e7); return duree(sec) + " · " + argent.toLocaleString("fr-FR") + " $"; }
+    return v.toLocaleString("fr-FR");
+  }
+  const uniteScore = (l) => (l?.ordre === "cumul" ? T("classement_victoires") : FORMATS[l?.libelle] || l?.libelle || T("classement_score"));
+
   // Si Supabase refuse un score, on le dit au lieu de l'ignorer
   function erreurScore(e) {
     const m = String((e && (e.code + " " + e.message)) || "");
@@ -401,7 +414,7 @@
       if (!sb) { try { await window.demarrerComptes(); } catch {} }
       const lignes = await this.classement(id);
       if (!document.body.contains(zone)) return;
-      const moi = session?.user?.id, unite = lignes[0]?.ordre === "cumul" ? T("classement_victoires") : lignes[0]?.libelle || T("classement_score");
+      const moi = session?.user?.id, unite = uniteScore(lignes[0]);
       const medailles = ["🥇", "🥈", "🥉"];
       zone.innerHTML = `<div class="conteneur"><div class="classement">
         <div class="classement-tete"><div><p class="etiquette">${t("classement_etiquette")}</p><h2>${t("classement_titre")}</h2></div>${lignes.length ? `<span class="meta">${esc(unite)}</span>` : ""}</div>
@@ -410,7 +423,7 @@
             <span class="rang">${medailles[i] || i + 1}</span>
             <img src="${esc(imageSure(l.profils?.avatar) || AVATARS[i % 12])}" alt="">
             <b><a class="lien-joueur" href="#/joueur/${esc(l.joueur)}">${esc(l.profils?.pseudo || "Joueur")}</a>${l.joueur === moi ? ` <small>· ${t("classement_toi")}</small>` : ""}</b>
-            <span class="points">${Number(l.score).toLocaleString("fr-FR")}</span></li>`).join("")}</ol>` : `<p class="classement-vide">${t("classement_vide")}</p>`}
+            <span class="points">${esc(texteScore(l))}</span></li>`).join("")}</ol>` : `<p class="classement-vide">${t("classement_vide")}</p>`}
         ${session ? "" : `<a class="classement-connexion" href="#/compte">${t("classement_connexion")} ${I.droite}</a>`}
       </div></div>`;
     },
@@ -423,7 +436,7 @@
   const nombre = (n) => Number(n).toLocaleString("fr-FR");
   const medaille = (i) => ["🥇", "🥈", "🥉"][i] || String(i + 1);
   const trier = (l) => l.sort((a, b) => ((a.ordre || "haut") === "bas" ? a.score - b.score : b.score - a.score));
-  const uniteDe = (l) => (l?.ordre === "cumul" ? T("classement_victoires") : l?.libelle || T("classement_score"));
+  const uniteDe = uniteScore;
   const avatarSur = (p, i = 0) => imageSure(p?.avatar) || AVATARS[i % 12];
   const imgJeu = (j) => (j.image ? `<img src="${esc(lien(j.image))}" alt="" loading="lazy">` : `<span class="sans-image">${esc(initiales(j.titre))}</span>`);
   // Tous les scores, regroupés par jeu (le site est petit : une seule requête suffit)
@@ -449,7 +462,7 @@
   const ligneClassement = (l, i, moi) => `<li class="${l.joueur === moi ? "moi" : ""}">
     <span class="rang">${medaille(i)}</span><img src="${esc(avatarSur(l.profils, i))}" alt="">
     <b><a class="lien-joueur" href="#/joueur/${esc(l.joueur)}">${esc(l.profils?.pseudo || "Joueur")}</a>${l.joueur === moi ? ` <small>· ${t("classement_toi")}</small>` : ""}</b>
-    <span class="points">${nombre(l.score)}</span></li>`;
+    <span class="points">${esc(texteScore(l))}</span></li>`;
 
   // Bandeau « Untel t'invite à jouer »
   P.afficherInvitation = async (de, j) => {
@@ -543,7 +556,7 @@
     ${lignes.length ? `<div class="liste-records">${lignes.map(({ j, l, rang, total }) => `
       <a class="record" href="#/jeu/${esc(j.id)}" style="--c:${couleurJeu(j)}" data-couleur="${esc(j.id)}">
         <span class="record-image">${imgJeu(j)}</span>
-        <span class="record-texte"><b>${esc(j.titre)}</b><small>${esc(uniteDe(l))} : ${nombre(l.score)}</small></span>
+        <span class="record-texte"><b>${esc(j.titre)}</b><small>${esc(uniteDe(l))} : ${esc(texteScore(l))}</small></span>
         <span class="record-rang">${medaille(rang)}<small>${rang + 1}/${total}</small></span>
       </a>`).join("")}</div>` : `<p class="classement-vide">${t("joueur_vide")}</p>`}
   </div></section>`;
@@ -681,7 +694,7 @@
     if (id && connecte()) { try { avant = (await sb.from("scores").select("score").eq("joueur", session.user.id).eq("jeu", id).maybeSingle()).data?.score ?? null; } catch {} }
     const res = await scoreOriginal.call(this, valeur, o);
     if (res !== null && res !== undefined && Number(res) === Number(valeur) && (avant === null || Number(avant) !== Number(valeur))) {
-      const j = trouverJeu(id), texte = T("notif_record", { jeu: j?.titre || "", score: nombre(valeur) + (o.libelle ? " " + o.libelle : "") });
+      const j = trouverJeu(id), texte = T("notif_record", { jeu: j?.titre || "", score: FORMATS[o.libelle] ? texteScore({ score: valeur, libelle: o.libelle }) : nombre(valeur) + (o.libelle ? " " + o.libelle : "") });
       notifier(texte, 4000); ajouterNotif({ type: "record", texte, lien: "#/jeu/" + id });
     }
     return res;

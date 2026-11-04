@@ -269,12 +269,14 @@ create policy "scores lisibles" on public.scores for select using (true);
 -- Les scores ne s'écrivent que par cette fonction (garde le meilleur, ou additionne les victoires)
 create or replace function public.envoyer_score(p_jeu text, p_score numeric, p_ordre text default 'haut', p_libelle text default null)
 returns numeric language plpgsql security definer set search_path = public as $$
-declare ancien numeric;
+declare ancien numeric; ancien_ordre text; ancien_libelle text;
 begin
   if auth.uid() is null then return null; end if;
   if p_ordre not in ('haut', 'bas', 'cumul') then p_ordre := 'haut'; end if;
   insert into profils (id, pseudo) select auth.uid(), 'Joueur' where not exists (select 1 from profils where id = auth.uid());
-  select score into ancien from scores where joueur = auth.uid() and jeu = left(p_jeu, 40);
+  select score, ordre, libelle into ancien, ancien_ordre, ancien_libelle from scores where joueur = auth.uid() and jeu = left(p_jeu, 40);
+  -- Le jeu a changé sa façon de compter (ex. nuits tenues -> temps) : l'ancien score est remplacé
+  if ancien is not null and p_ordre <> 'cumul' and (ancien_ordre is distinct from p_ordre or ancien_libelle is distinct from left(p_libelle, 20)) then ancien := null; end if;
   if p_ordre = 'cumul' then
     insert into scores (joueur, jeu, score, ordre, libelle, maj) values (auth.uid(), left(p_jeu, 40), 1, 'cumul', p_libelle, now())
     on conflict (joueur, jeu) do update set score = scores.score + 1, maj = now();
