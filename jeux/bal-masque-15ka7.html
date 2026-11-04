@@ -844,8 +844,61 @@ function libsOk(){
       d'entreprise ;
    2) sur ton propre site : connexion directe PeerJS (WebRTC).
    --------------------------------------------------------------------- */
+/* Sur le site (hors de Claude) : même « salon », relayé par un serveur public de messages (MQTT),
+   comme les tables de Brelan. Ça passe derrière les box et les pare-feu, là où la connexion directe échoue. */
+const RELAIS = {
+  serveurs: ['wss://broker.emqx.io:8084/mqtt', 'wss://broker.hivemq.com:8884/mqtt', 'wss://test.mosquitto.org:8081/mqtt'],
+  lib: null,
+  charger(){
+    if (window.mqtt && window.mqtt.connect) return Promise.resolve(true);
+    if (this.lib) return this.lib;
+    const urls = ['https://cdn.jsdelivr.net/npm/mqtt@5.10.1/dist/mqtt.min.js', 'https://unpkg.com/mqtt@5.10.1/dist/mqtt.min.js'];
+    this.lib = new Promise(ok => {
+      const essai = i => {
+        if (i >= urls.length) return ok(false);
+        const sc = document.createElement('script'); sc.src = urls[i];
+        sc.onload = () => ok(!!(window.mqtt && window.mqtt.connect)); sc.onerror = () => essai(i + 1);
+        document.head.appendChild(sc);
+      };
+      essai(0);
+    });
+    return this.lib;
+  },
+  async join(nom){
+    if (!(await this.charger())) throw new Error('lib');
+    const moi = 'p' + Math.random().toString(36).slice(2, 10), T = 'bsarcade-balmasque-v1/' + nom + '/';
+    for (const url of this.serveurs){
+      const cl = await new Promise(ok => {
+        let fini = false;
+        const c = window.mqtt.connect(url, { clientId: 'bm_' + moi, clean: true, connectTimeout: 6000, reconnectPeriod: 0, keepalive: 30,
+          will: { topic: T + 'part', payload: JSON.stringify({ peer: moi }), qos: 0, retain: false } });
+        const fin = v => { if (fini) return; fini = true; clearTimeout(to); if (!v){ try { c.end(true); } catch(e){} } ok(v ? c : null); };
+        const to = setTimeout(() => fin(false), 7000);
+        c.on('connect', () => fin(true)); c.on('error', () => fin(false)); c.on('close', () => fin(false));
+      });
+      if (!cl) continue;
+      cl.options.reconnectPeriod = 2500;
+      const ecoute = {}, departs = [];
+      cl.on('message', (topic, buf) => {
+        let m; try { m = JSON.parse(buf.toString()); } catch(e){ return; }
+        if (!m || m.peer === moi) return;
+        if (topic === T + 'part'){ departs.forEach(f => f({ left: [{ peer: m.peer }] })); return; }
+        (ecoute[m.ev] || []).forEach(f => f({ data: m.data, peer: m.peer }));
+      });
+      cl.on('connect', () => cl.subscribe([T + 'm', T + 'part'], { qos: 0 }));
+      await new Promise(r => cl.subscribe([T + 'm', T + 'part'], { qos: 0 }, () => r()));
+      return {
+        emit: (ev, data) => new Promise(r => { try { cl.publish(T + 'm', JSON.stringify({ ev, data, peer: moi }), { qos: 0 }, () => r()); } catch(e){ r(); } }),
+        on: (ev, f) => { (ecoute[ev] = ecoute[ev] || []).push(f); },
+        onPeers: f => { departs.push(f); },
+        leave: () => { try { cl.publish(T + 'part', JSON.stringify({ peer: moi }), { qos: 0 }, () => cl.end()); } catch(e){} },
+      };
+    }
+    throw new Error('relais');
+  },
+};
 const roomP = (window.claude && typeof window.claude.use === 'function')
-  ? window.claude.use('room').catch(() => null) : Promise.resolve(null);
+  ? window.claude.use('room').catch(() => null) : Promise.resolve(RELAIS);
 let NETMODE = 'peer';                       // 'room' | 'peer'
 const RELIABLE_SKIP = new Set(['s', 'aim']);
 const ICE = {iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'},{urls:'stun:global.stun.twilio.com:3478'}]};
