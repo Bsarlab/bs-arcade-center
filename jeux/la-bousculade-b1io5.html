@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"></head><body style="margin:0">
+<script src="../bs-jeux.js"></script>
 <title>La Bousculade</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1925,6 +1926,7 @@ const remotes = new Map();
 const joinedAt = Date.now();
 const saved = lsGet('bousculade:me', null) || {};
 const ME = { n: (saved.n || '').slice(0, 14), c: saved.c ?? Math.floor(Math.random() * 8), a: saved.a ?? 1, h: saved.h ?? 1, o: (saved.o | 0) > 5 ? 0 : (saved.o ?? 0), f: saved.f ?? 0, sk: null, gr: null, rdy: false, lv: 'lobby', j: joinedAt, p: [0, 0, 0], y: 0, s: 0, v: [0, 0, 0], hid: 0, fin: null, out: null, e: null, go: null };
+if (window.BS && BS.profil) ME.n = String(BS.profil.pseudo).slice(0, 14);
 if (!ME.n) ME.n = ['Pompon', 'Bidule', 'Gribouille', 'Tornade', 'Patapouf', 'Zigzag', 'Clafoutis', 'Ricochet'][Math.floor(Math.random() * 8)] + Math.floor(10 + Math.random() * 89);
 if (ME.a === ME.c) ME.a = (ME.c + 1) % COLORS.length;
 let sentStatic = '', sentDyn = '', sentG = '', lastSend = 0, emoteN = 0;
@@ -2514,6 +2516,7 @@ function showResults() {
 }
 function showPodium() {
   const w = G.fr && G.fr[0];
+  try { if (w && w[0] === myPeer && window.BS) BS.victoire(); } catch (e) {}
   letters($('#champName'), w ? cleanName(w[1]) : 'Personne', 0.06);
   $('#champSub').textContent = w ? (w[0] === myPeer ? `C'est toi ! ${w[2]} points, la couronne est à toi` : `${w[2]} points, la couronne est à lui`) : 'Aucun gagnant cette fois';
   const box = $('#podList'); box.textContent = '';

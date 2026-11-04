@@ -1,5 +1,6 @@
 <!doctype html>
 <html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="../bs-jeux.js"></script>
 <title>Loup-Garou de Brumeval</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -4543,7 +4544,7 @@ const UI = (() => {
   let lastPriv = null;
 
   /* ---------- identité ---------- */
-  St.myName = store.get('lg_name', ''); St.myColor = store.get('lg_color', Math.floor(Math.random() * 12));
+  St.myName = (window.BS&&BS.profil?String(BS.profil.pseudo).slice(0,16):"") || store.get('lg_name', ''); St.myColor = store.get('lg_color', Math.floor(Math.random() * 12));
   function initIdentity() {
     const inp = $('#in-name'); inp.value = St.myName;
     inp.addEventListener('input', () => { St.myName = inp.value.trim().slice(0, 16); store.set('lg_name', St.myName); syncPick(); Net.updateMe(); });
@@ -5059,6 +5060,7 @@ const UI = (() => {
     const T = { village: ['Le village triomphe', 'Les loups ne hanteront plus Brumeval.'], wolves: ['La meute a gagné', 'Brumeval s’endort, et ne se réveillera plus.'], love: ['L’amour l’emporte', 'Seuls au monde, les amoureux s’enfuient dans la brume.'], none: ['Il ne reste personne', 'Le feu brûle pour des fantômes.'], white: ['Le Loup Blanc triomphe', 'Il a dévoré le village, puis sa propre meute.'], flute: ['Le Joueur de Flûte a gagné', 'Tout Brumeval danse au son de sa flûte.'], angel: ['L’Ange s’envole', 'Il voulait quitter ce monde : le village l’a exaucé.'] }[team] || ['Fin de la veillée', ''];
     $('#end-h').textContent = T[0]; $('#end-sub').textContent = T[1];
     const won = me >= 0 && winners.includes(me);
+    try { if (won && window.BS) BS.victoire(); } catch (e) {}
     $('#ov-end .eyebrow').textContent = me < 0 ? 'Fin de la veillée' : won ? 'Tu as gagné' : 'Tu as perdu';
     const g = $('#end-grid'); g.textContent = '';
     pub.s.forEach((s, i) => { const f = document.createElement('figure'); if (winners.includes(i)) f.className = 'win'; const c = document.createElement('div'); c.className = 'endc'; c.innerHTML = cardSVG(s[4] || 'V') + '<span class="pface">' + faceHTML(s[1]) + '</span>'; const cap = document.createElement('figcaption'); cap.textContent = s[0] + (i === me ? ' (toi)' : ''); f.append(c, cap); g.appendChild(f); });

@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<script src="../bs-jeux.js"></script>
 <title>Golf with TEC3H</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -4570,6 +4571,7 @@ function showHoleCard(){
 }
 function showFinalSolo(){
   const tot=G.card.reduce((a,b)=>a+(b||0),0), tp=HOLES.reduce((a,h)=>a+h.par,0);
+  try{ if(window.BS) BS.score(tot-tp,{ordre:'bas',libelle:'coups / par'}); }catch(e){}
   lastResults=()=>showResults(`<div class="phead" style="justify-content:center"><h2>${escapeHtml(t('finalTitle'))}</h2></div>
     <div class="bigscore"><b>${tot}</b><span>${escapeHtml(mapName(MAP_ID))} · ${escapeHtml(holesTxt(NH))}</span></div>
     ${scorecardHtml(G.card)}
@@ -4636,7 +4638,7 @@ function renderMapGrid(){ $('mapGrid').innerHTML=[...BUILTIN_MAPS, ...Object.key
 $('mSolo').onclick=()=>{ Sound.click(); G.phase='maps'; renderMapGrid(); show('maps'); };
 $('mapsBack').onclick=()=>{ Sound.click(); G.phase='menu'; show('menu'); };
 $('mTuto').onclick=()=>{ Sound.click(); setMap('forest'); G.fromEditor=false; G.startHole=0; startGame('tuto'); };
-$('mMulti').onclick=()=>{ Sound.click(); $('nameInput').value=S.name||''; $('multiErr').style.color=''; $('multiErr').textContent=(/claude|anthropic/i.test(location.hostname)||typeof RTCPeerConnection==='undefined')?t('e_blocked'):''; G.phase='multi'; show('multi'); setTimeout(()=>$('nameInput').focus(),50); };
+$('mMulti').onclick=()=>{ Sound.click(); $('nameInput').value=(window.BS&&BS.profil?String(BS.profil.pseudo).slice(0,16):"")||S.name||''; $('multiErr').style.color=''; $('multiErr').textContent=(/claude|anthropic/i.test(location.hostname)||typeof RTCPeerConnection==='undefined')?t('e_blocked'):''; G.phase='multi'; show('multi'); setTimeout(()=>$('nameInput').focus(),50); };
 $('multiBack').onclick=()=>{ Sound.click(); G.phase='menu'; show('menu'); };
 $('nameInput').oninput=e=>{ S.name=e.target.value.slice(0,16); save(); };
 $('codeInput').oninput=e=>{ e.target.value=e.target.value.toUpperCase().replace(/[^A-Z0-9]/g,''); };
@@ -4669,8 +4671,8 @@ function sanitizeStyle(s){ s=s||{}; const hex=v=>(typeof v==='string'&&/^#[0-9a-
     trail:['none','ribbon','rainbow','sparkle','comet'].includes(s.trail)?s.trail:'none', tcolor:hex(s.tcolor)||'#ffffff',
     photoSmall:(typeof s.photoSmall==='string' && s.photoSmall.length<80000 && /^data:image\/(jpeg|png|webp);base64,[A-Za-z0-9+/=]+$/.test(s.photoSmall))?s.photoSmall:null }; }
 const num=v=>Number.isFinite(+v)?+v:0;
-const myName=()=> (S.name||'').trim() || (t('player')+' '+(100+Math.floor(Math.random()*900)));
-const netStyle=()=>({ color:S.ball.color, pattern:S.ball.pattern, pcolor:S.ball.pcolor, trail:S.ball.trail, tcolor:S.ball.tcolor, photoSmall:S.ball.photoSmall||null });
+const myName=()=> (window.BS&&BS.profil?String(BS.profil.pseudo).slice(0,16):"") || (S.name||'').trim() || (t('player')+' '+(100+Math.floor(Math.random()*900)));
+const netStyle=()=>({ color:S.ball.color, pattern:S.ball.pattern, pcolor:S.ball.pcolor, trail:S.ball.trail, tcolor:S.ball.tcolor, photoSmall:S.ball.photoSmall||null, av:(window.BS&&BS.profil?BS.imageSure(BS.profil.avatar):'') });
 function allPlayers(){
   const arr=[...Net.players.values()].map(p=>({ ...p }));
   const me=arr.find(p=>p.id===Net.myId); if(me){ me.strokes=G.ball.strokes; me.holed=holeDone(); me.hole=G.hole; me.total=totalStrokes(); }
@@ -4813,7 +4815,7 @@ function gotoLobby(){
   G.phase='lobby'; G.paused=false; G.free=false; arrow.visible=false; if(myBall){ myBall.root.visible=false; myBall.trail.clear(); } clearRemotes(); loadCourse(MENU_HOLE);
   $('vignette').style.opacity=1; $('menuShade').style.opacity=1; show('lobby'); setTopbar(true); renderLobby();
 }
-function avatarCss(st){ st=st||{}; return st.photoSmall?`background-image:url(${st.photoSmall})`:`background:radial-gradient(circle at 35% 30%,#fff8,transparent 55%),${st.color||'#eee'}`; }
+function avatarCss(st){ st=st||{}; const bsAv=window.BS&&BS.imageSure(st.av); if(bsAv) return `background:url('${bsAv}') center/cover`; return st.photoSmall?`background-image:url(${st.photoSmall})`:`background:radial-gradient(circle at 35% 30%,#fff8,transparent 55%),${st.color||'#eee'}`; }
 function renderLobbyMap(){ const el=$('lobbyMap'); if(!el) return;
   const ids=Net.isHost?[...BUILTIN_MAPS, ...Object.keys(MAPS).filter(id=>id.startsWith('c_'))]:[...BUILTIN_MAPS, ...(MAPS[MAP_ID]&&MAPS[MAP_ID].custom?[MAP_ID]:[])];
   if(Net.opts && Net.opts.rnd){ el.innerHTML=`<span class="lbl2">${escapeHtml(t('mapLbl'))}</span><span class="chip on">🎲 ${escapeHtml(t('randomMap'))}</span>`; return; }
@@ -4928,6 +4930,7 @@ function checkAllDone(){
 }
 function showMultiFinal(){
   const tp=HOLES.reduce((a,h)=>a+h.par,0);
+  try{ const moi=allPlayers().find(p=>p.id===Net.myId); if(moi&&window.BS) BS.score(moi.total-tp,{ordre:'bas',libelle:'coups / par'}); }catch(e){}
   lastResults=()=>{
     const rows=allPlayers().sort((a,b)=>a.total-b.total).map((p,i)=>`<tr class="${p.id===Net.myId?'me':''}"><td class="n">${i+1}</td><td>${escapeHtml(p.name)}</td><td class="s">${p.total}</td></tr>`).join('');
     const acts = Net.isHost
