@@ -7,6 +7,7 @@
 <style>:root{color-scheme:dark;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
 </head>
 <body>
+<script src="../bs-jeux.js"></script>
 <title>Brelan</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -1757,10 +1758,11 @@ const svgI = {
 /* =================== player =================== */
 const Me = {
   id: SS.get('brelan.id', '') || ('p' + Math.random().toString(36).slice(2, 10)),
-  name: LS.get('brelan.name', ''),
+  name: (window.BS&&BS.profil?String(BS.profil.pseudo).slice(0,16):"") || LS.get('brelan.name', ''),
   av: LS.get('brelan.av', Math.floor(Math.random() * 8)) % 8
 };
 SS.set('brelan.id', Me.id);
+Me.im = window.BS && BS.profil ? BS.imageSure(BS.profil.avatar) : '';
 if (!Me.name) Me.name = 'Joueur ' + (10 + Math.floor(Math.random() * 90));
 
 /* =================== card markup =================== */
@@ -1821,7 +1823,7 @@ function dob(id, o = {}){
   }).join('');
   return `<div class="dob ${o.cls || ''}" data-k="d${id}" ${o.style ? `style="${o.style}"` : ''}>${items}</div>`;
 }
-const avatar = (seat, cls = '') => `<span class="av c${(seat.av | 0) % 8} ${seat.bot ? 'bot' : ''} ${cls}">${esc((seat.n || '?').trim().charAt(0).toUpperCase())}</span>`;
+const avatar = (seat, cls = '') => (window.BS && BS.imageSure(seat.im)) ? `<span class="av c${(seat.av | 0) % 8} ${cls}" style="background:url('${BS.imageSure(seat.im)}') center/cover;color:transparent">${esc((seat.n || '?').trim().charAt(0).toUpperCase())}</span>` : `<span class="av c${(seat.av | 0) % 8} ${seat.bot ? 'bot' : ''} ${cls}">${esc((seat.n || '?').trim().charAt(0).toUpperCase())}</span>`;
 
 function f7(id, o = {}){
   const k = FLIP7.K(id), v = FLIP7.V(id);
@@ -2074,7 +2076,7 @@ const P2P = {
 };
 
 
-Net.set({ id: Me.id, n: Me.name, av: Me.av });
+Net.set({ id: Me.id, n: Me.name, av: Me.av, im: Me.im });
 
 /* =================== app state =================== */
 const App = { view: 'home', code: null, T: null, pending: [], seq: Date.now(), hostId: null, ui: {}, logSeen: null, enterAt: 0, sitTried: 0, sig: '', botT: null, lastTurnSig: '' };
@@ -2151,11 +2153,11 @@ function applyAction(T, pid, a){
   const isH = pid === Me.id && amHost();
   switch (a.t) {
     case 'sit': {
-      const n = cleanName(a.n), av = (a.av | 0) % 8;
-      if (si >= 0) { const st = T.seats[si]; st.n = n; st.av = av; if (st.bot) { delete st.bot; delete st.rb; } return; }
+      const n = cleanName(a.n), av = (a.av | 0) % 8, im = window.BS ? BS.imageSure(a.im) : '';
+      if (si >= 0) { const st = T.seats[si]; st.n = n; st.av = av; if (im) st.im = im; else delete st.im; if (st.bot) { delete st.bot; delete st.rb; } return; }
       if (T.ph !== 'lobby') throw E('La partie a déjà commencé.');
       if (T.seats.length >= g.max) throw E('La table est complète.');
-      T.seats.push({ id: pid, n, av }); return;
+      T.seats.push(im ? { id: pid, n, av, im } : { id: pid, n, av }); return;
     }
     case 'stand': if (T.ph === 'lobby' && si >= 0) T.seats.splice(si, 1); return;
     case 'bot+': {
@@ -2263,10 +2265,10 @@ function onState(){
     App.wasMine = mine;
   }
   // auto-sit / reclaim
-  if (me < 0 && T.ph === 'lobby' && T.seats.length < LOGIC[T.gm].max && Date.now() - App.sitTried > 3000) { App.sitTried = Date.now(); send({ t: 'sit', n: Me.name, av: Me.av }); }
+  if (me < 0 && T.ph === 'lobby' && T.seats.length < LOGIC[T.gm].max && Date.now() - App.sitTried > 3000) { App.sitTried = Date.now(); send({ t: 'sit', n: Me.name, av: Me.av, im: Me.im }); }
   if (me >= 0) {
     const st = T.seats[me];
-    if ((st.bot || st.n !== Me.name || st.av !== Me.av) && Date.now() - App.sitTried > 3000) { App.sitTried = Date.now(); send({ t: 'sit', n: Me.name, av: Me.av }); }
+    if ((st.bot || st.n !== Me.name || st.av !== Me.av) && Date.now() - App.sitTried > 3000) { App.sitTried = Date.now(); send({ t: 'sit', n: Me.name, av: Me.av, im: Me.im }); }
   }
   renderTable();
 }
@@ -2296,7 +2298,7 @@ async function createTable(gm){
     if (App.view !== 'table') { RELAY.close(); P2P.close(); return; }
     if (!ok) { P2P.close(); Net.tr = null; Net.state = 'solo'; toast(why === 'lib' ? 'Pas d’accès à internet depuis cette page : la table est jouable seulement contre des bots.' : 'Ton réseau bloque le jeu en ligne. Essaie depuis un autre réseau (4G, maison). En attendant, tu peux jouer contre des bots.'); }
   }
-  const T = { v: 1, code, gm, ph: 'lobby', seats: [{ id: Me.id, n: Me.name, av: Me.av }], ack: {}, s: {}, opt: optsOf({ gm, opt: LS.get('brelan.opt.' + gm, {}) }) };
+  const T = { v: 1, code, gm, ph: 'lobby', seats: [{ id: Me.id, n: Me.name, av: Me.av, im: Me.im }], ack: {}, s: {}, opt: optsOf({ gm, opt: LS.get('brelan.opt.' + gm, {}) }) };
   enterTable(code, T);
 }
 async function joinByCode(code){
@@ -3068,7 +3070,7 @@ const SOL = {
   st: null, hist: [], drag: null, auto: null, busy: false,
   sv: c => (R(c) + 1) % 13,
   level(){ return Math.max(1, LS.get('brelan.sol.lvl', 1) | 0); },
-  setLevel(n){ LS.set('brelan.sol.lvl', n); if (n - 1 > LS.get('brelan.sol.best', 0)) LS.set('brelan.sol.best', n - 1); },
+  setLevel(n){ LS.set('brelan.sol.lvl', n); try { if (n > 1 && window.BS) BS.score(n - 1, { libelle: 'niveaux' }); } catch (e) {} if (n - 1 > LS.get('brelan.sol.best', 0)) LS.set('brelan.sol.best', n - 1); },
   async newGame(){
     if (this.busy) return;
     this.busy = true; this.st = null; modal(''); renderSol();
