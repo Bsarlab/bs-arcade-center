@@ -156,6 +156,7 @@
       <div class="boutons">
         <button class="btn plein grand" type="submit" ${etat.envoi ? "disabled" : ""}>${t("compte_enregistrer")}</button>
         <a class="btn grand" href="#/jeux">${t("compte_aller_jouer")}</a>
+        <a class="btn grand" href="#/joueur/${esc(session.user.id)}">${t("joueur_mon_profil")}</a>
         <button class="btn grand" type="button" data-deconnexion>${t("compte_deconnexion")}</button>
       </div>
     </form>
@@ -394,13 +395,147 @@
         <div class="classement-tete"><div><p class="etiquette">${t("classement_etiquette")}</p><h2>${t("classement_titre")}</h2></div>${lignes.length ? `<span class="meta">${esc(unite)}</span>` : ""}</div>
         ${lignes.length ? `<ol class="classement-liste">${lignes.map((l, i) => `<li class="${l.joueur === moi ? "moi" : ""}">
             <span class="rang">${medailles[i] || i + 1}</span>
-            <img src="${esc(l.profils?.avatar || AVATARS[i % 12])}" alt="">
-            <b>${esc(l.profils?.pseudo || "Joueur")}${l.joueur === moi ? ` <small>· ${t("classement_toi")}</small>` : ""}</b>
+            <img src="${esc(imageSure(l.profils?.avatar) || AVATARS[i % 12])}" alt="">
+            <b><a class="lien-joueur" href="#/joueur/${esc(l.joueur)}">${esc(l.profils?.pseudo || "Joueur")}</a>${l.joueur === moi ? ` <small>· ${t("classement_toi")}</small>` : ""}</b>
             <span class="points">${Number(l.score).toLocaleString("fr-FR")}</span></li>`).join("")}</ol>` : `<p class="classement-vide">${t("classement_vide")}</p>`}
         ${session ? "" : `<a class="classement-connexion" href="#/compte">${t("classement_connexion")} ${I.droite}</a>`}
       </div></div>`;
     },
   };
+  // =========================================================
+  // Navigation : invitations, page Classements, profils publics
+  // =========================================================
+  const P = window.BS_PLATEFORME;
+  const pret = async () => { if (!sb && actifs()) { try { await window.demarrerComptes(); } catch {} } return !!sb; };
+  const nombre = (n) => Number(n).toLocaleString("fr-FR");
+  const medaille = (i) => ["🥇", "🥈", "🥉"][i] || String(i + 1);
+  const trier = (l) => l.sort((a, b) => ((a.ordre || "haut") === "bas" ? a.score - b.score : b.score - a.score));
+  const uniteDe = (l) => (l?.ordre === "cumul" ? T("classement_victoires") : l?.libelle || T("classement_score"));
+  const avatarSur = (p, i = 0) => imageSure(p?.avatar) || AVATARS[i % 12];
+  const imgJeu = (j) => (j.image ? `<img src="${esc(lien(j.image))}" alt="" loading="lazy">` : `<span class="sans-image">${esc(initiales(j.titre))}</span>`);
+  // Tous les scores, regroupés par jeu (le site est petit : une seule requête suffit)
+  async function tousLesScores() {
+    const { data, error } = await sb.from("scores").select("score, ordre, libelle, joueur, jeu, maj, profils(pseudo, avatar)").limit(2000);
+    if (error) throw error;
+    const parJeu = new Map();
+    data.forEach((l) => { if (!parJeu.has(l.jeu)) parJeu.set(l.jeu, []); parJeu.get(l.jeu).push(l); });
+    parJeu.forEach(trier);
+    return parJeu;
+  }
+  // Semaine du lundi 0 h au dimanche 23 h 59 (heure de l'appareil)
+  function semaine() {
+    const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - ((d.getDay() + 6) % 7));
+    const fin = new Date(d); fin.setDate(fin.getDate() + 7);
+    const numero = Math.floor((d.getTime() - new Date(2024, 0, 1).getTime()) / (7 * 864e5) + .5);
+    return { debut: d, fin, numero };
+  }
+  const reste = (fin) => {
+    const ms = fin - Date.now(), j = Math.floor(ms / 864e5), h = Math.floor((ms % 864e5) / 36e5);
+    return j > 0 ? `${j} j ${h} h` : `${h} h ${Math.floor((ms % 36e5) / 6e4)} min`;
+  };
+  const ligneClassement = (l, i, moi) => `<li class="${l.joueur === moi ? "moi" : ""}">
+    <span class="rang">${medaille(i)}</span><img src="${esc(avatarSur(l.profils, i))}" alt="">
+    <b><a class="lien-joueur" href="#/joueur/${esc(l.joueur)}">${esc(l.profils?.pseudo || "Joueur")}</a>${l.joueur === moi ? ` <small>· ${t("classement_toi")}</small>` : ""}</b>
+    <span class="points">${nombre(l.score)}</span></li>`;
+
+  // Bandeau « Untel t'invite à jouer »
+  P.afficherInvitation = async (de, j) => {
+    if (!j || !(await pret())) return;
+    try {
+      const { data } = await sb.from("profils").select("pseudo, avatar").eq("id", de).maybeSingle();
+      if (!data || !document.getElementById("bandeauInvitation")) return;
+      $("invitationTexte").textContent = T("invite_bandeau", { pseudo: data.pseudo, jeu: j.titre });
+      $("invitationAvatar").innerHTML = `<img src="${esc(avatarSur(data))}" alt="">`;
+    } catch (e) { console.warn(e); }
+  };
+
+  // Page « Classements » : défi de la semaine + podium de chaque jeu
+  P.afficherClassements = async () => {
+    const zone = $("zoneClassements"); if (!zone) return;
+    if (!(await pret())) return;
+    let parJeu;
+    try { parJeu = await tousLesScores(); } catch (e) { console.warn(e); zone.innerHTML = `<section class="section serree"><div class="conteneur"><p class="alerte erreur">${esc(T("classement_vide"))}</p></div></section>`; return; }
+    if (!document.body.contains(zone)) return;
+    const moi = session?.user?.id, jeux = [...(donnees.jeux || [])].sort((a, b) => String(a.id).localeCompare(String(b.id)));
+    const s = semaine(), defi = jeux.length ? jeux[s.numero % jeux.length] : null;
+    let htmlDefi = "";
+    if (defi) {
+      const lignes = (parJeu.get(defi.id) || []).filter((l) => new Date(l.maj) >= s.debut).slice(0, 5);
+      htmlDefi = `<section class="section serree"><div class="conteneur">
+        <div class="defi" style="--c:${couleurJeu(defi)}" data-couleur="${esc(defi.id)}">
+          <a class="defi-image" href="#/jeu/${esc(defi.id)}" aria-label="${esc(defi.titre)}">${imgJeu(defi)}</a>
+          <div class="defi-corps">
+            <p class="etiquette">${I.trophee}${t("defi_etiquette")} <span class="defi-reste">${t("defi_fin")} ${reste(s.fin)}</span></p>
+            <h2>${esc(defi.titre)}</h2>
+            <p>${t("defi_texte")}</p>
+            ${lignes.length ? `<ol class="classement-liste">${lignes.map((l, i) => ligneClassement(l, i, moi)).join("")}</ol>` : `<p class="classement-vide">${t("defi_vide")}</p>`}
+            <div class="boutons"><button class="btn plein grand" type="button" data-jouer="${esc(defi.id)}">${I.jouer}${t("defi_jouer")}</button>
+            ${session ? "" : `<a class="btn grand" href="#/compte">${t("compte_connexion")}</a>`}</div>
+          </div>
+        </div></div></section>`;
+    }
+    const cartes = jeux.map((j) => {
+      const l = parJeu.get(j.id) || [];
+      return `<article class="carte-podium" style="--c:${couleurJeu(j)}" data-couleur="${esc(j.id)}">
+        <a class="podium-tete" href="#/jeu/${esc(j.id)}"><span class="podium-image">${imgJeu(j)}</span><span><b>${esc(j.titre)}</b><small>${l.length ? esc(uniteDe(l[0])) : ""}</small></span></a>
+        ${l.length ? `<ol class="classement-liste compacte">${l.slice(0, 3).map((x, i) => ligneClassement(x, i, moi)).join("")}</ol>` : `<p class="classement-vide">${t("classement_vide")}</p>`}
+        <a class="lien-fleche" href="#/jeu/${esc(j.id)}">${t("classements_tout")} ${I.droite}</a>
+      </article>`;
+    }).join("");
+    zone.innerHTML = htmlDefi + `<section class="section serree"><div class="conteneur">
+      ${enteteSection(t("classement_etiquette"), t("classements_jeux_titre"))}
+      <div class="grille-podiums">${cartes}</div>
+      ${session ? "" : `<a class="classement-connexion" href="#/compte">${t("classement_connexion")} ${I.droite}</a>`}
+    </div></section>`;
+    (donnees.jeux || []).forEach(calculerCouleur);
+  };
+
+  // Profil public d'un joueur : avatar, pseudo, meilleurs scores et rang dans chaque jeu
+  P.afficherJoueur = async (id) => {
+    const zone = $("zoneJoueur"); if (!zone) return;
+    const vide = (texte) => { zone.innerHTML = `<section class="entete-page centre"><div class="conteneur">${dessin("perdu", "dessin-404")}<p class="etiquette">${t("joueur_etiquette")}</p><h1>${texte}</h1><div class="boutons centre"><a class="btn plein" href="#/classements">${t("nav_classements")}</a></div></div></section>`; };
+    if (!(await pret())) return vide(t("classements_off"));
+    let p, parJeu;
+    try {
+      ({ data: p } = await sb.from("profils").select("pseudo, avatar").eq("id", id).maybeSingle());
+      parJeu = await tousLesScores();
+    } catch (e) { console.warn(e); return vide(t("joueur_introuvable")); }
+    if (!document.body.contains(zone)) return;
+    if (!p) return vide(t("joueur_introuvable"));
+    const lignes = [];
+    parJeu.forEach((l, jeu) => { const i = l.findIndex((x) => x.joueur === id); const j = trouverJeu(jeu); if (i >= 0 && j) lignes.push({ j, l: l[i], rang: i, total: l.length }); });
+    lignes.sort((a, b) => a.rang - b.rang || a.j.titre.localeCompare(b.j.titre, "fr"));
+    const podiums = lignes.filter((x) => x.rang < 3).length, victoires = lignes.filter((x) => x.l.ordre === "cumul").reduce((n, x) => n + Number(x.l.score), 0);
+    const moi = session?.user?.id === id;
+    document.title = p.pseudo + " · " + (donnees.site?.nom || "");
+    zone.innerHTML = `
+  <section class="entete-page">
+    <div class="conteneur profil-public">
+      <span class="profil-public-avatar"><img src="${esc(avatarSur(p))}" alt=""></span>
+      <div>
+        <p class="etiquette">${t("joueur_etiquette")}</p>
+        <h1>${esc(p.pseudo)}</h1>
+        <div class="chiffres">
+          <div><b>${lignes.length}</b><small>${t("joueur_stat_jeux")}</small></div>
+          <div><b>${podiums}</b><small>${t("joueur_stat_podiums")}</small></div>
+          <div><b>${nombre(victoires)}</b><small>${t("joueur_stat_victoires")}</small></div>
+        </div>
+        ${moi ? `<div class="boutons"><a class="btn" href="#/compte">${t("compte_etiquette")}</a></div>` : ""}
+      </div>
+    </div>
+  </section>
+  <section class="section serree"><div class="conteneur">
+    <p class="sous-titre">${t("joueur_jeux")}</p>
+    ${lignes.length ? `<div class="liste-records">${lignes.map(({ j, l, rang, total }) => `
+      <a class="record" href="#/jeu/${esc(j.id)}" style="--c:${couleurJeu(j)}" data-couleur="${esc(j.id)}">
+        <span class="record-image">${imgJeu(j)}</span>
+        <span class="record-texte"><b>${esc(j.titre)}</b><small>${esc(uniteDe(l))} : ${nombre(l.score)}</small></span>
+        <span class="record-rang">${medaille(rang)}<small>${rang + 1}/${total}</small></span>
+      </a>`).join("")}</div>` : `<p class="classement-vide">${t("joueur_vide")}</p>`}
+  </div></section>`;
+    (donnees.jeux || []).forEach(calculerCouleur);
+  };
+
   // Si la page est fermée pendant une partie, on tente un dernier envoi
   addEventListener("pagehide", () => { if (partie) envoyerSauvegarde(false); });
   // À la déconnexion, la progression des jeux est retirée de l'appareil (elle reste sur le compte)

@@ -1,7 +1,7 @@
 // =========================================================
 // BS arcade center : le site, page par page
 // Le contenu vient de site.json (modifié depuis admin.html).
-// Pages : #/  ·  #/jeux  ·  #/jeu/<id>  ·  #/a-propos  ·  #/contact
+// Pages : #/  ·  #/jeux  ·  #/jeu/<id>  ·  #/classements  ·  #/joueur/<id>  ·  #/a-propos  ·  #/contact  ·  #/compte
 // =========================================================
 
 const $ = (id) => document.getElementById(id);
@@ -43,6 +43,10 @@ const I = {
   utilisateur: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c1-4 4-6 8-6s7 2 8 6"/></svg>',
   euro: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M18 6.5A7 7 0 1 0 18 17.5M4 10h10M4 14h10"/></svg>',
   photo: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="2"/><path d="m21 16-5-5-9 8"/></svg>',
+  amis: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="9" cy="8" r="3.5"/><path d="M2.5 20c.8-3.6 3.4-5.5 6.5-5.5s5.7 1.9 6.5 5.5"/><circle cx="17" cy="9" r="2.6"/><path d="M16.5 14.6c2.6.2 4.4 1.9 5 4.9"/></svg>',
+  solo: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="8" r="3.6"/><path d="M5.5 20c.8-3.8 3.4-5.8 6.5-5.8s5.7 2 6.5 5.8"/></svg>',
+  trophee: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M8 4h8v5a4 4 0 0 1-8 0zM8 6H4.5a3 3 0 0 0 3.5 4M16 6h3.5a3 3 0 0 1-3.5 4M12 13v4M8.5 20h7M10 17h4"/></svg>',
+  installer: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="2.5" width="12" height="19" rx="3"/><path d="M12 7v7M9 11l3 3 3-3M10 18.5h4"/></svg>',
   cadeau: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 12v9H4v-9M2 7h20v5H2zM12 21V7M12 7H7.5a2.5 2.5 0 1 1 0-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 1 0 0-5C13 2 12 7 12 7z"/></svg>',
 };
 
@@ -221,9 +225,18 @@ function carteJeu(j, { grande = false } = {}) {
         <button class="jouer-rapide" type="button" data-jouer="${echapper(j.id)}" aria-label="Jouer à ${echapper(j.titre)}">${I.jouer}</button>
       </div>
       <p class="meta">${[j.genre ? echapper(majuscule(j.genre)) : "", formatDate(j, { day: "numeric", month: "short", year: "numeric" })].filter(Boolean).join(" · ")}</p>
+      ${pastillesJoueurs(j)}
     </div>
   </article>`;
 }
+// Pastilles « Solo » / « À plusieurs » (cases cochées dans l'admin)
+const pastillesJoueurs = (j, avecNombre = false) => {
+  const l = [];
+  if (j.solo) l.push(`<span class="pastille-joueurs">${I.solo}${t("badge_solo")}</span>`);
+  if (j.enLigne) l.push(`<span class="pastille-joueurs">${I.amis}${t("badge_multi")}</span>`);
+  if (avecNombre && String(j.nbJoueurs || "").trim()) l.push(`<span class="pastille-joueurs nombre">${echapper(String(j.nbJoueurs).trim())}</span>`);
+  return l.length ? `<span class="pastilles-joueurs">${l.join("")}</span>` : "";
+};
 const enteteSection = (etiquette, titre, droite = "") => `<div class="section-tete">
   <div><p class="etiquette">${etiquette}</p><h2>${titre}</h2></div>${droite}</div>`;
 
@@ -520,7 +533,7 @@ PAGES.accueil = () => {
 };
 
 // ---------- Jeux ----------
-const filtres = { texte: "", genre: "", tri: "recent", favoris: false };
+const filtres = { texte: "", genre: "", tri: "recent", favoris: false, mode: "" };
 const favoris = new Set(lire("bs-favoris", []));
 let recents = lire("bs-recents", []);
 
@@ -562,12 +575,17 @@ function majListeJeux() {
   if (filtres.genre && !genres.some(([k]) => k === filtres.genre)) filtres.genre = "";
   const aFav = option("favoris") && jeux.some((j) => favoris.has(j.id));
   if (!aFav) filtres.favoris = false;
-  if ($("puces")) $("puces").innerHTML = [`<button class="puce" type="button" data-genre="" aria-pressed="${!filtres.genre && !filtres.favoris}">${t("jeux_tous")}</button>`]
+  // Filtres « Seul » / « À plusieurs » : seulement si les cases ont été remplies dans l'admin
+  const modes = [["solo", "filtre_solo", I.solo], ["multi", "filtre_multi", I.amis]].filter(([m]) => jeux.some((j) => (m === "solo" ? j.solo : j.enLigne)));
+  if (!modes.some(([m]) => m === filtres.mode)) filtres.mode = "";
+  if ($("puces")) $("puces").innerHTML = [`<button class="puce" type="button" data-genre="" aria-pressed="${!filtres.genre && !filtres.favoris && !filtres.mode}">${t("jeux_tous")}</button>`]
+    .concat(modes.map(([m, cle, ic]) => `<button class="puce" type="button" data-mode="${m}" aria-pressed="${filtres.mode === m}">${ic}${t(cle)}</button>`))
     .concat(aFav ? [`<button class="puce" type="button" data-favoris aria-pressed="${filtres.favoris}">${I.coeur}${t("jeux_favoris")}</button>`] : [])
     .concat(genres.map(([k, nom]) => `<button class="puce" type="button" data-genre="${echapper(k)}" aria-pressed="${filtres.genre === k}">${echapper(nom)}</button>`)).join("");
   if ($("tri")) $("tri").value = filtres.tri;
   const q = filtres.texte.trim().toLowerCase();
   let liste = jeux.filter((j) => (!filtres.genre || (j.genre || "").trim().toLowerCase() === filtres.genre) && (!filtres.favoris || favoris.has(j.id))
+    && (!filtres.mode || (filtres.mode === "solo" ? j.solo : j.enLigne))
     && (!q || `${j.titre} ${j.genre || ""} ${j.description || ""}`.toLowerCase().includes(q)));
   liste = filtres.tri === "az" ? liste.sort((a, b) => a.titre.localeCompare(b.titre, "fr")) : liste.sort((a, b) => dateJeu(b) - dateJeu(a));
   $("grilleJeux").innerHTML = liste.map((j) => carteJeu(j)).join("");
@@ -595,6 +613,11 @@ PAGES.jeu = (id) => {
   <section class="page-jeu" ${attrCouleur(j)}>
     <div class="conteneur">
       <nav class="fil" aria-label="Fil d'Ariane"><a href="#/jeux">${t("jeu_fil")}</a><span aria-hidden="true">/</span><span aria-current="page">${echapper(j.titre)}</span></nav>
+      ${invitation && invitation.jeu === j.id ? `<div class="bandeau-invitation" id="bandeauInvitation" data-de="${echapper(invitation.de)}">
+        <span class="invitation-avatar" id="invitationAvatar">${I.amis}</span>
+        <p id="invitationTexte">${t("invite_bandeau_anonyme", { jeu: j.titre })}</p>
+        <button class="btn plein" type="button" data-jouer="${echapper(j.id)}">${I.jouer}${t("invite_bouton")}</button>
+      </div>` : ""}
       <div class="jeu-grille">
         <button class="jeu-visuel" type="button" data-jouer="${echapper(j.id)}" aria-label="Jouer à ${echapper(j.titre)}">
           ${imageJeu(j)}
@@ -605,11 +628,12 @@ PAGES.jeu = (id) => {
           <p class="etiquette">${estNouveau(j) ? `<span class="badge">${t("carte_nouveau")}</span>` : ""}${echapper(majuscule(j.genre || T("jeu_genre_defaut")))}</p>
           <h1>${echapper(j.titre)}</h1>
           ${aUneDate(j) ? `<p class="meta">${t("jeu_ajoute")} ${formatDate(j)}</p>` : ""}
+          ${pastillesJoueurs(j, true)}
           <div class="prose">${paragraphes(j.description) || `<p>${t("jeu_desc_defaut")}</p>`}</div>
           <div class="boutons">
             <button class="btn plein grand" type="button" data-jouer="${echapper(j.id)}">${I.jouer}${t("jeu_jouer")}</button>
             ${option("favoris") ? `<button class="bouton-rond contour grand" type="button" data-favori="${echapper(j.id)}" aria-pressed="${fav}" aria-label="${fav ? "Retirer des" : "Ajouter aux"} favoris">${I.coeur}</button>` : ""}
-            <button class="bouton-rond contour grand" type="button" data-partager="${echapper(j.id)}" aria-label="Copier le lien du jeu">${I.lien}</button>
+            <button class="btn grand" type="button" data-inviter="${echapper(j.id)}">${I.amis}${t("jeu_inviter")}</button>
           </div>
           ${option("infosJeu") ? `<ul class="infos-pratiques">
             <li>${I.ecran}<span><b>${t("jeu_info1_titre")}</b>${t("jeu_info1")}</span></li>
@@ -647,6 +671,21 @@ PAGES.jeu = (id) => {
     blocs: () => blocsPour("jeu"),
   });
 };
+
+// ---------- Invitations ----------
+// Lien envoyé : #/jeu/<id>?de=<id du joueur>. La personne invitée voit un bandeau avec le pseudo de son ami.
+let invitation = null;
+async function inviter(id) {
+  const j = trouverJeu(id); if (!j) return;
+  const moi = window.BS_PROFIL?.id;
+  const url = adresseSite() + "#/jeu/" + encodeURIComponent(id) + (moi ? "?de=" + encodeURIComponent(moi) : "");
+  const texte = T("invite_message", { jeu: j.titre });
+  try {
+    if (navigator.share) { await navigator.share({ title: j.titre, text: texte, url }); return; }
+  } catch (e) { if (e?.name === "AbortError") return; }
+  try { await navigator.clipboard.writeText(texte + " " + url); notifier(T("invite_copiee")); }
+  catch { notifier(url); }
+}
 
 // ---------- À propos ----------
 // Prochains jeux : réglés dans l'admin (onglet Histoire), sinon exemples
@@ -777,6 +816,18 @@ PAGES.contact = () => {
   });
 };
 
+// Classements et profils : remplis par comptes.js (Supabase) ; sans comptes, un simple message
+PAGES.classements = () => `
+  <section class="entete-page">
+    <div class="conteneur entete-illu">
+      <div><p class="etiquette">${t("classements_etiquette")}</p><h1>${t("classements_titre")}</h1>
+      <p class="accroche">${window.BS_PLATEFORME?.actif?.() ? t("classements_texte") : t("classements_off")}</p></div>
+      ${dessin("ludotheque", "entete-dessin")}
+    </div>
+  </section>
+  ${window.BS_PLATEFORME?.actif?.() ? `<div id="zoneClassements"><section class="section serree"><div class="conteneur"><div class="chargement-zone"><span class="roue" aria-hidden="true"></span></div></div></section></div>` : ""}`;
+PAGES.joueur = (id) => `<div id="zoneJoueur" data-joueur="${echapper(id)}"><section class="entete-page"><div class="conteneur"><p class="etiquette">${t("joueur_etiquette")}</p><div class="chargement-zone"><span class="roue" aria-hidden="true"></span></div></div></section></div>`;
+
 PAGES.introuvable = () => `
   <section class="entete-page centre">
     <div class="conteneur">
@@ -795,8 +846,9 @@ const NOMS_PAGES = {};
 const aPropos = () => option("pageApropos");
 const majNomsPages = () => {
   for (const k in NOMS_PAGES) delete NOMS_PAGES[k];
-  Object.assign(NOMS_PAGES, { accueil: T("nav_accueil"), jeux: T("nav_jeux"), "a-propos": T("nav_apropos"), contact: T("nav_contact") });
+  Object.assign(NOMS_PAGES, { accueil: T("nav_accueil"), jeux: T("nav_jeux"), classements: T("nav_classements"), "a-propos": T("nav_apropos"), contact: T("nav_contact") });
   if (!aPropos()) delete NOMS_PAGES["a-propos"];
+  if (!window.BS_PLATEFORME?.actif?.()) delete NOMS_PAGES.classements;
 };
 
 function lireAdresse() {
@@ -814,7 +866,13 @@ function lireAdresse() {
   }
   if ((m = h.match(/^#jeu-(.+)$/))) return { page: "jeu", id: m[1] };
   if ((m = h.match(/^#jouer-(.+)$/))) return { page: "jeu", id: m[1], jouer: true };
-  if ((m = h.match(/^#\/jeu\/([^?]+)/))) return { page: "jeu", id: m[1] };
+  if ((m = h.match(/^#\/jeu\/([^?]+)(?:\?(.*))?$/))) {
+    const de = new URLSearchParams(m[2] || "").get("de");
+    if (de && /^[0-9a-f-]{36}$/i.test(de) && de !== window.BS_PROFIL?.id) invitation = { jeu: m[1], de };
+    return { page: "jeu", id: m[1] };
+  }
+  if (h === "#/classements") return { page: "classements" };
+  if ((m = h.match(/^#\/joueur\/([0-9a-f-]{36})$/i))) return { page: "joueur", id: m[1] };
   if ((m = h.match(/^#\/jeux(?:\?genre=(.+))?$/))) return { page: "jeux", genre: m[1] || "" };
   if ((m = h.match(/^#\/(a-propos|contact)$/))) return { page: m[1] };
   if (h === "#/compte" && PAGES.compte) return { page: "compte" };
@@ -828,7 +886,7 @@ function naviguer() {
   if (!a) return;
   if ($("lecteur").open && !a.jouer) $("lecteur").close();
   ouvrirMenu(false);
-  if (a.page === "jeux" && a.genre !== undefined) { filtres.genre = a.genre; filtres.favoris = false; }
+  if (a.page === "jeux" && a.genre !== undefined) { filtres.genre = a.genre; filtres.favoris = false; filtres.mode = ""; }
   const memeFiche = a.page === pageActuelle && (a.page !== "jeu" || a.id === pageId);
   if (!memeFiche || a.ancre === undefined) afficherPage(a.page, a.id);
   if (a.ancre) requestAnimationFrame(() => document.getElementById(a.ancre)?.scrollIntoView({ behavior: mouvementReduit ? "auto" : "smooth" }));
@@ -842,11 +900,13 @@ function afficherPage(page, id) {
   vue.innerHTML = PAGES[page](id);
   vue.classList.remove("entree"); void vue.offsetWidth; vue.classList.add("entree");
   const j = page === "jeu" ? trouverJeu(id) : null;
-  document.title = (j ? j.titre + " · " : NOMS_PAGES[page] && page !== "accueil" ? NOMS_PAGES[page] + " · " : "") + (donnees.site.nom || "");
+  document.title = (j ? j.titre + " · " : page === "joueur" ? T("joueur_etiquette") + " · " : NOMS_PAGES[page] && page !== "accueil" ? NOMS_PAGES[page] + " · " : "") + (donnees.site.nom || "");
   majNav();
   if (page === "accueil") initCarrousel();
   if (page === "jeux") majListeJeux();
-  if (page === "jeu") window.BS_PLATEFORME?.afficherClassement?.(id);
+  if (page === "jeu") { window.BS_PLATEFORME?.afficherClassement?.(id); if (invitation?.jeu === id) window.BS_PLATEFORME?.afficherInvitation?.(invitation.de, trouverJeu(id)); }
+  if (page === "classements") window.BS_PLATEFORME?.afficherClassements?.();
+  if (page === "joueur") window.BS_PLATEFORME?.afficherJoueur?.(id);
   (donnees.jeux || []).forEach(calculerCouleur);
   activerRevele();
   majDefilement();
@@ -856,7 +916,7 @@ addEventListener("hashchange", naviguer);
 
 // Pastille qui glisse sous le lien actif
 function majNav() {
-  const actif = { jeu: "jeux", introuvable: "" }[pageActuelle] ?? pageActuelle;
+  const actif = { jeu: "jeux", joueur: "classements", introuvable: "" }[pageActuelle] ?? pageActuelle;
   let cible = null;
   document.querySelectorAll(".nav a").forEach((a) => {
     const oui = a.dataset.page === actif;
@@ -907,8 +967,10 @@ function afficherCommun() {
   $("initialesEntete").innerHTML = window.LOGO_BS ? window.LOGO_BS() : echapper(initiales(s.nom || "?"));
   if (image) $("logoEntete").src = lien(s.logo);
   if (s.accroche) document.querySelector('meta[name="description"]').content = s.accroche;
-  const pages = [["accueil", "#/"], ["jeux", "#/jeux"], ["a-propos", "#/a-propos"], ["contact", "#/contact"]].filter(([p]) => NOMS_PAGES[p]);
+  const pages = [["accueil", "#/"], ["jeux", "#/jeux"], ["classements", "#/classements"], ["a-propos", "#/a-propos"], ["contact", "#/contact"]].filter(([p]) => NOMS_PAGES[p]);
   document.querySelectorAll('.nav a[data-page="a-propos"]').forEach((a) => { a.hidden = !aPropos(); });
+  document.querySelectorAll('.nav a[data-page="classements"]').forEach((a) => { a.hidden = !NOMS_PAGES.classements; });
+  majInstallation();
   const blocsMenu = blocsPerso().filter((b) => b.dansMenu && b.titre && htmlBloc(b));
   $("menuLiens").innerHTML = pages.map(([p, href], i) => `<li><a href="${href}" data-page="${p}"><span class="menu-num">0${i + 1}</span>${NOMS_PAGES[p]}${p === "jeux" && jeux.length ? `<small>${jeux.length}</small>` : ""}</a></li>`).join("")
     + blocsMenu.map((b, i) => `<li><a href="#bloc-${echapper(b.id)}"><span class="menu-num">0${pages.length + i + 1}</span>${echapper(b.titre.trim())}</a></li>`).join("");
@@ -1079,9 +1141,9 @@ async function copier(url, message) {
 }
 const adresseSite = () => location.origin + location.pathname;
 let minuterie;
-function notifier(texte) {
+function notifier(texte, duree = 2600) {
   $("toast").textContent = texte; $("toast").classList.add("visible");
-  clearTimeout(minuterie); minuterie = setTimeout(() => $("toast").classList.remove("visible"), 2600);
+  clearTimeout(minuterie); minuterie = setTimeout(() => $("toast").classList.remove("visible"), duree);
 }
 
 // =========================================================
@@ -1166,7 +1228,7 @@ $("lecteur").addEventListener("close", () => {
 });
 $("btnFermer").addEventListener("click", () => $("lecteur").close());
 $("btnRejouer").addEventListener("click", () => jeuActuel && ouvrirJeu(jeuActuel.id));
-$("btnPartager").addEventListener("click", () => jeuActuel && copier(adresseSite() + "#/jeu/" + jeuActuel.id, "Lien du jeu copié !"));
+$("btnPartager").addEventListener("click", () => jeuActuel && inviter(jeuActuel.id));
 $("btnSuivant").addEventListener("click", () => { const l = jeuxTries(), i = l.findIndex((j) => j.id === jeuActuel.id); ouvrirJeu(l[(i + 1) % l.length].id); });
 $("btnPleinEcran").addEventListener("click", () => {
   if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
@@ -1182,14 +1244,17 @@ document.addEventListener("click", (e) => {
   const zoom = t.closest("#vue [data-zoom], #vue .galerie img, #vue .b-image img"); if (zoom) { ouvrirVision(zoom); return; }
   const fav = t.closest("[data-favori]"); if (fav) { e.preventDefault(); basculerFavori(fav.dataset.favori); return; }
   const part = t.closest("[data-partager]"); if (part) { copier(adresseSite() + "#/jeu/" + part.dataset.partager, "Lien du jeu copié !"); return; }
+  const inv = t.closest("[data-inviter]"); if (inv) { inviter(inv.dataset.inviter); return; }
+  if (t.closest("[data-installer]")) { installer(); return; }
   if (t.closest("[data-partager-site]")) { copier(adresseSite(), "Lien du site copié !"); return; }
   const cop = t.closest("[data-copier]");
   if (cop) { navigator.clipboard?.writeText(cop.dataset.copier).then(() => notifier("Copié : " + cop.dataset.copier), () => notifier(cop.dataset.copier)); return; }
-  if (t.closest("[data-reinitialiser]")) { Object.assign(filtres, { texte: "", genre: "", favoris: false }); if ($("filtreTexte")) $("filtreTexte").value = ""; majListeJeux(); return; }
+  if (t.closest("[data-reinitialiser]")) { Object.assign(filtres, { texte: "", genre: "", favoris: false, mode: "" }); if ($("filtreTexte")) $("filtreTexte").value = ""; majListeJeux(); return; }
   const puce = t.closest(".puce");
   if (puce) {
-    if (puce.hasAttribute("data-favoris")) { filtres.favoris = !filtres.favoris; filtres.genre = ""; }
-    else { filtres.genre = puce.dataset.genre; filtres.favoris = false; }
+    if (puce.hasAttribute("data-favoris")) { filtres.favoris = !filtres.favoris; filtres.genre = ""; filtres.mode = ""; }
+    else if (puce.dataset.mode) { filtres.mode = filtres.mode === puce.dataset.mode ? "" : puce.dataset.mode; filtres.genre = ""; filtres.favoris = false; }
+    else { filtres.genre = puce.dataset.genre; filtres.favoris = false; filtres.mode = ""; }
     majListeJeux(); return;
   }
   // Un clic sur le lien de la page déjà ouverte ramène en haut
@@ -1346,6 +1411,29 @@ addEventListener("load", () => {
   document.fonts.load('16px "Font Awesome 6 Brands"').then((l) => { if (!l.length) document.documentElement.classList.add("sans-icones"); })
     .catch(() => document.documentElement.classList.add("sans-icones"));
 });
+
+// =========================================================
+// Installer le site comme une appli (écran d'accueil)
+// =========================================================
+let demandeInstallation = null;
+const estInstalle = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const estIOS = () => /iphone|ipad|ipod/i.test(navigator.userAgent) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+function majInstallation() {
+  const z = $("menuInstaller"); if (!z) return;
+  z.hidden = apercu || estInstalle() || !(demandeInstallation || estIOS());
+  z.innerHTML = `<button class="bouton-installer" type="button" data-installer>${I.installer}<span><b>${t("installer_bouton")}</b><small>${t("installer_texte")}</small></span></button>`;
+}
+async function installer() {
+  if (demandeInstallation) {
+    demandeInstallation.prompt();
+    const { outcome } = await demandeInstallation.userChoice.catch(() => ({}));
+    demandeInstallation = null; majInstallation();
+    if (outcome === "accepted") notifier(T("installer_ok"), 4000);
+  } else if (estIOS()) notifier(T("installer_ios"), 6000);
+}
+addEventListener("beforeinstallprompt", (e) => { e.preventDefault(); demandeInstallation = e; majInstallation(); });
+addEventListener("appinstalled", () => { demandeInstallation = null; majInstallation(); });
+if ("serviceWorker" in navigator && !apercu && location.protocol === "https:") addEventListener("load", () => navigator.serviceWorker.register("sw.js").catch(() => {}));
 
 // =========================================================
 // Démarrage

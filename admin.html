@@ -188,7 +188,7 @@
   </section>
 </div>
 
-<script src="textes.js?v=34"></script>
+<script src="textes.js?v=35"></script>
 <script>
 (() => {
   const $ = (id) => document.getElementById(id);
@@ -676,6 +676,13 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
         <span>${j.fichier ? echapper(j.fichier.split("/").pop()) : "Aucun fichier choisi"}</span></div></div>
       ${champJeu(j, "titre", "Titre", 80)}
       ${champJeu(j, "genre", "Genre", 30)}
+      <div class="champ"><span class="lbl">Comment on y joue</span>
+        <div style="display:flex;flex-wrap:wrap;gap:6px 18px">
+          <label class="caseMenu"><input type="checkbox" data-jeu="${j.id}" data-cle="solo" ${j.solo ? "checked" : ""}> Seul (solo, ou contre l'ordinateur)</label>
+          <label class="caseMenu"><input type="checkbox" data-jeu="${j.id}" data-cle="enLigne" ${j.enLigne ? "checked" : ""}> À plusieurs (en ligne, avec un code…)</label>
+        </div>
+        <span class="aide">Affiche les pastilles « Solo » / « À plusieurs » sur le jeu et active les filtres de la page Jeux.</span></div>
+      ${champJeu(j, "nbJoueurs", "Nombre de joueurs (facultatif)", 30)}
       <div class="champ"><label for="j-${j.id}-description">Description</label><textarea id="j-${j.id}-description" data-jeu="${j.id}" data-cle="description" maxlength="1500" style="min-height:110px">${echapper(j.description)}</textarea><span class="aide">Affichée sur la fiche du jeu. Laisse une ligne vide entre deux paragraphes.</span></div>
       <div class="champ"><span class="lbl">Jaquette</span><div class="image">
         ${j.image ? `<img class="vignette" src="${echapper(url(j.image))}" alt="">` : `<span class="vignette"></span>`}
@@ -892,7 +899,7 @@ grant execute on function public.envoyer_score(text, numeric, text, text) to aut
       if (/^slides\.\d+\.titre$/.test(el.dataset.champ)) { const s = el.closest(".ligne")?.querySelector(".nom small"); if (s) s.textContent = el.value || "Sans titre"; }
       changement();
     } else if (el.dataset.jeu && el.dataset.cle) {
-      const j = trouverJeu(el.dataset.jeu); j[el.dataset.cle] = el.value;
+      const j = trouverJeu(el.dataset.jeu); j[el.dataset.cle] = el.type === "checkbox" ? el.checked : el.value;
       if (el.dataset.cle === "titre") el.closest(".ligne").querySelector(".nom").firstChild.textContent = el.value || "Sans titre";
       changement();
     }

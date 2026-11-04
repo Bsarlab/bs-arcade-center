@@ -6,6 +6,13 @@
   <title>BS arcade center</title>
   <meta name="description" content="Des jeux faits maison, à lancer en un clic, sans compte et gratuitement.">
   <meta name="theme-color" content="#F6F3EF">
+  <!-- Installer le site comme une appli (écran d'accueil) -->
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="apple-touch-icon" href="icones/apple-touch-icon.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-title" content="BS arcade">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
   <link id="favicon" rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 48 48'%3E%3Crect width='48' height='48' rx='14' fill='%235A4836'/%3E%3Ccircle cx='19' cy='24' r='11' fill='%238C7963'/%3E%3Cpath fill='%23F6F3EF' d='M24 14.5c0-1.6 1.7-2.6 3.1-1.8l13.2 7.6c1.4.8 1.4 2.8 0 3.6l-13.2 7.6c-1.4.8-3.1-.2-3.1-1.8z'/%3E%3C/svg%3E">
   <!-- Aperçu quand le lien est partagé (WhatsApp, Instagram, Discord…) -->
   <meta property="og:type" content="website">
@@ -18,7 +25,7 @@
   <!-- Icônes officielles des réseaux sociaux (Font Awesome) -->
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/fontawesome.min.css">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/brands.min.css">
-  <link rel="stylesheet" href="style.css?v=34">
+  <link rel="stylesheet" href="style.css?v=35">
 </head>
 <body>
   <a class="lien-evitement" href="#contenu">Aller au contenu</a>
@@ -57,6 +64,7 @@
         <span class="nav-pastille" id="navPastille" aria-hidden="true"></span>
         <a href="#/" data-page="accueil">Accueil</a>
         <a href="#/jeux" data-page="jeux">Jeux</a>
+        <a href="#/classements" data-page="classements" hidden>Classements</a>
         <a href="#/a-propos" data-page="a-propos">À propos</a>
         <a href="#/contact" data-page="contact">Contact</a>
       </nav>
@@ -85,6 +93,7 @@
       <p class="etiquette">Derniers jeux</p>
       <div class="menu-jeux" id="menuJeux"></div>
       <div class="menu-reseaux" id="menuReseaux"></div>
+      <div class="menu-installer" id="menuInstaller" hidden></div>
     </div>
   </nav>
 
@@ -162,9 +171,9 @@
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script src="textes.js?v=34"></script>
+  <script src="textes.js?v=35"></script>
   <script src="illustrations.js?v=29"></script>
-  <script src="script.js?v=34"></script>
-  <script src="comptes.js?v=33"></script>
+  <script src="script.js?v=35"></script>
+  <script src="comptes.js?v=35"></script>
 </body>
 </html>

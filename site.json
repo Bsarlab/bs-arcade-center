@@ -68,7 +68,10 @@
         "images/golf-with-tec3h-capture-3.jpg",
         "images/golf-with-tec3h-capture-4.jpg"
       ],
-      "video": "images/golf-with-tec3h-apercu.mp4"
+      "video": "images/golf-with-tec3h-apercu.mp4",
+      "solo": true,
+      "enLigne": true,
+      "nbJoueurs": "1 à 10 joueurs"
     },
     {
       "id": "jmvgplix8",
@@ -83,7 +86,9 @@
         "images/brelan-capture-3.jpg",
         "images/brelan-capture-4.jpg"
       ],
-      "video": "images/brelan-apercu.mp4"
+      "video": "images/brelan-apercu.mp4",
+      "solo": true,
+      "enLigne": true
     },
     {
       "id": "jmvhuwavm",
@@ -98,7 +103,10 @@
         "images/loup-garou-de-brumeval-capture-3.jpg",
         "images/loup-garou-de-brumeval-capture-4.jpg"
       ],
-      "video": "images/loup-garou-de-brumeval-apercu.mp4"
+      "video": "images/loup-garou-de-brumeval-apercu.mp4",
+      "solo": true,
+      "enLigne": true,
+      "nbJoueurs": "4 à 16 joueurs"
     },
     {
       "id": "jmvp0a0wh",
@@ -113,7 +121,9 @@
         "images/bal-masque-capture-3.jpg",
         "images/bal-masque-capture-4.jpg"
       ],
-      "video": "images/bal-masque-apercu.mp4"
+      "video": "images/bal-masque-apercu.mp4",
+      "solo": true,
+      "enLigne": true
     },
     {
       "id": "jmvz9p0v8",
@@ -128,7 +138,9 @@
         "images/la-bousculade-capture-3.jpg",
         "images/la-bousculade-capture-4.jpg"
       ],
-      "video": "images/la-bousculade-apercu.mp4"
+      "video": "images/la-bousculade-apercu.mp4",
+      "solo": true,
+      "enLigne": true
     },
     {
       "id": "jmw0lc154",
@@ -143,7 +155,9 @@
         "images/zone-777-capture-3.jpg",
         "images/zone-777-capture-4.jpg"
       ],
-      "video": "images/zone-777-apercu.mp4"
+      "video": "images/zone-777-apercu.mp4",
+      "solo": true,
+      "enLigne": true
     },
     {
       "id": "jmw0rvbcc",
@@ -158,7 +172,9 @@
         "images/cul-sec-capture-3.jpg",
         "images/cul-sec-capture-4.jpg"
       ],
-      "video": "images/cul-sec-apercu.mp4"
+      "video": "images/cul-sec-apercu.mp4",
+      "solo": true,
+      "enLigne": true
     }
   ],
   "blocs": [
