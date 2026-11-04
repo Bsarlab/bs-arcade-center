@@ -558,7 +558,8 @@ const SKYJO = (() => {
     for (let p = 0; p < s.n; p++) { s.g.push(dk.splice(-12)); s.u.push(Array(12).fill(0)); }
     s.ds = [dk.pop()]; s.dk = dk; s.hv = -1; s.hf = ''; s.ph = 'reveal'; s.fin = -1; s.left = 0; s.turn = 0; s.rs = [];
   }
-  function setup(n, seed){ const s = { n, seed, rn: 0, rnd: 1, tot: Array(n).fill(0), st: -1, lg: [0, ''] }; deal(s); return s; }
+  const OPTS = [{ k: 'flip', def: 0, label: 'Retourner une carte sans piocher', help: 'Règle maison : à ton tour, au lieu de piocher ou de prendre la défausse, tu peux simplement retourner une de tes cartes cachées.' }];
+  function setup(n, seed, opt){ const o = {}; OPTS.forEach(x => o[x.k] = opt && opt[x.k] != null ? (opt[x.k] ? 1 : 0) : x.def); const s = { n, seed, rn: 0, rnd: 1, o, tot: Array(n).fill(0), st: -1, lg: [0, ''] }; deal(s); return s; }
   function next(s){ s = clone(s); if (s.ph === 'over') { s.tot = s.tot.map(() => 0); s.rnd = 0; s.st = -1; } s.rnd++; deal(s); return s; }
   const nUp = (s, p) => s.u[p].filter(Boolean).length;
   const visible = (s, p) => s.g[p].reduce((a, id, k) => a + (id >= 0 && s.u[p][k] ? val(id) : 0), 0);
@@ -632,6 +633,13 @@ const SKYJO = (() => {
       const old = g[i]; g[i] = s.hv; u[i] = 1; s.ds.push(old); s.hv = -1; s.hf = '';
       cols(s, p); endTurn(s, p); return s;
     }
+    if (a.t === 'flip1') {
+      if (!s.o || !s.o.flip) throw E('Cette table ne permet pas de retourner une carte sans piocher.');
+      if (s.hv >= 0) throw E('Tu as déjà une carte en main.');
+      if (i < 0 || i > 11 || g[i] < 0 || u[i]) throw E('Choisis une carte encore cachée.');
+      u[i] = 1; log(s, `@${p} retourne une carte sans piocher.`);
+      cols(s, p); endTurn(s, p); return s;
+    }
     if (a.t === 'drop') {
       if (s.hv < 0 || s.hf !== 'd') throw E('Seule une carte piochée peut être défaussée.');
       if (i < 0 || i > 11 || g[i] < 0 || u[i]) throw E('Choisis une carte encore cachée.');
@@ -661,6 +669,10 @@ const SKYJO = (() => {
     };
     let wk = -1, wv = -99; ups.forEach(k => { const v = val(g[k]); if (v > wv) { wv = v; wk = k; } });
     const rh = () => hidden[Math.floor(Math.random() * hidden.length)];
+    if (s.hv < 0 && s.o && s.o.flip && hidden.length) {
+      const top0 = val(s.ds[s.ds.length - 1]);
+      if (top0 >= 6 && colMatch(top0) < 0 && Math.random() < .35) return { t: 'flip1', i: rh() };
+    }
     if (s.hv < 0) {
       const top = val(s.ds[s.ds.length - 1]);
       if (colMatch(top) >= 0 || top <= 2 || (top <= 5 && wv - top >= 4)) return { t: 'take' };
@@ -675,7 +687,7 @@ const SKYJO = (() => {
     return { t: 'swap', i: hidden.length ? rh() : (wk >= 0 ? wk : g.findIndex(x => x >= 0)) };
   }
   const turns = s => s.ph === 'reveal' ? range(s.n).filter(q => nUp(s, q) < 2) : (s.ph === 'play' || s.ph === 'last') ? [s.turn] : [];
-  return { id: 'skyjo', name: 'Skyjo', min: 2, max: 8, setup, next, act, bot, turns, val, visible, nUp };
+  return { id: 'skyjo', name: 'Skyjo', min: 2, max: 8, setup, next, act, bot, turns, val, visible, nUp, OPTS };
 })();
 
 /* =================== PRÉSIDENT =================== */
@@ -2609,6 +2621,7 @@ VIEWS.skyjo = ctx => {
       let can = false, act = '';
       if (s.ph === 'reveal' && !up && SKYJO.nUp(s, me) < 2) { can = true; act = 'sky-cell'; }
       else if (holding && (!drop || !up)) { can = true; act = 'sky-cell'; }
+      else if (myTurn && s.hv < 0 && !up && s.o && s.o.flip) { can = true; act = 'sky-cell'; }
       const attr = can ? `data-a="${act}" data-i="${k}" role="button" tabindex="0"` : '';
       return up ? sky(id, { cls: can ? 'can' : '', attr }) : back('k' + id, { cls: can ? 'can' : '', attr });
     }).join('');
@@ -2617,7 +2630,7 @@ VIEWS.skyjo = ctx => {
     if (s.ph === 'reveal') p = SKYJO.nUp(s, me) < 2 ? `<p class="prompt me">Retourne ${2 - SKYJO.nUp(s, me)} carte${SKYJO.nUp(s, me) ? '' : 's'} de ta grille</p>` : `<p class="prompt">Les autres retournent leurs cartes…</p>`;
     else if (!playing) p = `<p class="prompt">Manche terminée</p>`;
     else if (!myTurn) p = `<p class="prompt">${ctx.name(s.turn)} joue${s.ph === 'last' ? ' · dernier tour' : ''}…</p>`;
-    else if (s.hv < 0) p = `<p class="prompt me">À toi : pioche, ou prends la défausse${s.ph === 'last' ? ' (dernier tour)' : ''}</p>`;
+    else if (s.hv < 0) p = `<p class="prompt me">À toi : pioche, prends la défausse${s.o && s.o.flip ? ', ou touche une de tes cartes cachées pour la retourner' : ''}${s.ph === 'last' ? ' (dernier tour)' : ''}</p>`;
     else if (drop) p = `<p class="prompt me">Choisis une carte cachée à retourner</p>`;
     else if (s.hf === 'd') p = `<p class="prompt me">Échange-la avec une de tes cartes, ou touche la défausse pour la jeter</p>`;
     else p = `<p class="prompt me">Échange-la avec une de tes cartes</p>`;
@@ -3262,7 +3275,7 @@ const RULES = {
   flip7: ['Le paquet : des numéros de 0 à 12 (un seul 0, un 1, deux 2… jusqu’à douze 12), des cartes bonus (+2 à +10 et ×2) et des cartes action.', 'À ton tour, prends une carte de plus ou arrête-toi pour garder tes points.', 'Si tu tires un numéro que tu as déjà, tu es éliminé de la manche et tu marques 0.', 'Gel : le joueur visé s’arrête tout de suite et garde ses points. Trois cartes : le joueur visé pioche 3 cartes d’affilée. Seconde chance : annule ton prochain doublon.', 'Quand tu tires une carte Gel ou Trois cartes, tu choisis qui la subit (toi compris).', 'Sept numéros différents : Flip 7 ! La manche s’arrête et tu gagnes 15 points de bonus.', 'Score : somme des numéros, doublée par le ×2, plus les bonus. Premier à 200 points.'],
   trio: ['36 cartes, trois exemplaires de chaque nombre de 1 à 12. Une partie des cartes est en main, triée, le reste au centre face cachée.', 'À ton tour, révèle une carte à la fois : la plus petite ou la plus grande carte de la main d’un joueur (toi compris), ou une carte du centre.', 'Tant que les cartes révélées sont identiques, continue. Dès qu’une carte diffère, ton tour s’arrête et tout redevient caché : mémorise bien !', 'Trois cartes identiques : tu gagnes ce trio.', 'Victoire avec 3 trios, ou immédiatement avec le trio de 7.'],
   dekal: ['100 cartes de 1 à 10. Chacun a 16 cartes cachées en grille de 4 × 4.', 'Chaque tour, tout le monde retourne en même temps une carte cachée de sa grille vers le centre, ce qui laisse un trou.', 'Puis, chacun son tour, on reprend une carte du centre et on la pousse dans sa grille par le bord d’une ligne ou d’une colonne qui contient le trou. Les cartes glissent pour le reboucher.', 'On ne peut pas poser la carte directement dans le trou.', 'Après 16 tours, toutes les cartes sont visibles. Les cartes identiques côte à côte (horizontalement ou verticalement) valent 0. Le reste s’additionne.', 'Le plus petit total gagne. La partie s’arrête quand quelqu’un atteint 100 points.'],
-  skyjo: ['150 cartes de −2 à 12. Chacun a 12 cartes cachées en grille de 4 colonnes × 3 rangées et en retourne 2 au départ.', 'Celui qui a la plus forte somme visible commence. Aux manches suivantes, c’est celui qui a terminé la manche précédente.', 'À ton tour : prends la carte de la défausse et échange-la avec une de tes cartes (visible ou cachée), ou pioche une carte.', 'Une carte piochée peut être échangée avec une de tes cartes, ou jetée sur la défausse : tu retournes alors une de tes cartes cachées.', 'Trois cartes identiques dans une même colonne sont défaussées.', 'Quand un joueur a retourné toutes ses cartes, chacun des autres joue un dernier tour, puis on retourne tout et on compte.', 'Si celui qui a terminé n’a pas strictement le plus petit score de la manche, et que son score est positif, ses points sont doublés.', 'La partie s’arrête quand un joueur atteint 100 points. Le plus petit total gagne.'],
+  skyjo: ['150 cartes de −2 à 12. Chacun a 12 cartes cachées en grille de 4 colonnes × 3 rangées et en retourne 2 au départ.', 'Celui qui a la plus forte somme visible commence. Aux manches suivantes, c’est celui qui a terminé la manche précédente.', 'À ton tour : prends la carte de la défausse et échange-la avec une de tes cartes (visible ou cachée), ou pioche une carte.', 'Une carte piochée peut être échangée avec une de tes cartes, ou jetée sur la défausse : tu retournes alors une de tes cartes cachées.', 'Trois cartes identiques dans une même colonne sont défaussées.', 'Quand un joueur a retourné toutes ses cartes, chacun des autres joue un dernier tour, puis on retourne tout et on compte.', 'Si celui qui a terminé n’a pas strictement le plus petit score de la manche, et que son score est positif, ses points sont doublés.', 'La partie s’arrête quand un joueur atteint 100 points. Le plus petit total gagne.', 'Option (règle maison) : retourner une de ses cartes cachées à la place de piocher ou de prendre la défausse.'],
   uno: ['108 cartes : 4 couleurs de 0 à 9, des +2, Inversion et Passe, 4 jokers et 4 jokers +4. 7 cartes chacun.', 'Pose une carte de la même couleur, du même chiffre ou du même symbole que la défausse, ou un joker.', 'Si tu ne peux pas ou ne veux pas jouer, pioche une carte. Si elle peut se poser, tu peux la jouer tout de suite ; sinon ton tour s’arrête.', '+2 : le suivant pioche 2 cartes et passe son tour. Passe : le suivant saute son tour. Inversion : le sens change (à deux, elle fait rejouer).', 'Joker : tu choisis la couleur. Joker +4 : tu choisis la couleur et le suivant pioche 4 cartes et passe son tour. Le +4 n’est permis que si tu n’as aucune carte de la couleur demandée (la partie le vérifie pour toi).', 'Première carte retournée : un +2 fait piocher le premier joueur, un Passe le fait sauter, une Inversion change le sens, un joker laisse la couleur libre, un +4 est remis dans la pioche.', 'Crie « UNO ! » quand tu poses ton avant-dernière carte. Si tu oublies et qu’un joueur appuie sur « Contre-UNO » avant le coup suivant, tu pioches 2 cartes.', 'Option (règle maison) : cumul des +2 et des +4. Le joueur visé peut répondre avec la même carte et le suivant pioche le total.', 'Le premier sans carte marque les cartes restées chez les autres : chiffres à leur valeur, +2, Inversion et Passe = 20, jokers = 50. Si la dernière carte est un +2 ou un +4, le suivant pioche quand même. Premier à 500 points.'],
   dobble: ['Chaque joueur a une carte devant lui, la pioche est au centre.', 'Entre n’importe quelles deux cartes, il y a toujours un et un seul symbole en commun.', 'Trouve le symbole commun entre ta carte et celle du centre, et touche-le : tu gagnes la carte du centre, qui devient ta nouvelle carte.', 'Une erreur te bloque une seconde.', 'Quand la pioche est vide, celui qui a le plus de cartes gagne la manche.'],
   sixq: ['104 cartes numérotées. Chaque carte porte des têtes de bœuf : ce sont des points de pénalité.', 'Quatre rangées sont ouvertes au centre. Chacun reçoit 10 cartes.', 'Tout le monde choisit une carte en secret, puis on les révèle et on les pose de la plus petite à la plus grande.', 'Une carte va au bout de la rangée qui se termine par le nombre le plus proche en dessous d’elle.', 'Si c’est la sixième carte de la rangée, tu ramasses les cinq premières et ta carte démarre la rangée.', 'Si ta carte est plus petite que toutes les fins de rangée, tu choisis une rangée à ramasser.', 'Quand un joueur atteint 66 têtes ou plus, la partie s’arrête à la fin de la manche. Le moins de têtes gagne.'],
@@ -3325,6 +3338,7 @@ document.addEventListener('click', e => {
     case 'sky-cell': {
       const s = viewT().s, i = +el.dataset.i;
       if (s.ph === 'reveal') g({ t: 'flip', i });
+      else if (s.hv < 0) g({ t: 'flip1', i });
       else if (App.ui.drop) { App.ui.drop = false; g({ t: 'drop', i }); }
       else g({ t: 'swap', i });
       break;

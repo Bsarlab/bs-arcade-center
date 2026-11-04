@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script src="../bs-jeux.js"></script>
 <title>Bal Masqué</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,600;1,400&family=Josefin+Sans:wght@300;400;600&display=swap" rel="stylesheet">
@@ -2658,6 +2659,7 @@ function showOverlay(title, msg, btn, fn, showMap){
 }
 function showEnd(m){
   const win = m.winner === myRole;
+  try { if (win && window.BS) BS.victoire(); } catch (e) {}
   $('mapSel2').value = mapKey;
   $('ovBox').dataset.win = win ? '1' : '0';
   setTimeout(() => showOverlay(win ? 'Victoire' : 'Défaite', `${m.msg}<br><br>L'espion était <b>${CHARS[m.spy].n}</b>, ${LOOKS[m.spy].job.toLowerCase()}.`,
