@@ -273,6 +273,8 @@ declare ancien numeric; ancien_ordre text; ancien_libelle text;
 begin
   if auth.uid() is null then return null; end if;
   if p_ordre not in ('haut', 'bas', 'cumul') then p_ordre := 'haut'; end if;
+  -- Carte Grise : les points sont calculés par le serveur, pas envoyés par le navigateur
+  if left(p_jeu, 40) = 'jmwdr0y57' then return null; end if;
   insert into profils (id, pseudo) select auth.uid(), 'Joueur' where not exists (select 1 from profils where id = auth.uid());
   select score, ordre, libelle into ancien, ancien_ordre, ancien_libelle from scores where joueur = auth.uid() and jeu = left(p_jeu, 40);
   -- Le jeu a changé sa façon de compter (ex. nuits tenues -> temps) : l'ancien score est remplacé
@@ -457,6 +459,115 @@ revoke all on function public.tcg_etat() from public, anon;
 revoke all on function public.tcg_ouvrir() from public, anon;
 grant execute on function public.tcg_etat() to authenticated;
 grant execute on function public.tcg_ouvrir() to authenticated;
+
+-- Points Carte Grise : chaque véhicule possédé compte une seule fois (doublons et holo non comptés)
+-- Commune 10 · Rare 25 · Épique 75 · Mythique 250 · Suprême 2000
+create table if not exists public.tcg_valeurs (carte text primary key, points int not null);
+alter table public.tcg_valeurs enable row level security;
+drop policy if exists "valeurs publiques" on public.tcg_valeurs;
+create policy "valeurs publiques" on public.tcg_valeurs for select using (true);
+delete from public.tcg_valeurs;
+insert into public.tcg_valeurs (carte, points) values
+  ('sandero', 10),
+  ('p208', 10),
+  ('yaris', 10),
+  ('corsa', 10),
+  ('fiesta', 10),
+  ('berlingo', 10),
+  ('scenic', 10),
+  ('espace', 10),
+  ('partner', 10),
+  ('smart', 10),
+  ('prius', 10),
+  ('zoe', 10),
+  ('f500', 10),
+  ('polo', 10),
+  ('velo', 10),
+  ('trott', 10),
+  ('trottinette', 10),
+  ('skate', 10),
+  ('bus', 10),
+  ('camion', 10),
+  ('ter', 10),
+  ('tram', 10),
+  ('bateaumouche', 10),
+  ('voilier', 10),
+  ('dcv', 25),
+  ('r4l', 25),
+  ('ds', 25),
+  ('cox', 25),
+  ('combi', 25),
+  ('v240', 25),
+  ('p106', 25),
+  ('clio2', 25),
+  ('mini', 25),
+  ('classeg', 25),
+  ('niva', 25),
+  ('vespa', 25),
+  ('tracteur', 25),
+  ('tuktuk', 25),
+  ('campingcar', 25),
+  ('metro', 25),
+  ('cessna', 25),
+  ('helico', 25),
+  ('montgolfiere', 25),
+  ('jetski', 25),
+  ('p205gti', 75),
+  ('r5turbo', 75),
+  ('delta', 75),
+  ('quattro', 75),
+  ('countach', 75),
+  ('p911', 75),
+  ('golfgti', 75),
+  ('impreza', 75),
+  ('evo', 75),
+  ('veyron', 75),
+  ('harley', 75),
+  ('tgv', 75),
+  ('vapeur', 75),
+  ('a380', 75),
+  ('qm2', 75),
+  ('concorde', 250),
+  ('kangoo', 250),
+  ('multipla', 250),
+  ('punto', 250),
+  ('c15', 250),
+  ('hilux', 250),
+  ('twingo', 250),
+  ('p206', 250),
+  ('saxo', 250),
+  ('robin', 250),
+  ('f40', 250),
+  ('delorean', 250),
+  ('ae86', 250),
+  ('r34', 250),
+  ('solex', 250),
+  ('mob103', 250),
+  ('orient', 250),
+  ('saturnv', 250),
+  ('pedalo', 250),
+  ('kangoopower', 2000);
+create or replace function public.tcg_points_de(j uuid) returns int language sql stable security definer set search_path = public as $$
+  select coalesce(sum(v.points), 0)::int from tcg_valeurs v
+  where exists (select 1 from tcg_cartes c where c.joueur = j and c.nombre > 0 and replace(c.carte, '*', '') = v.carte);
+$$;
+create or replace function public.tcg_maj_points() returns trigger language plpgsql security definer set search_path = public as $$
+declare j uuid := coalesce(new.joueur, old.joueur); p int;
+begin
+  p := tcg_points_de(j);
+  insert into scores (joueur, jeu, score, ordre, libelle, maj) values (j, 'jmwdr0y57', p, 'haut', 'points', now())
+  on conflict (joueur, jeu) do update set score = excluded.score, ordre = 'haut', libelle = 'points', maj = now()
+  where scores.score is distinct from excluded.score or scores.libelle is distinct from 'points';
+  return null;
+end $$;
+drop trigger if exists tcg_points on public.tcg_cartes;
+create trigger tcg_points after insert or update or delete on public.tcg_cartes for each row execute function public.tcg_maj_points();
+revoke all on function public.tcg_points_de(uuid) from public, anon;
+revoke all on function public.tcg_maj_points() from public, anon, authenticated;
+-- Remet à jour les points de tous les joueurs (utile la première fois)
+insert into public.scores (joueur, jeu, score, ordre, libelle, maj)
+  select j, 'jmwdr0y57', public.tcg_points_de(j), 'haut', 'points', now() from (select distinct joueur as j from public.tcg_cartes where nombre > 0) t
+  on conflict (joueur, jeu) do update set score = excluded.score, ordre = 'haut', libelle = 'points';
 
 -- Carte Grise : courses (rapportent des boosters) et échanges entre amis
 create table if not exists public.tcg_courses (

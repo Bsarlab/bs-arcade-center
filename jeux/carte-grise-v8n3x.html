@@ -313,6 +313,80 @@ main { padding: 8px clamp(14px, 3vw, 28px) 60px; max-width: 1200px; margin: 0 au
   *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0ms !important; }
   .grain { display: none; }
 }
+/* ---------- Le grand n'importe quoi (Mythique et Suprême) ---------- */
+.fx { position: absolute; inset: 0; z-index: 5; pointer-events: none; overflow: hidden; }
+.cine-carte { z-index: 3; }
+.fx-gros { position: absolute; left: 0; right: 0; top: 8vh; text-align: center; font-family: var(--f-tampon); font-size: clamp(30px, 7vw, 84px); line-height: 1; color: #fff; animation: fx-pop .35s cubic-bezier(.2, 1.6, .4, 1) both; }
+.fx-faux { color: #d8b4fe; text-shadow: 0 0 30px rgba(192,132,252,.8); }
+.fx-stop { color: #ff4d4d; text-shadow: 5px 5px 0 #000, 0 0 40px rgba(255,77,77,.6); transform: rotate(-4deg); }
+@keyframes fx-pop { from { transform: scale(3) rotate(-10deg); opacity: 0; } }
+.cinema.arret .cine-carte, .cinema.arret .cine-rayons { filter: grayscale(1) brightness(.7); }
+.cinema.gyro::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; animation: fx-gyro .5s steps(1) infinite; }
+@keyframes fx-gyro { 0% { background: radial-gradient(70% 90% at 0% 50%, rgba(255,20,60,.6), transparent 70%); } 50% { background: radial-gradient(70% 90% at 100% 50%, rgba(20,90,255,.6), transparent 70%); } }
+.fx-alerte { position: absolute; top: 6vh; left: 0; right: 0; text-align: center; font-family: var(--f-tampon); font-size: clamp(24px, 5.4vw, 60px); color: #fff; text-shadow: 0 4px 0 #000; animation: fx-alerte .25s steps(1) infinite; }
+@keyframes fx-alerte { 50% { color: #ff3355; transform: scale(1.06); } }
+.fx-voiture { position: absolute; left: 105%; font-size: clamp(70px, 13vw, 150px); line-height: 1; animation: fx-traverse 1.7s cubic-bezier(.35, 0, .65, 1) forwards; filter: drop-shadow(0 0 18px rgba(255,79,163,.9)) drop-shadow(0 0 40px rgba(34,211,238,.6)); white-space: nowrap; }
+.fx-voiture::after { content: "💨💨💨"; font-size: .45em; vertical-align: middle; }
+.fx-voiture b { position: absolute; left: -.2em; top: -.55em; padding: .2em .5em; border-radius: .6em; background: #fff; color: #111; font-family: var(--f-tampon); font-weight: 400; font-size: .2em; transform: rotate(-8deg); white-space: nowrap; }
+.fx-voiture b:empty { display: none; }
+@keyframes fx-traverse { 0% { left: 105%; transform: rotate(0); } 40% { transform: rotate(-14deg) translateY(-10px); } 60% { transform: rotate(9deg); } 100% { left: -60%; transform: rotate(0); } }
+.cinema.punch { animation: fx-punch 1s ease-out; }
+@keyframes fx-punch { 0% { transform: scale(1); } 8% { transform: scale(1.18) rotate(-3deg); } 22% { transform: scale(.96); } 36% { transform: scale(1.12) rotate(2deg); } 52% { transform: scale(1); } 66% { transform: scale(1.07) rotate(-1deg); } 100% { transform: scale(1); } }
+.cinema.r-S.revele.punch { animation: fx-punch 1s ease-out, tremble .5s linear 1s 2; }
+.cine-titre span { display: inline-block; animation: fx-vague .9s ease-in-out infinite; animation-delay: calc(var(--i) * -.11s); color: hsl(calc(var(--i) * 47deg + 40deg) 100% 66%); }
+@keyframes fx-vague { 50% { transform: translateY(-.22em) rotate(7deg) scale(1.12); } }
+.fx-lunettes { position: absolute; left: 50%; top: 14%; z-index: 6; font-size: calc(var(--w) * .38); line-height: 1; transform: translateX(-50%); animation: fx-lunettes 1.4s cubic-bezier(.5, 0, .75, 0) both; filter: drop-shadow(0 6px 6px rgba(0,0,0,.5)); }
+@keyframes fx-lunettes { 0% { transform: translate(-50%, -120vh); } 85% { transform: translate(-50%, 0); } 92% { transform: translate(-50%, -8%) rotate(-6deg); } 100% { transform: translate(-50%, 0); } }
+.fx-deal { position: absolute; left: -8%; right: -8%; top: 46%; z-index: 6; text-align: center; font-family: var(--f-tampon); font-size: calc(var(--w) * .11); color: #fff; -webkit-text-stroke: .06em #000; paint-order: stroke fill; text-shadow: 0 .08em 0 #000; animation: fx-pop .35s cubic-bezier(.2, 1.6, .4, 1) both; }
+.fx-points { position: absolute; right: 4vw; top: 22vh; font-family: var(--f-tampon); font-size: clamp(30px, 6vw, 70px); color: var(--jaune); text-shadow: 0 5px 0 #8a6400, 0 0 30px rgba(255,210,63,.7); transform: rotate(8deg); animation: fx-pop .4s cubic-bezier(.2, 1.6, .4, 1) .3s both; }
+.fx-tampon { position: absolute; padding: .1em .45em; border: .13em solid currentColor; border-radius: .25em; background: rgba(0,0,0,.45); font-family: var(--f-tampon); line-height: 1.1; white-space: nowrap; transform: rotate(var(--r)); animation: fx-tamponne .35s cubic-bezier(.2, 1.6, .4, 1) both; text-shadow: 0 0 12px currentColor; }
+@keyframes fx-tamponne { from { transform: scale(3.5) rotate(var(--r)); opacity: 0; } }
+/* Suprême : écran noir, console, fenêtres d'erreur */
+.cinema.noir { background: #000 !important; }
+.cinema.noir .cine-carte, .cinema.noir .cine-rayons, .cinema.noir .cine-titre { opacity: 0 !important; }
+.cinema.tremble-fort { animation: tremble .14s linear infinite; }
+.fx-console { position: absolute; left: 7vw; right: 7vw; top: 14vh; font-family: ui-monospace, Menlo, Consolas, monospace; font-size: clamp(14px, 2.3vw, 22px); line-height: 1.6; color: #3dff7a; text-shadow: 0 0 8px #3dff7a; }
+.fx-console p { margin: 0; white-space: pre-line; }
+.fx-console p::after { content: "▌"; animation: clignote .7s steps(1) infinite; }
+.fx-fenetre { position: absolute; left: calc(50% - min(170px, 43vw) + var(--n) * 2.4vw); top: calc(36% + var(--n) * 2.2vh); width: min(340px, 86vw); background: #c0c0c0; color: #000; font: 13px/1.35 Tahoma, Verdana, sans-serif; box-shadow: inset -2px -2px #404040, inset 2px 2px #fff, 6px 6px 0 rgba(0,0,0,.45); }
+.fx-fenetre .tb { display: flex; justify-content: space-between; align-items: center; padding: 3px 4px 3px 7px; background: linear-gradient(90deg, #000a7a, #1084d0); color: #fff; font-weight: 700; }
+.fx-fenetre .tb span { padding: 0 6px; background: #c0c0c0; color: #000; box-shadow: inset -1px -1px #404040, inset 1px 1px #fff; }
+.fx-fenetre .co { display: flex; gap: 12px; align-items: flex-start; padding: 14px; }
+.fx-fenetre .co p { margin: 0; }
+.fx-fenetre .ico { font-size: 30px; line-height: 1; }
+.fx-fenetre .jauge { height: 16px; margin: 0 14px; background: #fff; box-shadow: inset 1px 1px #404040, inset -1px -1px #fff; }
+.fx-fenetre .jauge i { display: block; height: 100%; width: 0; background: repeating-linear-gradient(90deg, #000a7a 0 10px, transparent 10px 12px); }
+.fx-fenetre small { display: block; padding: 6px 14px 12px; font-size: 12px; }
+.fx-fenetre.vole { transition: transform 1s cubic-bezier(.3, 0, .8, .6), opacity 1s; transform: translate(var(--dx), var(--dy)) rotate(var(--rr)) scale(.3); opacity: 0; }
+/* Suprême : boîte de nuit */
+.cinema.disco::before { content: ""; position: absolute; inset: 0; z-index: 0; pointer-events: none; background: conic-gradient(from 0deg at 50% 60%, #ff4fa3, #8b5cf6, #22d3ee, #34d399, #ffd23f, #ff4fa3); opacity: .3; animation: fx-hue 1.9s linear infinite; }
+@keyframes fx-hue { to { filter: hue-rotate(360deg); } }
+.cinema.beat::after { content: ""; position: absolute; inset: 0; z-index: 4; pointer-events: none; background: radial-gradient(circle at 50% 55%, transparent 30%, rgba(255,79,163,.35)); animation: fx-beat .45s ease-out forwards; }
+@keyframes fx-beat { to { opacity: 0; } }
+.cinema.disco.beat .cine-titre { animation: fx-boum .45s ease-out; }
+@keyframes fx-boum { 0% { transform: scale(1.18); } 100% { transform: scale(1); } }
+.fx-lasers { position: absolute; left: -50%; right: -50%; top: -10%; height: 160%; transform-origin: 50% 0; background: repeating-conic-gradient(from 160deg at 50% 0%, rgba(255,79,163,.55) 0 1.2deg, transparent 1.2deg 10deg, rgba(34,211,238,.5) 10deg 11.2deg, transparent 11.2deg 20deg); mix-blend-mode: screen; animation: fx-lasers 2.8s ease-in-out infinite alternate; }
+@keyframes fx-lasers { from { transform: rotate(-22deg); } to { transform: rotate(22deg); } }
+.fx-boule { position: absolute; left: 10%; top: -30vh; font-size: clamp(70px, 10vw, 120px); line-height: 1; animation: fx-descend 1.2s cubic-bezier(.2, 1.5, .4, 1) .2s forwards; filter: drop-shadow(0 0 30px rgba(255,255,255,.8)); }
+@keyframes fx-descend { to { top: 3vh; } }
+.fx-fissure { position: absolute; inset: 0; width: 100%; height: 100%; fill: none; stroke: rgba(255,255,255,.85); stroke-width: .35; vector-effect: non-scaling-stroke; stroke-dasharray: 200; stroke-dashoffset: 200; animation: fx-fissure .25s ease-out forwards; filter: drop-shadow(0 0 4px #fff); }
+.fx-fissure path { vector-effect: non-scaling-stroke; stroke-width: 3; }
+.fx-fissure.part { transition: opacity 1s; opacity: 0; }
+@keyframes fx-fissure { to { stroke-dashoffset: 0; } }
+
+/* Points et classement */
+.pts-pilule { display: inline-flex; align-items: baseline; gap: 4px; color: var(--jaune); font-family: var(--f-titre); font-weight: 800; }
+.classement { margin: -6px 0 24px; padding: 16px 18px; border-radius: 18px; background: linear-gradient(180deg, rgba(255,210,63,.07), rgba(255,255,255,.02)); border: 1px solid rgba(255,210,63,.25); }
+.classement[hidden] { display: none; }
+.classement h3 { margin: 0 0 4px; font-family: var(--f-titre); font-weight: 800; font-size: 20px; letter-spacing: .06em; color: #fff; }
+.classement > p { margin: 0 0 12px; color: var(--doux); font-size: 14px; }
+.classement ol { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.classement li { display: grid; grid-template-columns: 34px 30px 1fr auto; align-items: center; gap: 10px; padding: 6px 10px; border-radius: 12px; background: rgba(255,255,255,.04); font-family: var(--f-titre); font-weight: 700; font-size: 17px; }
+.classement li.moi { background: rgba(34,211,238,.12); box-shadow: inset 0 0 0 1px rgba(34,211,238,.5); }
+.classement .rang { font-family: var(--f-tampon); font-weight: 400; font-size: 18px; color: var(--pale); text-align: center; }
+.classement li:nth-child(1) .rang { color: #ffd23f; } .classement li:nth-child(2) .rang { color: #d6dae3; } .classement li:nth-child(3) .rang { color: #e39a5b; }
+.classement img, .classement .av { width: 30px; height: 30px; border-radius: 50%; object-fit: cover; background: linear-gradient(135deg, var(--violet), var(--cyan)); }
+.classement .pts { color: var(--jaune); }
 </style>
 </head>
 <body>
@@ -339,6 +413,7 @@ main { padding: 8px clamp(14px, 3vw, 28px) 60px; max-width: 1200px; margin: 0 au
         <div class="etat" aria-live="polite">
           <div class="etat-ligne"><span>Boosters disponibles</span><span class="voyants" id="voyants"></span></div>
           <div class="etat-ligne"><span id="libelleMinuteur">Prochain booster</span><span class="minuteur" id="minuteur">--:--</span></div>
+          <div class="etat-ligne"><span>Mes points</span><span class="minuteur" id="pointsAccueil">0</span></div>
           <div class="etat-ligne" id="ligneBonus" hidden><span>Boosters gagnés (courses)</span><span class="minuteur" id="bonus">0</span></div>
         </div>
         <div class="actions">
@@ -355,9 +430,10 @@ main { padding: 8px clamp(14px, 3vw, 28px) 60px; max-width: 1200px; margin: 0 au
   <!-- Classeur -->
   <section class="ecran" id="e-classeur" hidden>
     <div class="titre-ecran">
-      <div><h2>Garage</h2><p>Série 1 · « Plein phares » · <span id="totalCartes">0</span> cartes possédées</p></div>
+      <div><h2>Garage</h2><p>Série 1 · « Plein phares » · <span id="totalCartes">0</span> cartes possédées · <span class="pts-pilule"><span id="pointsGarage">0</span> points</span></p></div>
       <div class="progression"><span id="progTexte">0 / 78 véhicules</span><div class="progression-barre"><i id="progBarre"></i></div></div>
     </div>
+    <div class="classement" id="classement" hidden></div>
     <div class="filtres" id="filtres" role="group" aria-label="Filtrer"></div>
     <div class="grille-classeur" id="grille"></div>
   </section>
@@ -1744,7 +1820,7 @@ function carteHTML(cle, o = {}) {
       <div class="c-corps"><div class="c-nom"><b>${esc(c.n)}</b></div>
       <div class="c-texte">${c.txt}<i>« ${esc(c.cite)} »</i></div></div>
       <div class="c-pied"><span class="c-stat men" title="Vitesse">${ICONES.menace}${c.men}</span>
-        <span class="c-rar"><b>${RARETES[c.r]}</b>${String(c.i + 1).padStart(2, "0")}/${TOTAL}</span>
+        <span class="c-rar"><b>${RARETES[c.r]}</b>${POINTS[c.r]} pts · ${String(c.i + 1).padStart(2, "0")}/${TOTAL}</span>
         <span class="c-stat conf" title="Fiabilité">${ICONES.conf}${c.conf}</span></div>
     </div>
     ${holo ? `<span class="c-holo">HOLO</span>` : ""}
@@ -1788,6 +1864,22 @@ const Son = (() => {
     secoue() { bruit(.12, 400, 2, .2); },
     monte(d, r) { ton(r === "S" ? 60 : 90, d, .16, "sawtooth", r === "S" ? 900 : 600); ton(r === "S" ? 120 : 180, d, .06, "square", r === "S" ? 1800 : 1200); },
     retourne() { bruit(.07, 3000, 1.5, .25, "highpass"); },
+    scratch() { ton(1400, .18, .16, "sawtooth", 140); bruit(.3, 1800, 2, .35); ton(250, .22, .12, "sawtooth", 1100, .2); },
+    sirene(d) {
+      const c = pret(); if (!c) return;
+      const o = c.createOscillator(), g = c.createGain(), t = c.currentTime; o.type = "square";
+      for (let x = 0; x < d; x += .6) { o.frequency.setValueAtTime(620, t + x); o.frequency.linearRampToValueAtTime(960, t + x + .3); o.frequency.linearRampToValueAtTime(620, t + x + .6); }
+      g.gain.setValueAtTime(.045, t); g.gain.setValueAtTime(.045, t + d - .15); g.gain.linearRampToValueAtTime(0, t + d);
+      o.connect(g).connect(c.destination); o.start(t); o.stop(t + d + .05);
+    },
+    klaxon() { [0, .2].forEach((d) => { ton(392, .16, .08, "square", null, d); ton(494, .16, .06, "square", null, d); }); },
+    corne() { [[0, .42], [.5, .13], [.67, .13], [.84, .6]].forEach(([d, l]) => [0, 4, -5, 9].forEach((x) => ton(466 + x, l, .045, "sawtooth", null, d))); },
+    tic(v = .05) { ton(1900, .05, v, "square"); },
+    erreur() { ton(880, .1, .07, "square"); ton(587, .2, .07, "square", null, .1); },
+    boum() { ton(110, 1.4, .45, "sine", 28); bruit(1.2, 220, .6, .5, "lowpass"); },
+    kick() { ton(160, .22, .32, "sine", 42); },
+    hat() { bruit(.05, 9000, 1, .07, "highpass"); },
+    basse(f) { ton(f, .22, .07, "sawtooth"); ton(f * 2, .22, .03, "square"); },
     rare(r) {
       if (r === "R") { ton(660, .5, .1); ton(990, .6, .08, "sine", null, .08); }
       if (r === "E") { ton(440, .7, .12, "triangle"); ton(660, .7, .1, "triangle", null, .1); ton(880, .9, .1, "triangle", null, .2); }
@@ -1888,9 +1980,15 @@ async function chargerCollection() {
   majCompteurs();
 }
 const possede = (id) => (collection[id] || 0) + (collection[id + "*"] || 0);
+// Points : chaque véhicule compte une seule fois (les doublons et les holo ne rapportent rien de plus)
+const POINTS = { C: 10, R: 25, E: 75, L: 250, S: 2000 };
+const POINTS_MAX = CARTES.reduce((a, c) => a + POINTS[c.r], 0);
+const mesPoints = () => CARTES.reduce((a, c) => a + (possede(c.id) ? POINTS[c.r] : 0), 0);
 function majCompteurs() {
   const n = CARTES.filter((c) => possede(c.id) > 0).length;
   $("compteurBarre").textContent = `${n}/${TOTAL}`;
+  const p = mesPoints().toLocaleString("fr-FR");
+  $("pointsAccueil").textContent = p; $("pointsGarage").textContent = p;
   return n;
 }
 
@@ -1942,7 +2040,7 @@ function distribuer(ordre, avant) {
   t.innerHTML = ordre.map(({ k, r }, i) => {
     const neuve = !(avant[k.replace("*", "")] || avant[k.replace("*", "") + "*"]);
     return `<div class="slot r-${r}" style="--k:${i};--rot:${(i - 2) * 6}deg" data-cle="${esc(k)}" data-r="${r}">
-      ${neuve ? `<span class="nouveau">NOUVEAU</span>` : ""}
+      ${neuve ? `<span class="nouveau">NOUVEAU +${POINTS[r]} pts</span>` : ""}
       <div class="retourne" role="button" tabindex="0" aria-label="Retourner la carte ${i + 1}"><div class="dos">${dosHTML()}</div><div class="face">${carteHTML(k)}</div></div></div>`;
   }).join("");
   requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add("distribue")));
@@ -1960,43 +2058,186 @@ async function retourner(slot) {
   if (r === "R") setTimeout(() => Son.rare(r), 250);
   if (![...$("tirage").querySelectorAll(".slot")].some((s) => !s.classList.contains("vue"))) finOuverture();
 }
-// La grosse animation : la carte arrive face cachée, tremble de plus en plus, explose de lumière et se retourne
+// La grosse animation : la carte arrive face cachée, tremble de plus en plus, explose de lumière et se retourne.
+// Pour les Mythiques et la Suprême, c'est volontairement n'importe quoi.
+const EMOJIS = { L: ["🔥", "🚗", "💨", "🏁", "😎", "💯", "🔥"], S: ["🦩", "🦩", "🦩", "🎲", "🔊", "✨", "💸", "🪩", "🚐", "🦩"] };
+const TAMPONS = {
+  L: ["LÉGENDAIRE", "LORE ÉNORME", "+250 PTS", "INCROYABLE", "GG", "WOW", "QUEL LORE", "CULTE", "MYTHO ?", "NON ?!"],
+  S: ["100 % BEAUF", "ROI DU PARKING", "1 SUR 1000", "AURA +∞", "+2000 PTS", "ABUSÉ", "C'EST LUI", "FLAMANT ROSE", "NÉONS ON", "LÉGENDE VIVANTE", "GG", "INTOUCHABLE", "LE BOSS", "SONO À FOND", "IL EST LÀ", "PLUS BEAUF QUE TOI"],
+};
+const COUL_TAMPON = ["#ffd23f", "#ff4fa3", "#22d3ee", "#34d399", "#fff", "#c084fc", "#ff7a3d"];
+const hasard = (t) => t[Math.floor(Math.random() * t.length)];
+const lettres = (t) => [...t].map((ch, i) => `<span style="--i:${i}">${ch === " " ? "&nbsp;" : ch}</span>`).join("");
+async function tape(elt, texte, vitesse = 40) { for (const ch of texte) { elt.textContent += ch; if (ch !== " ") Son.tic(.025); await pause(vitesse); } }
+function compteur(elt, cible, ms) {
+  const t0 = performance.now();
+  const pas = (t) => { const k = Math.min(1, (t - t0) / ms); elt.textContent = Math.round(cible * (1 - Math.pow(1 - k, 3))).toLocaleString("fr-FR"); if (k < 1) requestAnimationFrame(pas); };
+  requestAnimationFrame(pas);
+}
+function tampon(fx, texte) {
+  const t = document.createElement("div");
+  const gauche = Math.random() < .5, x = gauche ? 2 + Math.random() * 20 : 64 + Math.random() * 18;
+  t.className = "fx-tampon";
+  t.textContent = texte;
+  t.style.cssText = `left:${x}vw;top:${8 + Math.random() * 78}vh;--r:${(Math.random() - .5) * 40}deg;color:${hasard(COUL_TAMPON)};font-size:${18 + Math.random() * 26}px`;
+  fx.appendChild(t);
+  const tous = fx.querySelectorAll(".fx-tampon"); if (tous.length > 14) tous[0].remove();
+  Son.tic();
+}
+function voiture(fx, emoji, bulle) {
+  const v = document.createElement("div");
+  v.className = "fx-voiture"; v.style.top = 55 + Math.random() * 25 + "%";
+  v.innerHTML = `${emoji}${bulle ? `<b>${bulle}</b>` : ""}`;
+  fx.appendChild(v); setTimeout(() => v.remove(), 2000);
+}
+
 function cinema(cle, r) {
   return new Promise(async (fini) => {
     cinemaEnCours = true;
     const c = PAR_ID[cle.replace("*", "")];
     const coul = { E: "rgba(192,132,252,.9)", L: "rgba(255,210,63,.95)", S: "rgba(255,79,163,1)" }[r];
     const palette = { E: ["#a855f7", "#d8b4fe", "#7c3aed", "#fff"], L: ["#ffd23f", "#ff6ec7", "#7df9ff", "#b4ff6e", "#fff"], S: ["#ff4fa3", "#8b5cf6", "#22d3ee", "#ffd23f", "#fff"] }[r];
-    const duree = { E: 900, L: 1700, S: 2600 }[r];
+    const duree = { E: 900, L: 1300, S: 1800 }[r];
+    const ctrl = { fini: false, boucles: [] };
+    const repete = (fn, ms) => ctrl.boucles.push(setInterval(() => { if (!ctrl.fini) fn(); }, ms));
+    const plusTard = (fn, ms) => setTimeout(() => { if (!ctrl.fini) fn(); }, ms);
     const el = document.createElement("div");
     el.className = "cinema r-" + r; el.style.setProperty("--c1", coul); el.style.setProperty("--duree", duree + "ms");
     el.innerHTML = `<div class="cine-rayons"></div><canvas></canvas><div class="cine-titre">${r === "S" ? "SUPRÊME" : r === "L" ? "MYTHIQUE" : "ÉPIQUE"}</div>
       <div class="cine-carte"><div class="retourne"><div class="dos">${dosHTML()}</div><div class="face">${carteHTML(cle)}</div></div></div>
-      <div class="cine-sous">${esc(c.marque)} · ${esc(c.n)} — touche pour continuer</div>`;
+      <div class="cine-sous">${esc(c.marque)} · ${esc(c.n)} : touche pour continuer</div><div class="fx"></div>`;
     document.body.appendChild(el);
+    const fx = el.querySelector(".fx"), carteEl = el.querySelector(".cine-carte");
     const cv = el.querySelector("canvas"), cx = cv.getContext("2d");
-    const taille = () => { cv.width = innerWidth * 1.5; cv.height = innerHeight * 1.5; }; taille();
+    cv.width = innerWidth * 1.5; cv.height = innerHeight * 1.5;
     let parts = [], anim = true;
     const boucle = () => {
       if (!anim) return;
       cx.clearRect(0, 0, cv.width, cv.height);
-      parts.forEach((p) => { p.vy += p.g; p.x += p.vx; p.y += p.vy; p.a += p.va; p.vie--; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.globalAlpha = Math.max(0, Math.min(1, p.vie / 40)); cx.fillStyle = p.c; cx.fillRect(-p.t / 2, -p.t / 4, p.t, p.t / 2); cx.restore(); });
-      parts = parts.filter((p) => p.vie > 0);
-      if (r === "S" && el.classList.contains("revele") && Math.random() < .8) parts.push({ x: Math.random() * cv.width, y: -20, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, g: .03, a: 0, va: .1, t: 10 + Math.random() * 10, c: palette[Math.floor(Math.random() * palette.length)], vie: 400 });
+      parts.forEach((p) => {
+        p.vy += p.g; p.x += p.vx; p.y += p.vy; p.a += p.va; p.vie--;
+        cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.globalAlpha = Math.max(0, Math.min(1, p.vie / 40));
+        if (p.e) { cx.font = `${p.t * 2.6}px serif`; cx.textAlign = "center"; cx.fillText(p.e, 0, 0); }
+        else { cx.fillStyle = p.c; cx.fillRect(-p.t / 2, -p.t / 4, p.t, p.t / 2); }
+        cx.restore();
+      });
+      parts = parts.filter((p) => p.vie > 0 && p.y < cv.height + 80);
+      if (r === "S" && el.classList.contains("revele") && Math.random() < .8) parts.push({ x: Math.random() * cv.width, y: -20, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, g: .03, a: 0, va: .1, t: 10 + Math.random() * 10, c: hasard(palette), vie: 400 });
       requestAnimationFrame(boucle);
     };
-    const explosion = (n) => { const cx0 = cv.width / 2, cy0 = cv.height / 2; for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = 6 + Math.random() * (r === "E" ? 10 : 18); parts.push({ x: cx0, y: cy0, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 4, g: .25, a: 0, va: (Math.random() - .5) * .4, t: 8 + Math.random() * 14, c: palette[Math.floor(Math.random() * palette.length)], vie: 120 + Math.random() * 80 }); } };
+    const explosion = (n, emojis) => {
+      const x0 = cv.width / 2, y0 = cv.height / 2;
+      for (let i = 0; i < n; i++) {
+        const a = Math.random() * Math.PI * 2, v = 6 + Math.random() * (r === "E" ? 10 : 18);
+        parts.push({ x: x0, y: y0, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 4, g: .25, a: 0, va: (Math.random() - .5) * .4, t: 8 + Math.random() * 14, c: hasard(palette), e: emojis ? hasard(emojis) : null, vie: 120 + Math.random() * 80 });
+      }
+    };
+    const pluie = (n, emojis) => { for (let i = 0; i < n; i++) parts.push({ x: Math.random() * cv.width, y: -60, vx: (Math.random() - .5) * 3, vy: 3 + Math.random() * 5, g: .06, a: Math.random(), va: (Math.random() - .5) * .08, t: 12 + Math.random() * 16, e: hasard(emojis), vie: 500 }); };
     requestAnimationFrame(boucle);
     requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("on")));
     await pause(600);
+
+    // ---------- Avant la révélation ----------
+    if (r === "L") {
+      // Fausse piste : on fait croire à une Épique…
+      fx.innerHTML = `<div class="fx-gros fx-faux">Épique…</div>`;
+      el.style.setProperty("--duree", "1000ms"); el.classList.add("charge"); Son.monte(1, "E");
+      await pause(1050);
+      el.classList.remove("charge"); el.classList.add("arret"); Son.scratch();
+      fx.innerHTML = `<div class="fx-gros fx-stop">ATTENDS.</div>`;
+      await pause(950);
+      fx.innerHTML = `<div class="fx-gros fx-stop">C'EST PAS UNE ÉPIQUE.</div>`; Son.tic();
+      await pause(1000);
+      el.classList.remove("arret"); el.classList.add("gyro");
+      fx.innerHTML = `<div class="fx-alerte">🚨 ALERTE MYTHIQUE 🚨</div>`;
+      Son.sirene(2.6);
+      plusTard(() => { voiture(fx, "🚗", "POUET POUET"); Son.klaxon(); }, 500);
+      plusTard(() => { voiture(fx, "🏎️"); Son.klaxon(); }, 1300);
+      await pause(2300);
+      fx.innerHTML = "";
+      el.style.setProperty("--duree", duree + "ms");
+    }
+    if (r === "S") {
+      // Écran noir, console qui s'affole, fenêtres d'erreur en cascade, puis tout explose
+      el.classList.add("noir");
+      fx.innerHTML = `<div class="fx-console"><p></p></div>`;
+      const p = fx.querySelector(".fx-console p");
+      await tape(p, "> Analyse du booster…\n"); await pause(350);
+      await tape(p, "> Niveau de beauf : 12 %… 48 %… 87 %… 99 %…\n", 35); await pause(300);
+      await tape(p, "> ⚠ VALEUR IMPOSSIBLE\n", 55); await pause(400);
+      const fen = (n) => `<div class="fx-fenetre" style="--n:${n}"><div class="tb">CARTE_GRISE.EXE<span>✕</span></div>
+        <div class="co"><b class="ico">⚠️</b><p>Le jeu a cessé de fonctionner.<br>Cause : <b>TROP DE BEAUFITUDE</b>.</p></div>
+        <div class="jauge"><i></i></div><small>Chargement du beauf : <span>0</span> %</small></div>`;
+      fx.insertAdjacentHTML("beforeend", fen(0)); Son.erreur();
+      const premiere = fx.querySelector(".fx-fenetre");
+      for (let k = 0; k <= 20; k++) { premiere.querySelector(".jauge i").style.width = Math.min(100, k * 5) + "%"; premiere.querySelector("small span").textContent = k * 5; await pause(30); }
+      el.classList.add("tremble-fort");
+      for (let n = 1; n <= 11; n++) {
+        fx.insertAdjacentHTML("beforeend", fen(n)); Son.erreur();
+        const w = fx.lastElementChild; w.querySelector(".jauge i").style.width = "100%"; w.querySelector("small span").textContent = Math.round(100 * Math.pow(1.9, n)).toLocaleString("fr-FR");
+        await pause(Math.max(55, 230 - n * 18));
+      }
+      Son.boum(); flash();
+      fx.querySelector(".fx-console")?.remove();
+      fx.querySelectorAll(".fx-fenetre").forEach((w) => { w.style.setProperty("--dx", (Math.random() - .5) * 220 + "vw"); w.style.setProperty("--dy", (Math.random() - .5) * 220 + "vh"); w.style.setProperty("--rr", (Math.random() - .5) * 900 + "deg"); w.classList.add("vole"); });
+      el.classList.remove("noir", "tremble-fort"); el.classList.add("disco");
+      fx.insertAdjacentHTML("afterbegin", `<div class="fx-lasers"></div><div class="fx-boule">🪩</div>`);
+      // Techno à 128 BPM jusqu'à ce qu'on ferme
+      let temps = 0;
+      const BASSES = [55, 55, 65.4, 49];
+      repete(() => { Son.kick(); setTimeout(() => !ctrl.fini && Son.hat(), 234); if (temps % 2 === 0) Son.basse(BASSES[(temps >> 2) % 4]); el.classList.remove("beat"); void el.offsetWidth; el.classList.add("beat"); temps++; }, 469);
+      voiture(fx, "🚐", "POUET POUET"); Son.klaxon();
+      plusTard(() => fx.querySelectorAll(".fx-fenetre").forEach((w) => w.remove()), 1100);
+      await pause(1500);
+    }
+
+    // ---------- La révélation ----------
     el.classList.add("charge"); Son.monte(duree / 1000, r);
     await pause(duree);
     flash(); el.classList.remove("charge"); el.classList.add("revele");
     explosion(r === "S" ? 420 : r === "L" ? 260 : 120);
-    Son.rare(r === "S" ? "S" : r);
-    if (r !== "E") setTimeout(() => explosion(r === "S" ? 260 : 120), 450);
-    const fermer = () => { el.removeEventListener("click", fermer); el.classList.remove("on"); el.style.opacity = "0"; el.style.transition = "opacity .4s"; setTimeout(() => { anim = false; el.remove(); cinemaEnCours = false; fini(); }, 400); };
-    setTimeout(() => el.addEventListener("click", fermer), 600);
+    Son.rare(r);
+    if (r !== "E") plusTard(() => explosion(r === "S" ? 260 : 120), 450);
+
+    if (r === "L") {
+      el.classList.remove("gyro"); el.classList.add("punch");
+      el.querySelector(".cine-titre").innerHTML = lettres("MYTHIQUE");
+      Son.corne();
+      explosion(60, EMOJIS.L);
+      carteEl.insertAdjacentHTML("beforeend", `<div class="fx-lunettes">🕶️</div>`);
+      fx.innerHTML = `<div class="fx-points">+<span>0</span> pts</div>`;
+      compteur(fx.querySelector(".fx-points span"), POINTS.L, 1400);
+      plusTard(() => { carteEl.insertAdjacentHTML("beforeend", `<div class="fx-deal">DEAL WITH IT</div>`); Son.klaxon(); }, 1500);
+      let i = 0; const t = [...TAMPONS.L].sort(() => Math.random() - .5);
+      repete(() => tampon(fx, t[i++ % t.length]), 420);
+      repete(() => pluie(6, EMOJIS.L), 500);
+      plusTard(() => Son.corne(), 2600);
+    }
+    if (r === "S") {
+      el.classList.add("punch");
+      el.querySelector(".cine-titre").innerHTML = lettres("SUPRÊME");
+      fx.insertAdjacentHTML("beforeend", `<svg class="fx-fissure" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M50 50L38 30L41 12L30 0M50 50L70 38L86 41L100 30M50 50L58 72L52 88L60 100M50 50L28 60L12 56L0 70M38 30L22 26M70 38L74 20M58 72L76 80M28 60L24 78"/></svg>
+        <div class="fx-points">+<span>0</span> pts</div>`);
+      Son.corne(); plusTard(() => Son.corne(), 900);
+      explosion(120, EMOJIS.S);
+      carteEl.insertAdjacentHTML("beforeend", `<div class="fx-lunettes">🕶️</div>`);
+      plusTard(() => carteEl.insertAdjacentHTML("beforeend", `<div class="fx-deal">LE ROI DU PARKING</div>`), 1500);
+      compteur(fx.querySelector(".fx-points span"), POINTS.S, 2200);
+      let i = 0; const t = [...TAMPONS.S].sort(() => Math.random() - .5);
+      repete(() => tampon(fx, t[i++ % t.length]), 300);
+      repete(() => pluie(5, EMOJIS.S), 350);
+      repete(() => { voiture(fx, hasard(["🚐", "🦩", "🚐"]), hasard(["POUET POUET", "BEAUF MODE", "VROUM", ""])); Son.klaxon(); }, 2400);
+      repete(() => Son.corne(), 7500);
+      plusTard(() => fx.querySelector(".fx-fissure")?.classList.add("part"), 2500);
+    }
+
+    const fermer = () => {
+      el.removeEventListener("click", fermer);
+      ctrl.fini = true; ctrl.boucles.forEach(clearInterval);
+      el.classList.remove("on"); el.style.opacity = "0"; el.style.transition = "opacity .4s";
+      setTimeout(() => { anim = false; el.remove(); cinemaEnCours = false; fini(); }, 400);
+    };
+    plusTard(() => el.addEventListener("click", fermer), r === "E" ? 600 : 1200);
   });
 }
 function finOuverture() {
@@ -2028,6 +2269,7 @@ function afficherClasseur() {
   $("progTexte").textContent = `${n} / ${TOTAL} véhicules`;
   requestAnimationFrame(() => ($("progBarre").style.width = (n / TOTAL * 100) + "%"));
   $("totalCartes").textContent = Object.values(collection).reduce((a, b) => a + b, 0);
+  afficherClassement();
   const liste = CARTES.map((c, i) => ({ ...c, i })).filter((c) => {
     if (filtre === "manque") return !possede(c.id);
     if (filtre === "holo") return (collection[c.id + "*"] || 0) > 0;
@@ -2038,6 +2280,24 @@ function afficherClasseur() {
     if (!nb) return `<div class="case"><div class="manquante"><b>${String(c.i + 1).padStart(2, "0")}</b><span>${RARETES[c.r]}</span><span>???</span></div></div>`;
     return `<div class="case">${nb > 1 ? `<span class="compte">×${nb}</span>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
   }).join("") : `<p class="vide-classeur">Aucune voiture ici pour l'instant.</p>`;
+}
+
+// ---------- Classement des points (calculé par le serveur) ----------
+let dernierClassement = 0;
+async function afficherClassement() {
+  const bloc = $("classement");
+  if (!enLigne) {
+    bloc.hidden = false;
+    bloc.innerHTML = `<h3>Classement des points</h3><p>Tu as ${mesPoints().toLocaleString("fr-FR")} points sur ${POINTS_MAX.toLocaleString("fr-FR")}. Connecte-toi sur le site pour entrer dans le classement : chaque véhicule différent rapporte des points, les doublons ne comptent pas.</p>`;
+    return;
+  }
+  if (Date.now() - dernierClassement < 5000) return;
+  dernierClassement = Date.now();
+  const r = await Serveur.appel("classement");
+  if (!r || r.erreur || !r.joueurs) { bloc.hidden = true; return; }
+  bloc.hidden = false;
+  bloc.innerHTML = `<h3>Classement des points</h3><p>Chaque véhicule différent rapporte des points (Commune 10 · Rare 25 · Épique 75 · Mythique 250 · Suprême 2000). Les doublons ne comptent pas.</p>
+    <ol>${r.joueurs.map((j, i) => `<li class="${j.id === r.moi ? "moi" : ""}"><span class="rang">${i + 1}</span>${j.avatar ? `<img src="${esc(j.avatar)}" alt="">` : `<span class="av"></span>`}<span>${esc(j.pseudo)}</span><span class="pts">${j.points.toLocaleString("fr-FR")} pts</span></li>`).join("") || "<li><span></span><span></span><span>Personne pour l'instant</span><span></span></li>"}</ol>`;
 }
 
 // ---------- Zoom avec inclinaison 3D ----------
