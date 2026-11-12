@@ -1014,6 +1014,8 @@
       if (action === "proposer") { const { data, error } = await sb.rpc("tcg_proposer", { p_a: a.a, p_donne: a.donne, p_recoit: a.recoit }); return error ? err(error) : { id: data }; }
       if (action === "repondre") { const { error } = await sb.rpc("tcg_repondre", { p_id: a.id, p_accepte: !!a.accepte }); return error ? err(error) : { ok: true }; }
       if (action === "classement") {
+        const v = await sb.from("tcg_valeurs").select("carte").limit(1);
+        if (v.error || !v.data?.length) return { pasActive: true };
         const { data, error } = await sb.from("scores").select("score, joueur, profils(pseudo, avatar)").eq("jeu", "jmwdr0y57").order("score", { ascending: false }).limit(10);
         return error ? err(error) : { moi: session.user.id, joueurs: data.map((x) => ({ id: x.joueur, points: Number(x.score), pseudo: x.profils?.pseudo || "Joueur", avatar: imageSure(x.profils?.avatar) || "" })) };
       }

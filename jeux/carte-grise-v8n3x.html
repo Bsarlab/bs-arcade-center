@@ -2294,7 +2294,12 @@ async function afficherClassement() {
   if (Date.now() - dernierClassement < 5000) return;
   dernierClassement = Date.now();
   const r = await Serveur.appel("classement");
-  if (!r || r.erreur || !r.joueurs) { bloc.hidden = true; return; }
+  if (r && r.pasActive) {
+    bloc.hidden = false;
+    bloc.innerHTML = `<h3>Classement des points</h3><p>Le classement n'est pas encore activé sur ce site. Tes cartes sont bien gardées : tes points apparaîtront dès qu'il sera activé.</p>`;
+    dernierClassement = 0; return;
+  }
+  if (!r || r.erreur || !r.joueurs) { bloc.hidden = true; dernierClassement = 0; return; }
   bloc.hidden = false;
   bloc.innerHTML = `<h3>Classement des points</h3><p>Chaque véhicule différent rapporte des points (Commune 10 · Rare 25 · Épique 75 · Mythique 250 · Suprême 2000). Les doublons ne comptent pas.</p>
     <ol>${r.joueurs.map((j, i) => `<li class="${j.id === r.moi ? "moi" : ""}"><span class="rang">${i + 1}</span>${j.avatar ? `<img src="${esc(j.avatar)}" alt="">` : `<span class="av"></span>`}<span>${esc(j.pseudo)}</span><span class="pts">${j.points.toLocaleString("fr-FR")} pts</span></li>`).join("") || "<li><span></span><span></span><span>Personne pour l'instant</span><span></span></li>"}</ol>`;

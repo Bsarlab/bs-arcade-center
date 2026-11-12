@@ -466,7 +466,6 @@ create table if not exists public.tcg_valeurs (carte text primary key, points in
 alter table public.tcg_valeurs enable row level security;
 drop policy if exists "valeurs publiques" on public.tcg_valeurs;
 create policy "valeurs publiques" on public.tcg_valeurs for select using (true);
-delete from public.tcg_valeurs;
 insert into public.tcg_valeurs (carte, points) values
   ('sandero', 10),
   ('p208', 10),
@@ -546,7 +545,8 @@ insert into public.tcg_valeurs (carte, points) values
   ('orient', 250),
   ('saturnv', 250),
   ('pedalo', 250),
-  ('kangoopower', 2000);
+  ('kangoopower', 2000)
+on conflict (carte) do update set points = excluded.points;
 create or replace function public.tcg_points_de(j uuid) returns int language sql stable security definer set search_path = public as $$
   select coalesce(sum(v.points), 0)::int from tcg_valeurs v
   where exists (select 1 from tcg_cartes c where c.joueur = j and c.nombre > 0 and replace(c.carte, '*', '') = v.carte);
@@ -1311,8 +1311,10 @@ grant execute on function public.tcg_repondre(bigint, boolean) to authenticated;
         const r4 = await fetch(base + "/rest/v1/rpc/envoyer_score", { method: "POST", headers: { apikey: cle, "Content-Type": "application/json" }, body: JSON.stringify({ p_jeu: "test-admin", p_score: 0 }) });
         if (r4.status === 404) throw new Error("Connexion OK, mais la fonction qui enregistre les scores manque : copie le code SQL ci-dessous et lance-le dans Supabase (étape 3).");
         const r5 = await fetch(base + "/rest/v1/messages?select=id&limit=1", { headers: { apikey: cle } });
+        const r6 = await fetch(base + "/rest/v1/tcg_valeurs?select=carte&limit=1", { headers: { apikey: cle } });
         res.textContent = "✓ Tout fonctionne ! " + nbScores + " score" + (nbScores > 1 ? "s" : "") + " enregistré" + (nbScores > 1 ? "s" : "") + " pour l'instant."
           + (r5.ok ? "" : " Réactions et livre d'or pas encore installés : relance le code SQL (étape 3).")
+          + (r6.ok ? "" : " ⚠ Points de Carte Grise pas encore installés : recharge cette page (Cmd+Maj+R), puis recopie et relance le code SQL (étape 3).")
           + (conf.mailer_autoconfirm ? "" : " (Les joueurs devront confirmer leur e-mail : voir l'étape 5 pour l'éviter.)");
       } catch (err) { res.textContent = "✗ " + (err.message === "Failed to fetch" ? "Impossible de joindre cette adresse : vérifie la Project URL." : err.message); }
       return;
