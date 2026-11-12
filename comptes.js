@@ -336,12 +336,13 @@
   // Affichage d'un score. Formats spéciaux (choisis par le jeu avec « libelle ») :
   //   "chrono"         -> le score est un temps en secondes
   //   "chrono+argent"  -> temps en secondes, moins l'argent final / 10 000 000 (le plus rapide gagne, puis le plus riche)
-  const FORMATS = { chrono: "Temps", "chrono+argent": "Temps · argent final" };
+  //   "chrono+max"     -> temps en secondes, moins la plus grosse somme atteinte / 10 000 000 (le plus rapide gagne, puis le plus riche)
+  const FORMATS = { chrono: "Temps", "chrono+argent": "Temps (argent final)", "chrono+max": "Temps (argent max)" };
   const duree = (s) => { s = Math.max(0, Math.round(s)); const h = Math.floor(s / 3600), m = Math.floor((s % 3600) / 60), x = s % 60; return h ? `${h} h ${String(m).padStart(2, "0")} min` : `${m} min ${String(x).padStart(2, "0")} s`; };
   function texteScore(l) {
     const v = Number(l?.score);
     if (l?.libelle === "chrono") return duree(v);
-    if (l?.libelle === "chrono+argent") { const sec = Math.ceil(v - 1e-9), argent = Math.round((sec - v) * 1e7); return duree(sec) + " · " + argent.toLocaleString("fr-FR") + " $"; }
+    if (l?.libelle === "chrono+argent" || l?.libelle === "chrono+max") { const sec = Math.ceil(v - 1e-9), argent = Math.round((sec - v) * 1e7); return duree(sec) + " (" + argent.toLocaleString("fr-FR") + " $)"; }
     return v.toLocaleString("fr-FR");
   }
   const uniteScore = (l) => (l?.ordre === "cumul" ? T("classement_victoires") : FORMATS[l?.libelle] || l?.libelle || T("classement_score"));
