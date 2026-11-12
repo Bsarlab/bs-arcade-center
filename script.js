@@ -24,6 +24,9 @@ const ecrire = (cle, v) => { try { localStorage.setItem(cle, JSON.stringify(v));
 const pluriel = (n, un, plusieurs) => `${n} ${n > 1 ? plusieurs : un}`;
 
 const I = {
+  de: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="4"/><circle cx="8.5" cy="8.5" r="1.2" fill="currentColor"/><circle cx="15.5" cy="15.5" r="1.2" fill="currentColor"/><circle cx="12" cy="12" r="1.2" fill="currentColor"/></svg>',
+  lune: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg>',
+  soleil: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4"/><path d="M12 2.5v2M12 19.5v2M2.5 12h2M19.5 12h2M5.3 5.3l1.4 1.4M17.3 17.3l1.4 1.4M5.3 18.7l1.4-1.4M17.3 6.7l1.4-1.4"/></svg>',
   jouer: '<svg viewBox="0 0 24 24" aria-hidden="true"><path class="rempli" d="M7 4v16l13-8z"/></svg>',
   coeur: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7-4.4-9.3-9A5 5 0 0 1 12 6a5 5 0 0 1 9.3 5c-2.3 4.6-9.3 9-9.3 9z"/></svg>',
   externe: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 17 17 7M8 7h9v9"/></svg>',
@@ -135,7 +138,7 @@ const POLICES = {
 };
 // Réglages par défaut du design « Pierre » (modifiables dans l'admin, onglet Apparence)
 const DEFAUT = {
-  v: 4, teinte: "#8C7963", mode: "clair", titres: "Manrope", corps: "Manrope", poidsTitres: 800, tailleTitres: 100,
+  v: 4, teinte: "#8C7963", mode: "clair", titres: "Bricolage Grotesque", corps: "Manrope", poidsTitres: 800, tailleTitres: 100,
   arrondi: 22, ombre: "douce", densite: "normale",
   effets: { apparition: "douce", survol: "zoom", transition: "fondu", halo: true, parallaxe: true, progression: true, compteurs: true, grain: false, logosCouleur: false },
 };
@@ -171,7 +174,8 @@ function appliquerApparence(a = {}) {
   // Avant ce design (v4), on repart des réglages « Pierre »
   const v = a.v >= 4 ? { ...DEFAUT, ...a, effets: { ...DEFAUT.effets, ...(a.effets || {}) } } : { ...DEFAUT, css: a.css };
   reglages = v;
-  const h = document.documentElement, r = h.style, sombre = v.mode === "sombre" || (v.mode === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
+  const choix = themeVisiteur();
+  const h = document.documentElement, r = h.style, sombre = choix ? choix === "sombre" : v.mode === "sombre" || (v.mode === "auto" && matchMedia("(prefers-color-scheme: dark)").matches);
   const tons = tonsDe(v.teinte, sombre);
   Object.entries(tons).forEach(([k, val]) => r.setProperty("--" + k, val));
   r.setProperty("--r", Math.max(0, Math.min(40, Number(v.arrondi) || 0)) + "px");
@@ -192,6 +196,17 @@ function appliquerApparence(a = {}) {
   if (e.grain) classes.push("effet-grain");
   if (e.logosCouleur) classes.push("logos-couleur");
   h.className = classes.join(" ");
+  const bt = $("btnTheme");
+  if (bt) { bt.innerHTML = sombre ? I.soleil : I.lune; bt.setAttribute("aria-label", sombre ? "Passer en mode clair" : "Passer en mode sombre"); bt.title = bt.getAttribute("aria-label"); }
+}
+// Bouton lune / soleil : le choix du visiteur est retenu sur son appareil
+function themeVisiteur() { try { return localStorage.getItem("bs-theme") || ""; } catch { return ""; } }
+function basculerTheme() {
+  const sombre = !document.documentElement.classList.contains("theme-sombre");
+  try { localStorage.setItem("bs-theme", sombre ? "sombre" : "clair"); } catch {}
+  const faire = () => appliquerApparence(donnees?.apparence || {});
+  if (document.startViewTransition && !mouvementReduit) { document.documentElement.classList.add("vt-theme"); document.startViewTransition(faire).finished.finally(() => document.documentElement.classList.remove("vt-theme")); }
+  else faire();
 }
 // Mode automatique : le site change de thème quand l'appareil passe en sombre ou en clair
 matchMedia("(prefers-color-scheme: dark)").addEventListener?.("change", () => { if (reglages.mode === "auto" && donnees) appliquerApparence(donnees.apparence); });
@@ -352,6 +367,53 @@ const PAGES = {};
 
 // ---------- Accueil ----------
 const nbTexte = (n) => `<span data-compteur="${n}">${n}</span>`;
+// ---------- Hero : les jaquettes distribuées en éventail, comme une main de cartes ----------
+const DECOR_DONNE = `<svg class="donne-decor" viewBox="0 0 600 520" aria-hidden="true" focusable="false">
+  <g class="jeton j1"><circle cx="70" cy="410" r="34"/><circle cx="70" cy="410" r="22" class="creux"/><path d="M70 376v10M70 434v10M36 410h10M94 410h10M46 386l7 7M87 427l7 7M94 386l-7 7M53 427l-7 7" class="raie"/></g>
+  <g class="jeton j2"><circle cx="540" cy="120" r="24"/><circle cx="540" cy="120" r="15" class="creux"/><path d="M540 96v7M540 137v7M516 120h7M557 120h7" class="raie"/></g>
+  <g class="de d1"><rect x="490" y="380" width="64" height="64" rx="14"/><circle cx="508" cy="398" r="5.5"/><circle cx="522" cy="412" r="5.5"/><circle cx="536" cy="426" r="5.5"/></g>
+  <g class="de d2"><rect x="52" y="70" width="46" height="46" rx="11"/><circle cx="66" cy="84" r="4.5"/><circle cx="84" cy="102" r="4.5"/></g>
+  <path class="trace" d="M120 470c90-40 260-50 370-10"/>
+</svg>`;
+function donneHero(jeux) {
+  const main = jeux.slice(0, 5), n = main.length;
+  return `<div class="donne" data-parallaxe="-0.04">
+    ${DECOR_DONNE}
+    <div class="donne-main" id="donneMain" style="--n:${n}">
+      ${main.map((j, k) => `<a class="donne-carte" href="#/jeu/${echapper(j.id)}" style="--k:${k};--c:${couleurJeu(j)}" data-couleur="${echapper(j.id)}" data-jeu-id="${echapper(j.id)}" aria-label="${echapper(j.titre)}">
+        <span class="donne-face">${imageJeu(j)}</span>
+        <span class="donne-nom"><b>${echapper(j.titre)}</b>${j.genre ? `<small>${echapper(majuscule(j.genre))}</small>` : ""}</span>
+        ${k === 0 ? `<span class="donne-badge">${t("accueil_bulle")}</span>` : ""}
+      </a>`).join("")}
+    </div>
+    <div class="donne-pied">
+      <button class="btn donne-hasard" type="button" data-hasard>${I.de}${t("hero_hasard")}</button>
+      <a class="donne-compteur" href="#/jeux"><b>${nbTexte(jeux.length)}</b> ${jeux.length > 1 ? "jeux" : "jeu"} ${I.droite}</a>
+    </div>
+  </div>`;
+}
+// « Surprends-moi » : on mélange la main, une carte sort du lot, puis sa fiche s'ouvre
+let hasardEnCours = false;
+function tirerAuHasard() {
+  const jeux = jeuxTries(); if (!jeux.length || hasardEnCours) return;
+  const main = document.getElementById("donneMain");
+  const cartes = main ? [...main.querySelectorAll(".donne-carte")] : [];
+  const choix = jeux[Math.floor(Math.random() * jeux.length)];
+  if (!main || mouvementReduit) { location.hash = "#/jeu/" + encodeURIComponent(choix.id); return; }
+  hasardEnCours = true;
+  // la carte tirée prend la jaquette du jeu choisi (même s'il n'est pas dans la main)
+  const cible = cartes.find((c) => c.dataset.jeuId === choix.id) || cartes[Math.floor(cartes.length / 2)];
+  if (cible.dataset.jeuId !== choix.id) {
+    cible.querySelector(".donne-face").innerHTML = imageJeu(choix);
+    cible.querySelector(".donne-nom").innerHTML = `<b>${echapper(choix.titre)}</b>${choix.genre ? `<small>${echapper(majuscule(choix.genre))}</small>` : ""}`;
+    cible.style.setProperty("--c", couleurJeu(choix));
+  }
+  main.classList.remove("donne-tiree"); cartes.forEach((c) => c.classList.remove("tiree"));
+  main.classList.add("melange");
+  setTimeout(() => { main.classList.remove("melange"); main.classList.add("donne-tiree"); cible.classList.add("tiree"); }, 650);
+  setTimeout(() => { hasardEnCours = false; location.hash = "#/jeu/" + encodeURIComponent(choix.id); }, 1650);
+}
+
 PAGES.accueil = () => {
   const s = donnees.site, jeux = jeuxTries();
   const genres = [...new Map(jeux.filter((j) => j.genre?.trim()).map((j) => [j.genre.trim().toLowerCase(), majuscule(j.genre.trim())])).entries()];
@@ -368,13 +430,9 @@ PAGES.accueil = () => {
         <p class="accroche">${t("hero_texte")}</p>
         <div class="boutons">${boutonsAccueil(s).map(lienBouton).join("")}</div>
         <ul class="hero-atouts">${["hero_point1", "hero_point2", "hero_point3"].filter((k) => T(k).trim()).map((k) => `<li>${I.coche}${t(k)}</li>`).join("")}</ul>
+        <p class="direct" id="activiteDirect" aria-live="polite" hidden></p>
       </div>
-      ${!option("collage") ? "" : jeux.length >= 2 ? `<div class="mosaique" data-parallaxe="-0.05">
-        <a class="mosaique-case grande" href="#/jeu/${echapper(a.id)}" aria-label="${echapper(a.titre)}">${imageJeu(a)}<span class="mosaique-nom">${echapper(a.titre)}</span></a>
-        <a class="mosaique-case" href="#/jeu/${echapper(b.id)}" aria-label="${echapper(b.titre)}">${imageJeu(b)}<span class="mosaique-nom">${echapper(b.titre)}</span></a>
-        <a class="mosaique-case mosaique-compteur" href="#/jeux"><small>${t("hero_compteur")}</small><span><b>${nbTexte(jeux.length)} ${nomJeux(jeux.length)}</b>${I.externe}</span></a>
-        <div class="mosaique-bulle" aria-hidden="true">${imageJeu(a)}<span><small><span class="point"></span>${t("accueil_bulle")}</small><b>${echapper(a.titre)}</b></span></div>
-      </div>` : a || s.banniere ? `<div class="mosaique seule"><a class="mosaique-case" href="${a ? "#/jeu/" + echapper(a.id) : "#/jeux"}">${a ? imageJeu(a) : `<img src="${echapper(lien(s.banniere))}" alt="">`}</a></div>` : ""}
+      ${!option("collage") ? "" : jeux.length >= 2 ? donneHero(jeux) : a || s.banniere ? `<div class="mosaique seule"><a class="mosaique-case" href="${a ? "#/jeu/" + echapper(a.id) : "#/jeux"}">${a ? imageJeu(a) : `<img src="${echapper(lien(s.banniere))}" alt="">`}</a></div>` : ""}
     </div>
   </section>`,
     pourtoi: () => {
@@ -611,6 +669,7 @@ PAGES.jeu = (id) => {
   return assembler("jeu", {
     fiche: () => `
   <section class="page-jeu" ${attrCouleur(j)}>
+    ${j.image ? `<div class="jeu-ambiance" aria-hidden="true"><img src="${echapper(lien(j.image))}" alt=""></div>` : `<div class="jeu-ambiance" aria-hidden="true"></div>`}
     <div class="conteneur">
       <nav class="fil" aria-label="Fil d'Ariane"><a href="#/jeux">${t("jeu_fil")}</a><span aria-hidden="true">/</span><span aria-current="page">${echapper(j.titre)}</span></nav>
       ${invitation && invitation.jeu === j.id ? `<div class="bandeau-invitation" id="bandeauInvitation" data-de="${echapper(invitation.de)}">
@@ -629,6 +688,11 @@ PAGES.jeu = (id) => {
           <h1>${echapper(j.titre)}</h1>
           ${aUneDate(j) ? `<p class="meta">${t("jeu_ajoute")} ${formatDate(j)}</p>` : ""}
           ${pastillesJoueurs(j, true)}
+          ${window.BS_PLATEFORME?.actif?.() ? `<dl class="jeu-chiffres" id="jeuChiffres" aria-live="polite">
+            <div><dt>${t("jeu_stat_record")}</dt><dd><span class="squelette"></span></dd></div>
+            <div><dt>${t("jeu_stat_joueurs")}</dt><dd><span class="squelette"></span></dd></div>
+            <div><dt>${t("jeu_stat_reactions")}</dt><dd><span class="squelette"></span></dd></div>
+          </dl>` : ""}
           <div class="prose">${paragraphes(j.description) || `<p>${t("jeu_desc_defaut")}</p>`}</div>
           <div class="boutons">
             <button class="btn plein grand" type="button" data-jouer="${echapper(j.id)}">${I.jouer}${t("jeu_jouer")}</button>
@@ -890,23 +954,50 @@ function naviguer() {
   ouvrirMenu(false);
   if (a.page === "jeux" && a.genre !== undefined) { filtres.genre = a.genre; filtres.favoris = false; filtres.mode = ""; }
   const memeFiche = a.page === pageActuelle && (a.page !== "jeu" || a.id === pageId);
-  if (!memeFiche || a.ancre === undefined) afficherPage(a.page, a.id);
-  if (a.ancre) requestAnimationFrame(() => document.getElementById(a.ancre)?.scrollIntoView({ behavior: mouvementReduit ? "auto" : "smooth" }));
-  else scrollTo({ top: 0, behavior: memeFiche && !mouvementReduit ? "smooth" : "instant" });
+  const placer = () => {
+    if (a.ancre) requestAnimationFrame(() => document.getElementById(a.ancre)?.scrollIntoView({ behavior: mouvementReduit ? "auto" : "smooth" }));
+    else scrollTo({ top: 0, behavior: memeFiche && !mouvementReduit ? "smooth" : "instant" });
+  };
+  const changer = !memeFiche || a.ancre === undefined;
+  if (changer && !memeFiche && premiereVue && document.startViewTransition && !mouvementReduit && !apercu) {
+    // La jaquette cliquée « vole » jusqu'à la fiche du jeu
+    const source = a.page === "jeu" && derniereJaquette?.isConnected && derniereJaquette.dataset.jeuCible === a.id ? derniereJaquette : null;
+    if (source) source.style.viewTransitionName = "jaquette";
+    const vt = document.startViewTransition(() => {
+      if (source) source.style.viewTransitionName = "";
+      afficherPage(a.page, a.id, true);
+      if (source) document.querySelector("#vue .jeu-visuel")?.style.setProperty("view-transition-name", "jaquette");
+      scrollTo({ top: 0, behavior: "instant" });
+    });
+    vt.finished.finally(() => { document.querySelector("#vue .jeu-visuel")?.style.removeProperty("view-transition-name"); derniereJaquette = null; if (a.ancre) placer(); });
+  } else {
+    if (changer) afficherPage(a.page, a.id);
+    placer();
+  }
+  premiereVue = true;
   if (a.jouer) ouvrirJeu(a.id);
 }
-let pageId = null;
-function afficherPage(page, id) {
+let pageId = null, premiereVue = false, derniereJaquette = null;
+// On retient la jaquette cliquée pour l'animation vers la fiche
+document.addEventListener("click", (e) => {
+  const lienJeu = e.target.closest('a[href^="#/jeu/"]');
+  if (!lienJeu) return;
+  const img = lienJeu.querySelector("img, .sans-image") || lienJeu.closest(".carte-jeu")?.querySelector(".carte-jeu-media img");
+  if (!img) return;
+  derniereJaquette = img;
+  img.dataset.jeuCible = decodeURIComponent(lienJeu.getAttribute("href").slice(6).split("?")[0]);
+}, true);
+function afficherPage(page, id, sansEntree = false) {
   const vue = $("vue");
   pageActuelle = page; pageId = id || null;
   vue.innerHTML = PAGES[page](id);
-  vue.classList.remove("entree"); void vue.offsetWidth; vue.classList.add("entree");
+  vue.classList.remove("entree"); if (!sansEntree) { void vue.offsetWidth; vue.classList.add("entree"); }
   const j = page === "jeu" ? trouverJeu(id) : null;
   document.title = (j ? j.titre + " · " : page === "joueur" ? T("joueur_etiquette") + " · " : page === "amis" ? T("nav_amis") + " · " : NOMS_PAGES[page] && page !== "accueil" ? NOMS_PAGES[page] + " · " : "") + (donnees.site.nom || "");
   majNav();
-  if (page === "accueil") initCarrousel();
+  if (page === "accueil") { initCarrousel(); window.BS_PLATEFORME?.afficherActivite?.(); }
   if (page === "jeux") majListeJeux();
-  if (page === "jeu") { window.BS_PLATEFORME?.afficherClassement?.(id); window.BS_PLATEFORME?.afficherAvis?.(id); if (invitation?.jeu === id) window.BS_PLATEFORME?.afficherInvitation?.(invitation.de, trouverJeu(id)); }
+  if (page === "jeu") { window.BS_PLATEFORME?.statsJeu?.(id); window.BS_PLATEFORME?.afficherClassement?.(id); window.BS_PLATEFORME?.afficherAvis?.(id); if (invitation?.jeu === id) window.BS_PLATEFORME?.afficherInvitation?.(invitation.de, trouverJeu(id)); }
   if (page === "classements") window.BS_PLATEFORME?.afficherClassements?.();
   if (page === "joueur") window.BS_PLATEFORME?.afficherJoueur?.(id);
   if (page === "amis") window.BS_PLATEFORME?.afficherAmis?.();
@@ -1255,6 +1346,8 @@ document.addEventListener("click", (e) => {
   if (t.closest("[data-partager-site]")) { copier(adresseSite(), "Lien du site copié !"); return; }
   const cop = t.closest("[data-copier]");
   if (cop) { navigator.clipboard?.writeText(cop.dataset.copier).then(() => notifier("Copié : " + cop.dataset.copier), () => notifier(cop.dataset.copier)); return; }
+  if (t.closest("[data-hasard]")) { tirerAuHasard(); return; }
+  if (t.closest("#btnTheme")) { basculerTheme(); return; }
   if (t.closest("[data-reinitialiser]")) { Object.assign(filtres, { texte: "", genre: "", favoris: false, mode: "" }); if ($("filtreTexte")) $("filtreTexte").value = ""; majListeJeux(); return; }
   const puce = t.closest(".puce");
   if (puce) {

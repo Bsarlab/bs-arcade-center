@@ -24,6 +24,9 @@ window.TEXTES_SITE = [
     ["hero_point2", "Petit point 2", "Sans compte"],
     ["hero_point3", "Petit point 3", "Rien à installer"],
     ["hero_compteur", "Case compteur de la mosaïque", "La ludothèque"],
+    ["hero_hasard", "Bouton sous les jaquettes (tire un jeu au hasard)", "Surprends-moi"],
+    ["direct_record", "Activité en direct : record ({joueur}, {jeu}, {score})", "{joueur} a fait {score} sur {jeu}"],
+    ["direct_avis", "Activité en direct : message ({joueur}, {jeu})", "{joueur} a laissé un mot sur {jeu}"],
     ["defilant_mots", "Bande défilante (mots séparés par ·)", "Gratuit · Sans compte · En un clic · Fait maison · Entre amis"],
   ]},
   { groupe: "Accueil : atouts", page: "#/", textes: [
@@ -251,6 +254,12 @@ window.TEXTES_SITE = [
     ["notif_depasse", "Notification : dépassé ({pseudo}, {jeu}, {rang})", "{pseudo} t'a dépassé sur {jeu}. Tu es maintenant {rang}."],
     ["notif_record", "Notification : nouveau record ({jeu}, {score})", "Nouveau record sur {jeu} : {score} !"],
     ["notif_badge", "Notification : nouveau badge ({badge})", "Nouveau badge débloqué : {badge}"],
+  ]},
+  { groupe: "Fiche d'un jeu : chiffres", page: "#/jeux", textes: [
+    ["jeu_stat_record", "Chiffre 1", "Record"],
+    ["jeu_stat_joueurs", "Chiffre 2", "Joueurs classés"],
+    ["jeu_stat_reactions", "Chiffre 3", "Réactions"],
+    ["jeu_stat_aucun", "Quand il n'y a pas encore de record", "À toi d'ouvrir le bal"],
   ]},
   { groupe: "Amis", page: "#/amis", textes: [
     ["amis_etiquette", "Petit titre de la page", "Tes amis"],

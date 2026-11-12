@@ -937,6 +937,55 @@
     try { localStorage.setItem(cle, JSON.stringify(etat)); } catch {}
   };
 
+  // =========================================================
+  // Design : activité en direct (accueil) et chiffres de la fiche d'un jeu
+  // =========================================================
+  const phrase = (cle, v) => {
+    // Les noms passent en gras, le reste du texte reste échappé
+    let html = esc(T(cle, { joueur: "\u0001", jeu: "\u0002", score: "\u0003" }));
+    return html.replace("\u0001", `<b>${esc(v.joueur)}</b>`).replace("\u0002", `<b>${esc(v.jeu)}</b>`).replace("\u0003", esc(v.score || ""));
+  };
+  let minuterieDirect = null;
+  P.afficherActivite = async () => {
+    clearInterval(minuterieDirect);
+    const zone = $("activiteDirect"); if (!zone || !(await pret())) return;
+    const jeux = new Map((donnees.jeux || []).map((j) => [j.id, j]));
+    let evts = [];
+    try {
+      const [sc, ms] = await Promise.all([
+        sb.from("scores").select("score, ordre, libelle, jeu, maj, profils(pseudo)").order("maj", { ascending: false }).limit(8),
+        sb.from("messages").select("jeu, cree, profils(pseudo)").order("cree", { ascending: false }).limit(4),
+      ]);
+      (sc.data || []).forEach((l) => jeux.has(l.jeu) && evts.push({ d: l.maj, jeu: l.jeu, html: phrase("direct_record", { joueur: l.profils?.pseudo || "Quelqu'un", jeu: jeux.get(l.jeu).titre, score: texteScore(l) }) }));
+      (ms.data || []).forEach((l) => jeux.has(l.jeu) && evts.push({ d: l.cree, jeu: l.jeu, html: phrase("direct_avis", { joueur: l.profils?.pseudo || "Quelqu'un", jeu: jeux.get(l.jeu).titre }) }));
+    } catch (e) { console.warn(e); return; }
+    if (!document.body.contains(zone) || !evts.length) return;
+    evts = evts.sort((a, b) => new Date(b.d) - new Date(a.d)).slice(0, 8);
+    let i = 0;
+    const montrer = () => {
+      const e = evts[i % evts.length]; i++;
+      zone.innerHTML = `<span class="direct-point" aria-hidden="true"></span><a class="direct-texte" href="#/jeu/${esc(e.jeu)}"><span>${e.html}</span><small>${esc(ilYa(e.d))}</small></a>`;
+    };
+    montrer(); zone.hidden = false;
+    if (evts.length > 1 && !matchMedia("(prefers-reduced-motion: reduce)").matches) minuterieDirect = setInterval(() => { if (!document.body.contains(zone)) return clearInterval(minuterieDirect); montrer(); }, 4800);
+  };
+  P.statsJeu = async (id) => {
+    const zone = $("jeuChiffres"); if (!zone) return;
+    const dd = zone.querySelectorAll("dd");
+    if (!(await pret())) { zone.hidden = true; return; }
+    try {
+      const [sc, re] = await Promise.all([
+        sb.from("scores").select("score, ordre, libelle, profils(pseudo)", { count: "exact" }).eq("jeu", id).limit(200),
+        sb.from("reactions").select("emoji", { count: "exact", head: true }).eq("jeu", id),
+      ]);
+      if (!document.body.contains(zone)) return;
+      const l = trier(sc.data || []), top = l[0];
+      dd[0].innerHTML = top ? `${esc(texteScore(top))}<small>${esc(top.profils?.pseudo || "")}</small>` : `<small class="vide">${t("jeu_stat_aucun")}</small>`;
+      dd[1].textContent = nombre(sc.count ?? l.length);
+      dd[2].textContent = nombre(re.count || 0);
+    } catch (e) { console.warn(e); zone.hidden = true; }
+  };
+
   // Modération : retirer un score truqué (seulement le compte qui a l'e-mail de l'onglet Contact)
   document.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-retirer-score]"); if (!b || !estModerateur()) return;

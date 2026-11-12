@@ -1144,3 +1144,108 @@ form.carte-amis > .btn { justify-self: start; }
 .classement-liste [data-retirer-score] { flex: none; width: 28px; height: 28px; border-radius: 50%; font-size: 18px; color: var(--pale); }
 .classement-liste [data-retirer-score]:hover { background: var(--surface); color: #B4432F; }
 .menu-liens .menu-num svg { width: 16px; height: 16px; vertical-align: -3px; }
+
+/* =========================================================
+   Refonte « La donne » : hero en éventail, cartes teintées,
+   fiche immersive, activité en direct, transitions, thème
+   ========================================================= */
+/* ---------- Hero : la main de jaquettes ---------- */
+.hero { overflow-x: clip; }
+.donne { position: relative; aspect-ratio: 1 / .92; min-height: 380px; }
+.donne-decor { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; pointer-events: none; }
+.donne-decor .jeton circle { fill: var(--clair); }
+.donne-decor .jeton .creux { fill: none; stroke: var(--fond); stroke-width: 3; stroke-dasharray: 5 6; }
+.donne-decor .jeton .raie { stroke: var(--fond); stroke-width: 5; stroke-linecap: round; }
+.donne-decor .j2 circle:first-child { fill: var(--moyen); opacity: .55; }
+.donne-decor .de rect { fill: var(--carte); stroke: var(--trait); stroke-width: 2; }
+.donne-decor .de circle { fill: var(--principal); }
+.donne-decor .d1 { transform: rotate(14deg); transform-origin: 522px 412px; }
+.donne-decor .d2 { transform: rotate(-18deg); transform-origin: 75px 93px; opacity: .8; }
+.donne-decor .trace { fill: none; stroke: var(--trait); stroke-width: 2; stroke-dasharray: 2 9; stroke-linecap: round; }
+.donne-main { position: absolute; inset: 0 0 64px; }
+.donne-carte {
+  --a: calc((var(--k) - (var(--n) - 1) / 2) * 7deg);
+  --x: calc((var(--k) - (var(--n) - 1) / 2) * 24%);
+  position: absolute; left: 50%; bottom: 4%; width: 38%; aspect-ratio: 3 / 4; margin-left: -19%;
+  z-index: calc(var(--n) - var(--k)); display: block; border-radius: var(--r-l); padding: 6px; background: var(--carte);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--encre) 6%, transparent), 0 26px 50px -26px color-mix(in srgb, var(--encre) 55%, transparent);
+  transform-origin: 50% 150%; translate: var(--x) 0; rotate: var(--a);
+  transition: translate .55s var(--ease), rotate .55s var(--ease), scale .55s var(--ease), opacity .4s, filter .4s, box-shadow .4s;
+  animation: distribuer .9s var(--ease) both; animation-delay: calc(150ms + var(--k) * 85ms);
+}
+@keyframes distribuer { from { translate: 0 22%; rotate: 0deg; opacity: 0; } 30% { opacity: 1; } }
+.donne-face { display: block; width: 100%; height: 100%; overflow: hidden; border-radius: calc(var(--r-l) - 5px); background: var(--c, var(--surface)); }
+.donne-face img, .donne-face .sans-image { width: 100%; height: 100%; object-fit: cover; }
+.donne-nom { position: absolute; inset: auto 6px 6px; display: grid; gap: 2px; padding: 34px 14px 12px; border-radius: 0 0 calc(var(--r-l) - 5px) calc(var(--r-l) - 5px); background: linear-gradient(transparent, rgba(0, 0, 0, .72)); color: #fff; opacity: 0; translate: 0 8px; transition: opacity .3s, translate .4s var(--ease); }
+.donne-nom b { font-family: var(--f-titres); font-size: clamp(15px, 1.5vw, 19px); letter-spacing: -.02em; line-height: 1.1; }
+.donne-nom small { font-size: 12px; font-weight: 600; opacity: .8; }
+.donne-badge { position: absolute; top: 16px; left: 16px; padding: 5px 11px; border-radius: 999px; background: var(--carte); color: var(--encre); font-size: 12px; font-weight: 800; box-shadow: var(--ombre); }
+.donne-carte:hover, .donne-carte:focus-visible { z-index: 10; translate: var(--x) -9%; rotate: calc(var(--a) * .4); box-shadow: 0 34px 60px -26px color-mix(in srgb, var(--c, var(--encre)) 75%, transparent); }
+.donne-carte:hover .donne-nom, .donne-carte:focus-visible .donne-nom, .donne-carte.tiree .donne-nom { opacity: 1; translate: 0 0; }
+.donne-carte:focus-visible { outline: 3px solid var(--principal); outline-offset: 4px; }
+.donne-main.melange .donne-carte { translate: 0 2%; rotate: calc(var(--a) * .15); transition-duration: .45s; }
+.donne-main.donne-tiree .donne-carte:not(.tiree) { opacity: .45; filter: saturate(.5); }
+.donne-carte.tiree { z-index: 20; translate: var(--x) -16%; rotate: 0deg; scale: 1.08; box-shadow: 0 0 0 4px var(--c), 0 40px 80px -30px color-mix(in srgb, var(--c) 85%, transparent); }
+.donne-pied { position: absolute; left: 0; right: 0; bottom: 0; display: flex; justify-content: center; align-items: center; gap: 12px; flex-wrap: wrap; }
+.donne-hasard { background: var(--carte); box-shadow: var(--ombre); }
+.donne-hasard svg { transition: rotate .6s var(--ease); }
+.donne-hasard:hover svg { rotate: 180deg; }
+.donne-compteur { display: inline-flex; align-items: center; gap: 6px; padding: 10px 14px; border-radius: 999px; font-size: 14px; font-weight: 700; color: var(--doux); }
+.donne-compteur b { font-family: var(--f-titres); font-size: 18px; color: var(--encre); }
+.donne-compteur svg { width: 16px; height: 16px; transition: translate .3s var(--ease); }
+.donne-compteur:hover { color: var(--encre); }
+.donne-compteur:hover svg { translate: 3px 0; }
+@media (max-width: 960px) { .donne { max-width: 520px; width: 100%; margin: 0 auto; } }
+@media (max-width: 520px) { .donne { min-height: 330px; } .donne-carte { width: 40%; margin-left: -20%; --x: calc((var(--k) - (var(--n) - 1) / 2) * 14%); --a: calc((var(--k) - (var(--n) - 1) / 2) * 6deg); } .donne-badge { top: 10px; left: 10px; font-size: 11px; } }
+
+/* ---------- Activité en direct ---------- */
+.direct { display: inline-flex; align-items: center; gap: 10px; max-width: 100%; margin: 26px 0 0; padding: 8px 16px 8px 12px; border-radius: 999px; background: var(--carte); box-shadow: var(--ombre); font-size: 14px; }
+.direct[hidden] { display: none; }
+.direct-point { width: 8px; height: 8px; border-radius: 50%; flex: none; background: #d9473f; animation: pouls-direct 2s ease-out infinite; }
+@keyframes pouls-direct { 0% { box-shadow: 0 0 0 0 rgba(217, 71, 63, .5); } 70%, 100% { box-shadow: 0 0 0 8px transparent; } }
+.direct-texte { display: flex; align-items: baseline; gap: 8px; min-width: 0; color: var(--doux); animation: apparait .45s var(--ease); }
+.direct-texte span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.direct-texte b { color: var(--encre); font-weight: 800; }
+.direct-texte small { flex: none; color: var(--pale); font-size: 12px; font-weight: 600; }
+.direct-texte:hover span { text-decoration: underline; text-underline-offset: 3px; }
+
+/* ---------- Cartes de jeu teintées de la couleur du jeu ---------- */
+.carte-jeu[style*="--c"] { background: color-mix(in oklab, var(--c) 7%, var(--carte)); }
+.carte-jeu[style*="--c"]:hover { box-shadow: 0 30px 60px -30px color-mix(in srgb, var(--c) 70%, transparent), var(--ombre); }
+.carte-jeu[style*="--c"] .carte-jeu-media { box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c) 25%, transparent); }
+.carte-jeu[style*="--c"]:hover .jouer-rapide { background: var(--c); color: #fff; }
+.theme-sombre .carte-jeu[style*="--c"] { background: color-mix(in oklab, var(--c) 10%, var(--carte)); }
+
+/* ---------- Fiche d'un jeu immersive ---------- */
+.page-jeu { isolation: isolate; }
+.page-jeu:has(.jeu-ambiance)::before { display: none; }
+.jeu-ambiance { position: absolute; inset: -80px 0 auto; height: 720px; z-index: -1; overflow: hidden; pointer-events: none; background: color-mix(in oklab, var(--c, var(--surface)) 22%, var(--fond)); -webkit-mask-image: linear-gradient(#000 45%, transparent); mask-image: linear-gradient(#000 45%, transparent); }
+.jeu-ambiance img { width: 100%; height: 100%; object-fit: cover; filter: blur(70px) saturate(1.35); opacity: .5; scale: 1.25; }
+.jeu-ambiance::after { content: ""; position: absolute; inset: 0; background: linear-gradient(180deg, color-mix(in srgb, var(--fond) 25%, transparent), var(--fond)); }
+.jeu-chiffres { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 20px 0 6px; }
+.jeu-chiffres[hidden] { display: none; }
+.jeu-chiffres > div { padding: 12px 14px; border-radius: var(--r); background: color-mix(in srgb, var(--carte) 72%, transparent); -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--trait) 70%, transparent); min-width: 0; }
+.jeu-chiffres dt { font-size: 12px; font-weight: 700; color: var(--pale); }
+.jeu-chiffres dd { margin: 2px 0 0; font-family: var(--f-titres); font-size: 21px; font-weight: 800; letter-spacing: -.03em; line-height: 1.15; color: var(--encre); overflow-wrap: anywhere; }
+.jeu-chiffres dd small { display: block; font-family: var(--f-corps); font-size: 12px; font-weight: 600; letter-spacing: 0; color: var(--doux); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.jeu-chiffres dd small.vide { font-size: 13px; color: var(--doux); white-space: normal; }
+.squelette { display: inline-block; width: 64px; height: 18px; border-radius: 6px; background: linear-gradient(90deg, var(--surface) 30%, var(--carte) 50%, var(--surface) 70%) 0 0 / 250% 100%; animation: reflet 1.4s linear infinite; vertical-align: middle; }
+@media (max-width: 420px) { .jeu-chiffres dd { font-size: 18px; } .jeu-chiffres > div { padding: 10px; } }
+
+/* ---------- Transitions entre pages ---------- */
+.entete { view-transition-name: entete; }
+::view-transition-old(root) { animation: .22s ease-in both vt-sort; }
+::view-transition-new(root) { animation: .42s var(--ease) both vt-entre; }
+@keyframes vt-sort { to { opacity: 0; transform: translateY(-10px); } }
+@keyframes vt-entre { from { opacity: 0; transform: translateY(14px); } }
+::view-transition-group(jaquette) { animation-duration: .55s; animation-timing-function: var(--ease); }
+::view-transition-old(jaquette), ::view-transition-new(jaquette) { height: 100%; object-fit: cover; overflow: hidden; border-radius: var(--r-l); }
+.vt-theme::view-transition-old(root) { animation: none; }
+.vt-theme::view-transition-new(root) { animation: .6s var(--ease) both vt-cercle; }
+@keyframes vt-cercle { from { clip-path: circle(0 at calc(100% - 140px) 34px); } to { clip-path: circle(150vmax at calc(100% - 140px) 34px); } }
+
+@media (prefers-reduced-motion: reduce) {
+  .donne-carte { animation: none; transition: none; }
+  ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
+  .direct-point, .squelette { animation: none; }
+}
