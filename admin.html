@@ -380,6 +380,182 @@ create policy "presence des amis" on public.presences for select using (
 );
 create policy "ma presence" on public.presences for insert with check (auth.uid() = joueur);
 create policy "maj ma presence" on public.presences for update using (auth.uid() = joueur) with check (auth.uid() = joueur);
+
+-- Jeu de cartes « Carte Grise » (tous les véhicules) : garages publics, 5 boosters par heure, boosters gagnés
+create table if not exists public.tcg_cartes (
+  joueur uuid not null references public.profils(id) on delete cascade,
+  carte text not null check (char_length(carte) <= 20),
+  nombre int not null default 0 check (nombre >= 0),
+  primary key (joueur, carte)
+);
+alter table public.tcg_cartes enable row level security;
+drop policy if exists "classeurs publics" on public.tcg_cartes;
+create policy "classeurs publics" on public.tcg_cartes for select using (true);
+create table if not exists public.tcg_ouvertures (
+  id bigint generated always as identity primary key,
+  joueur uuid not null references public.profils(id) on delete cascade,
+  quand timestamptz not null default now(),
+  source text not null default 'heure',
+  cartes text[] not null
+);
+create index if not exists tcg_ouvertures_joueur on public.tcg_ouvertures (joueur, quand desc);
+alter table public.tcg_ouvertures enable row level security;
+drop policy if exists "mes ouvertures" on public.tcg_ouvertures;
+create policy "mes ouvertures" on public.tcg_ouvertures for select using (auth.uid() = joueur);
+create table if not exists public.tcg_bonus (
+  joueur uuid primary key references public.profils(id) on delete cascade,
+  nombre int not null default 0 check (nombre >= 0)
+);
+alter table public.tcg_bonus enable row level security;
+drop policy if exists "mon bonus" on public.tcg_bonus;
+create policy "mon bonus" on public.tcg_bonus for select using (auth.uid() = joueur);
+
+create or replace function public.tcg_etat() returns json language plpgsql security definer set search_path = public as $$
+declare n int; premier timestamptz; b int;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  select count(*), min(quand) into n, premier from tcg_ouvertures where joueur = auth.uid() and source = 'heure' and quand > now() - interval '1 hour';
+  b := coalesce((select nombre from tcg_bonus where joueur = auth.uid()), 0);
+  return json_build_object('restants', greatest(0, 5 - n), 'prochain', case when n >= 5 then premier + interval '1 hour' end, 'bonus', b, 'maintenant', now());
+end $$;
+
+-- Tirage fait par le serveur : impossible de choisir ses cartes depuis le navigateur
+create or replace function public.tcg_ouvrir() returns text[] language plpgsql security definer set search_path = public as $$
+declare n int; src text; res text[] := '{}'; i int; r float; pool text[]; c text;
+  communes text[] := array['sandero', 'p208', 'yaris', 'corsa', 'fiesta', 'berlingo', 'scenic', 'espace', 'partner', 'smart', 'prius', 'zoe', 'f500', 'polo', 'velo', 'trott', 'trottinette', 'skate', 'bus', 'camion', 'ter', 'tram', 'bateaumouche', 'voilier'];
+  rares text[] := array['dcv', 'r4l', 'ds', 'cox', 'combi', 'v240', 'p106', 'clio2', 'mini', 'classeg', 'niva', 'vespa', 'tracteur', 'tuktuk', 'campingcar', 'metro', 'cessna', 'helico', 'montgolfiere', 'jetski'];
+  epiques text[] := array['p205gti', 'r5turbo', 'delta', 'quattro', 'countach', 'p911', 'golfgti', 'impreza', 'evo', 'veyron', 'harley', 'tgv', 'vapeur', 'a380', 'qm2'];
+  legendaires text[] := array['concorde', 'kangoo', 'multipla', 'punto', 'c15', 'hilux', 'twingo', 'p206', 'saxo', 'robin', 'f40', 'delorean', 'ae86', 'r34', 'solex', 'mob103', 'orient', 'saturnv', 'pedalo'];
+  supremes text[] := array['kangoopower'];
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  perform pg_advisory_xact_lock(hashtext('tcg' || auth.uid()::text));
+  select count(*) into n from tcg_ouvertures where joueur = auth.uid() and source = 'heure' and quand > now() - interval '1 hour';
+  if n < 5 then src := 'heure';
+  else
+    update tcg_bonus set nombre = nombre - 1 where joueur = auth.uid() and nombre > 0;
+    if not found then raise exception 'plus de booster disponible'; end if;
+    src := 'bonus';
+  end if;
+  for i in 1..5 loop
+    r := random();
+    -- Suprême : 1 booster sur 1000. Mythique : environ 3 %. Épique : environ 30 %.
+    if i <= 3 then pool := case when r < 0.08 then rares else communes end;
+    elsif i = 4 then pool := case when r < 0.12 then epiques else rares end;
+    else pool := case when r < 0.001 then supremes when r < 0.031 then legendaires when r < 0.22 then epiques else rares end;
+    end if;
+    c := pool[1 + floor(random() * array_length(pool, 1))::int];
+    if random() < 0.04 then c := c || '*'; end if;
+    res := res || c;
+    insert into tcg_cartes (joueur, carte, nombre) values (auth.uid(), c, 1)
+      on conflict (joueur, carte) do update set nombre = tcg_cartes.nombre + 1;
+  end loop;
+  insert into tcg_ouvertures (joueur, source, cartes) values (auth.uid(), src, res);
+  return res;
+end $$;
+revoke all on function public.tcg_etat() from public, anon;
+revoke all on function public.tcg_ouvrir() from public, anon;
+grant execute on function public.tcg_etat() to authenticated;
+grant execute on function public.tcg_ouvrir() to authenticated;
+
+-- Carte Grise : courses (rapportent des boosters) et échanges entre amis
+create table if not exists public.tcg_courses (
+  id bigint generated always as identity primary key,
+  joueur uuid not null references public.profils(id) on delete cascade,
+  depart timestamptz not null default now(),
+  arrivee timestamptz,
+  place int,
+  gain int not null default 0
+);
+create index if not exists tcg_courses_joueur on public.tcg_courses (joueur, depart desc);
+alter table public.tcg_courses enable row level security;
+drop policy if exists "mes courses" on public.tcg_courses;
+create policy "mes courses" on public.tcg_courses for select using (auth.uid() = joueur);
+
+create or replace function public.tcg_depart() returns bigint language plpgsql security definer set search_path = public as $$
+declare i bigint;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  insert into tcg_courses (joueur) values (auth.uid()) returning id into i;
+  return i;
+end $$;
+
+-- Arrivée : 1er = 2 boosters, 2e ou 3e = 1 booster. Une course dure au moins 60 s, 20 boosters par jour au maximum.
+create or replace function public.tcg_arrivee(p_course bigint, p_place int) returns json language plpgsql security definer set search_path = public as $$
+declare c record; g int; deja int;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  select * into c from tcg_courses where id = p_course and joueur = auth.uid() for update;
+  if not found or c.arrivee is not null then raise exception 'course inconnue'; end if;
+  if now() - c.depart < interval '60 seconds' then raise exception 'course trop courte'; end if;
+  g := case when p_place = 1 then 2 when p_place in (2, 3) then 1 else 0 end;
+  select coalesce(sum(gain), 0) into deja from tcg_courses where joueur = auth.uid() and depart > now() - interval '1 day';
+  g := greatest(0, least(g, 20 - deja));
+  update tcg_courses set arrivee = now(), place = p_place, gain = g where id = p_course;
+  if g > 0 then
+    insert into tcg_bonus (joueur, nombre) values (auth.uid(), g) on conflict (joueur) do update set nombre = tcg_bonus.nombre + g;
+  end if;
+  return json_build_object('gain', g, 'plafond', deja + g >= 20);
+end $$;
+
+create table if not exists public.tcg_echanges (
+  id bigint generated always as identity primary key,
+  de uuid not null references public.profils(id) on delete cascade,
+  a uuid not null references public.profils(id) on delete cascade,
+  donne text not null check (char_length(donne) <= 20),
+  recoit text not null check (char_length(recoit) <= 20),
+  statut text not null default 'attente' check (statut in ('attente', 'accepte', 'refuse', 'annule')),
+  cree timestamptz not null default now()
+);
+alter table public.tcg_echanges enable row level security;
+drop policy if exists "mes echanges" on public.tcg_echanges;
+create policy "mes echanges" on public.tcg_echanges for select using (auth.uid() in (de, a));
+
+create or replace function public.tcg_proposer(p_a uuid, p_donne text, p_recoit text) returns bigint language plpgsql security definer set search_path = public as $$
+declare i bigint;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  if not exists (select 1 from amis where statut = 'accepte' and ((demandeur = auth.uid() and receveur = p_a) or (receveur = auth.uid() and demandeur = p_a))) then raise exception 'pas ami'; end if;
+  if not exists (select 1 from tcg_cartes where joueur = auth.uid() and carte = p_donne and nombre > 0) then raise exception 'carte absente'; end if;
+  if not exists (select 1 from tcg_cartes where joueur = p_a and carte = p_recoit and nombre > 0) then raise exception 'carte absente chez ton ami'; end if;
+  if (select count(*) from tcg_echanges where de = auth.uid() and statut = 'attente') >= 20 then raise exception 'trop de propositions'; end if;
+  insert into tcg_echanges (de, a, donne, recoit) values (auth.uid(), p_a, p_donne, p_recoit) returning id into i;
+  return i;
+end $$;
+
+create or replace function public.tcg_repondre(p_id bigint, p_accepte boolean) returns text language plpgsql security definer set search_path = public as $$
+declare e record;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  select * into e from tcg_echanges where id = p_id and statut = 'attente' for update;
+  if not found then raise exception 'echange introuvable'; end if;
+  if not p_accepte then
+    if auth.uid() not in (e.de, e.a) then raise exception 'interdit'; end if;
+    update tcg_echanges set statut = case when auth.uid() = e.de then 'annule' else 'refuse' end where id = p_id;
+    return 'ok';
+  end if;
+  if auth.uid() <> e.a then raise exception 'interdit'; end if;
+  perform 1 from tcg_cartes where (joueur = e.de and carte = e.donne) or (joueur = e.a and carte = e.recoit) for update;
+  if not exists (select 1 from tcg_cartes where joueur = e.de and carte = e.donne and nombre > 0)
+     or not exists (select 1 from tcg_cartes where joueur = e.a and carte = e.recoit and nombre > 0) then
+    update tcg_echanges set statut = 'annule' where id = p_id;
+    raise exception 'une des cartes n''est plus disponible';
+  end if;
+  update tcg_cartes set nombre = nombre - 1 where joueur = e.de and carte = e.donne;
+  update tcg_cartes set nombre = nombre - 1 where joueur = e.a and carte = e.recoit;
+  insert into tcg_cartes (joueur, carte, nombre) values (e.a, e.donne, 1) on conflict (joueur, carte) do update set nombre = tcg_cartes.nombre + 1;
+  insert into tcg_cartes (joueur, carte, nombre) values (e.de, e.recoit, 1) on conflict (joueur, carte) do update set nombre = tcg_cartes.nombre + 1;
+  update tcg_echanges set statut = 'accepte' where id = p_id;
+  return 'ok';
+end $$;
+revoke all on function public.tcg_depart() from public, anon;
+revoke all on function public.tcg_arrivee(bigint, int) from public, anon;
+revoke all on function public.tcg_proposer(uuid, text, text) from public, anon;
+revoke all on function public.tcg_repondre(bigint, boolean) from public, anon;
+grant execute on function public.tcg_depart() to authenticated;
+grant execute on function public.tcg_arrivee(bigint, int) to authenticated;
+grant execute on function public.tcg_proposer(uuid, text, text) to authenticated;
+grant execute on function public.tcg_repondre(bigint, boolean) to authenticated;
 `;
   };
   const DEFAUT_APP = {

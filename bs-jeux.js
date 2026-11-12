@@ -6,6 +6,7 @@
 //   BS.score(n)    -> envoie un score au classement (le meilleur est gardé)
 //   BS.score(n, { ordre: "bas" })  -> quand le plus petit score gagne (golf)
 //   BS.victoire()  -> ajoute une victoire au classement du jeu
+//   BS.tcg(action) -> jeu de cartes Carte Grise : "etat", "ouvrir", "collection"
 // Sans compte, ou si le jeu est ouvert tout seul, ces fonctions ne font rien.
 // =========================================================
 (function () {
@@ -29,6 +30,7 @@
     connecte: !!profil,
     score: function (valeur, options) { return appeler("score", [Number(valeur), options || {}]); },
     victoire: function () { return appeler("victoire", []); },
+    tcg: function (action, args) { return appeler("tcg", [action, args || {}]); },
   };
   // Mise à jour si le joueur se connecte pendant que le jeu est ouvert
   window.addEventListener("message", function (e) {

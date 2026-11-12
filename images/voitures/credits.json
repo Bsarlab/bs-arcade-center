@@ -1,0 +1,392 @@
+{
+ "concorde": {
+  "auteur": "Spaceaero2",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Concorde_1_94-9-5_kix_(cropped).jpg"
+ },
+ "kangoo": {
+  "auteur": "Rudolf Stricker",
+  "lic": "Attribution",
+  "page": "https://commons.wikimedia.org/wiki/File:Renault_Kangoo_I_front_20090121.jpg"
+ },
+ "multipla": {
+  "auteur": "Andrew Bone from Weymouth, England",
+  "lic": "CC BY 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Fiat_Multipla_(2002)_(29392161886).jpg"
+ },
+ "punto": {
+  "auteur": "Vauxford",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:2006_Fiat_Grande_Punto_Sporting_T-J_1.4_Front.jpg"
+ },
+ "c15": {
+  "auteur": "Guillaume Vachey from Chalon sur Saone, France",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Citroen_C15_(40574316552).jpg"
+ },
+ "hilux": {
+  "auteur": "Vauxford",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:2018_Toyota_Hilux_Invincible_X_D-4d_4WD_2.4_Front.jpg"
+ },
+ "twingo": {
+  "auteur": "Vauxford",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:1997_Renault_Twingo_1.15_(1).jpg"
+ },
+ "p206": {
+  "auteur": "Vauxford",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:2002_Peugeot_206_LX_1.4_Front.jpg"
+ },
+ "saxo": {
+  "auteur": "Rudolf Stricker",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Citroen_Saxo_front_20080403.jpg"
+ },
+ "robin": {
+  "auteur": "Oxyman",
+  "lic": "CC BY 2.5",
+  "page": "https://commons.wikimedia.org/wiki/File:Reliant_Robin_Green.jpg"
+ },
+ "f40": {
+  "auteur": "Will ainsworth",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:F40_Ferrari_20090509.jpg"
+ },
+ "delorean": {
+  "auteur": "Grenex at English Wikipedia",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:DeLorean_DMC-12_(9979).jpg"
+ },
+ "ae86": {
+  "auteur": "SprinterTrueno1985",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Toyota_Sprinter_Trueno_AE86_2_door.jpg"
+ },
+ "r34": {
+  "auteur": "Tennen-Gas",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Nissan_Skyline_R34_GT-R_N%C3%BCr_001.jpg"
+ },
+ "solex": {
+  "auteur": "A1AA1A",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Solex,_Colmar.jpg"
+ },
+ "mob103": {
+  "auteur": "Jean-Noël Marchi",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Peugeot_103_LVS.jpg"
+ },
+ "orient": {
+  "auteur": "Tman11S",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Orient_Express_Spoorwegmuseum.jpg"
+ },
+ "saturnv": {
+  "auteur": "NASA",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Apollo_4_Saturn_V,_s67-50531.jpg"
+ },
+ "pedalo": {
+  "auteur": "Vitaly Volkov/Волков Виталий Сергеевич",
+  "lic": "CC BY 2.5",
+  "page": "https://commons.wikimedia.org/wiki/File:Waterfiets2.JPG"
+ },
+ "p205gti": {
+  "auteur": "Oyhar",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Peugeot_205.jpg"
+ },
+ "r5turbo": {
+  "auteur": "CZmarlin — Christopher Ziemnowicz, releases all rights but a photo credit would ",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Renault_5_Turbo-RockvilleMDshow2007.jpg"
+ },
+ "delta": {
+  "auteur": "realname",
+  "lic": "CC BY-SA 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Lancia_Delta_Integrale_-_2007_Rallye_Deutschland.jpg"
+ },
+ "quattro": {
+  "auteur": "Abehn",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Audi_quattro_IAA.jpg"
+ },
+ "countach": {
+  "auteur": "Tokumeigakarinoaoshima",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Lamborghini_Countach_25th_Anniversary_1.JPG"
+ },
+ "p911": {
+  "auteur": "Rundvald",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Porsche-911S-Targa-Classic-AVD-byRundvald.jpg"
+ },
+ "golfgti": {
+  "auteur": "Rudolf Stricker",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:VW_Golf_I_front_20080414.jpg"
+ },
+ "impreza": {
+  "auteur": "OSX",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:2001-2002_Subaru_Impreza_(GDE_MY02)_RS_sedan_(2011-06-15)_01.jpg"
+ },
+ "evo": {
+  "auteur": "baku13",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:20071001_Lancer_Evolution_X-front.jpg"
+ },
+ "veyron": {
+  "auteur": "M 93",
+  "lic": "CC BY-SA 3.0 de",
+  "page": "https://commons.wikimedia.org/wiki/File:Bugatti_Veyron_16.4_%E2%80%93_Frontansicht_(1),_5._April_2012,_D%C3%BCsseldorf.jpg"
+ },
+ "harley": {
+  "auteur": "Nitot",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Harley_Davidson_Fat_Boy_2018_FLFBS.jpg"
+ },
+ "tgv": {
+  "auteur": "Mohamed SY",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Anniversaire_40_ans_TGV.jpg"
+ },
+ "vapeur": {
+  "auteur": "User:Malcolm Best",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:3511_-_Hartswater_240481.jpg"
+ },
+ "a380": {
+  "auteur": "Maarten Visser from Capelle aan den IJssel, Nederland",
+  "lic": "CC BY-SA 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:A6-EDY_A380_Emirates_31_jan_2013_jfk_(8442269364)_(cropped).jpg"
+ },
+ "qm2": {
+  "auteur": "Hansueli Krapf",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:2010-08-26_15-41-51_Germany_Hamburg_Klein_Grasbrook.jpg"
+ },
+ "dcv": {
+  "auteur": "Lothar Spurzem",
+  "lic": "CC BY-SA 2.0 de",
+  "page": "https://commons.wikimedia.org/wiki/File:Citro%C3%ABn_2_CV_Charleston_(2015-08-29_3174_b).jpg"
+ },
+ "r4l": {
+  "auteur": "Berthold Werner",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Renault_R4_BW_2016-07-17_13-45-32.jpg"
+ },
+ "ds": {
+  "auteur": "Ralf Roletschek (talk) - Wissensmanagement mit Wikis",
+  "lic": "FAL",
+  "page": "https://commons.wikimedia.org/wiki/File:12-01-03-autostadtl-by-RalfR-41.jpg"
+ },
+ "cox": {
+  "auteur": "Rundvald",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Choupette53-VW-Cox-1967-Saint-Briac-byRundvald.jpg"
+ },
+ "combi": {
+  "auteur": "Rundvald",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Combi-vertblanc-avg-byRundvald.jpg"
+ },
+ "v240": {
+  "auteur": "Andrzej Otrębski",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Goteborg_Volvo_Museum_48_240.jpg"
+ },
+ "p106": {
+  "auteur": "Rudolf Stricker",
+  "lic": "Attribution",
+  "page": "https://commons.wikimedia.org/wiki/File:Peugeot_106_front_20090730.jpg"
+ },
+ "clio2": {
+  "auteur": "RobindesB",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Clio_RS_2.2.jpg"
+ },
+ "mini": {
+  "auteur": "Users Brazucs, SteveBaker on en.wikipedia",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:1963_MkI_Mini.jpg"
+ },
+ "classeg": {
+  "auteur": "M 93",
+  "lic": "Attribution",
+  "page": "https://commons.wikimedia.org/wiki/File:Mercedes_G_400_CDI_Limited_Edition_(W463)_front_20100612.jpg"
+ },
+ "niva": {
+  "auteur": "Christo",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Budapest,_Hungexpo,_AMTS_2017,_51.jpg"
+ },
+ "vespa": {
+  "auteur": "hongsta",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:1964_Vespa_90_Small_Frame_made_by_Piaggio_now_in_California_1.jpg"
+ },
+ "tracteur": {
+  "auteur": "Cjp24",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:New_Holland_T6070.jpg"
+ },
+ "tuktuk": {
+  "auteur": "Fotograf / Photographer: Heinrich Damm (User:Hdamm, Hdamm at de.wikipedia.org)",
+  "lic": "CC BY 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Tuktukpktalad05b.jpg"
+ },
+ "campingcar": {
+  "auteur": "Auteur inconnu",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Teilintegriertes_WoMo.jpg"
+ },
+ "metro": {
+  "auteur": "Mohamed SY",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:MF_77_RATP_IDF_Mobilit%C3%A9s.jpg"
+ },
+ "cessna": {
+  "auteur": "АнИгМа",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Cessna_F172K_take_off_from_the_grass_runway.jpg"
+ },
+ "helico": {
+  "auteur": "Arnaud Gaillard (arnaud () amarys.com)",
+  "lic": "CC BY-SA 1.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Alouette_ag1.JPG"
+ },
+ "montgolfiere": {
+  "auteur": "Greg Goebel from Loveland CO, USA",
+  "lic": "CC BY-SA 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Yaabq_85b_(10625020624).jpg"
+ },
+ "jetski": {
+  "auteur": "User:Isakaisaka1",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Vattenskoter2.jpg"
+ },
+ "sandero": {
+  "auteur": "Alexander Migl",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Dacia_Sandero_Stepway_III_IMG_4214.jpg"
+ },
+ "p208": {
+  "auteur": "Vauxford",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:2020_Peugeot_208_GT_Line_PureTech_1.2_Front.jpg"
+ },
+ "yaris": {
+  "auteur": "Alexander-93",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:2024_Toyota_Yaris_Hybrid_130_(XP210)_IMG_9910.jpg"
+ },
+ "corsa": {
+  "auteur": "Alexander-93",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Opel_Corsa_F_IMG_8196.jpg"
+ },
+ "fiesta": {
+  "auteur": "Vauxford",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:1998_Ford_Fiesta_LX_Zetec_1.2_Front.jpg"
+ },
+ "berlingo": {
+  "auteur": "Ketounette",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Citro%C3%ABn_Berlingo_Multispace-2.jpg"
+ },
+ "scenic": {
+  "auteur": "Alexander-93",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Renault_Sc%C3%A9nic_E-Tech_GIMS_2024_1X7A2035.jpg"
+ },
+ "espace": {
+  "auteur": "Crash71100",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Renault_Espace_1_Phase_1.jpg"
+ },
+ "partner": {
+  "auteur": "M 93",
+  "lic": "CC BY-SA 3.0 de",
+  "page": "https://commons.wikimedia.org/wiki/File:Peugeot_Partner_Tepee_(II)_%E2%80%93_Frontansicht,_17._September_2011,_Hilden.jpg"
+ },
+ "smart": {
+  "auteur": "Bull-Doser",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Smart_Fortwo_Coupe_%2709_(MIAS).JPG"
+ },
+ "prius": {
+  "auteur": "IFCAR",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:2012_Toyota_Prius_plug-in_hyrid_--_07-14-2012.JPG"
+ },
+ "zoe": {
+  "auteur": "werner hillebrand-hansen",
+  "lic": "CC BY-SA 2.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Renault_Zoe_charging.jpg"
+ },
+ "f500": {
+  "auteur": "Vauxford",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:2010_Fiat_500_Lounge_1.2_Front.jpg"
+ },
+ "polo": {
+  "auteur": "Vauxford",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:2005_Volkswagen_Polo_E_1.2_Front.jpg"
+ },
+ "velo": {
+  "auteur": "This photo was taken by Roman Bonnefoy ( Romanceor [parlons-en]). Feel free to u",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Cycliste_%C3%A0_place_d%27Italie-Paris.jpg"
+ },
+ "trott": {
+  "auteur": "Ubahnverleih",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Elektrische-tretroller.jpg"
+ },
+ "trottinette": {
+  "auteur": "Benoît Prieur",
+  "lic": "CC0",
+  "page": "https://commons.wikimedia.org/wiki/File:Une_trottinette_contre_un_mur_(mars_2022).jpg"
+ },
+ "skate": {
+  "auteur": "Anonymous20020",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Tony_Hawk_skating_the_Ann_Arbor_skatepark_at_Veteran%27s_Memorial_Park_(cropped).jpg"
+ },
+ "bus": {
+  "auteur": "Transportbzh",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Vannes_kic%C3%A9o_citaro_2_ligne_3_kersec_vers_conleau.jpg"
+ },
+ "camion": {
+  "auteur": "User:G®iffen",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Presenningstrailer.JPG"
+ },
+ "ter": {
+  "auteur": "SNCF",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Logo_TER.svg"
+ },
+ "tram": {
+  "auteur": "Tramway et Bus Stephanois",
+  "lic": "CC BY-SA 4.0",
+  "page": "https://commons.wikimedia.org/wiki/File:D%C3%A9p%C3%B4t_STAS_St_Priest_en_Jarez_CAF_urbos_n%C2%B0944.jpg"
+ },
+ "bateaumouche": {
+  "auteur": "JeanSebastienMouche",
+  "lic": "CC BY-SA 3.0",
+  "page": "https://commons.wikimedia.org/wiki/File:Bateau-Mouche-Galere.jpg"
+ },
+ "voilier": {
+  "auteur": "Jon Sullivan",
+  "lic": "Public domain",
+  "page": "https://commons.wikimedia.org/wiki/File:Bateaugoelette.jpg"
+ }
+}

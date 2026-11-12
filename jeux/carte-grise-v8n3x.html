@@ -1,0 +1,2370 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Carte Grise · le jeu de cartes des véhicules</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800&family=Bungee&family=Barlow:wght@400;500;600;700&display=swap">
+<style>
+/* =========================================================
+   CARTE GRISE · design « Nuit de tuning »
+   Parking la nuit, néons sous châssis, chrome et flamant rose
+   ========================================================= */
+:root {
+  --nuit: #0b0a14; --nuit2: #151229; --nuit3: #1f1a3a; --trait: rgba(255,255,255,.1);
+  --texte: #f4f1ff; --doux: #b9b3d6; --pale: #8a83ad;
+  --violet: #8b5cf6; --cyan: #22d3ee; --rose: #ff4fa3; --jaune: #ffd23f; --vert: #34d399; --rouge: #ff4d4d; --bleu: #1d4fd8;
+  --rC: #b8c0cc; --rR: #38bdf8; --rE: #c084fc; --rL: #ffd23f; --rS: #ff4fa3;
+  --chrome: linear-gradient(180deg, #ffffff 0%, #d6dae3 38%, #8a93a6 50%, #e9edf5 62%, #b7bfcc 100%);
+  --f-titre: "Barlow Condensed", "Arial Narrow", sans-serif;
+  --f-tampon: "Bungee", "Arial Black", sans-serif;
+  --f-corps: "Barlow", system-ui, sans-serif;
+  --ease: cubic-bezier(.2, .9, .25, 1);
+}
+* { box-sizing: border-box; }
+html, body { margin: 0; min-height: 100%; background: var(--nuit); color: var(--texte); font-family: var(--f-corps); -webkit-font-smoothing: antialiased; }
+body { overflow-x: hidden; }
+button { font: inherit; color: inherit; cursor: pointer; }
+:focus-visible { outline: 2px solid var(--cyan); outline-offset: 3px; }
+
+/* ---------- Ambiance : parking la nuit, néons qui se reflètent sur le bitume ---------- */
+.salle { position: fixed; inset: 0; z-index: -2; background:
+  radial-gradient(60% 45% at 85% 0%, rgba(255,79,163,.22), transparent 70%),
+  radial-gradient(55% 40% at 8% 10%, rgba(34,211,238,.14), transparent 70%),
+  radial-gradient(90% 50% at 50% 115%, rgba(139,92,246,.45), transparent 70%),
+  linear-gradient(180deg, #120f24, #0b0a14 55%, #0e0b1d); }
+.salle::before { content: ""; position: absolute; inset: 55% 0 0; background: repeating-linear-gradient(180deg, rgba(255,255,255,.025) 0 1px, transparent 1px 7px); -webkit-mask-image: linear-gradient(transparent, #000); mask-image: linear-gradient(transparent, #000); }
+.salle::after { content: ""; position: absolute; inset: 0; background: radial-gradient(ellipse at center, transparent 55%, rgba(0,0,0,.55)); }
+.neon { position: fixed; left: 10%; right: 10%; bottom: -12vh; height: 28vh; z-index: -1; pointer-events: none; border-radius: 50%; background: radial-gradient(closest-side, rgba(139,92,246,.55), transparent); filter: blur(30px); animation: respire 5s ease-in-out infinite; }
+@keyframes respire { 50% { opacity: .6; transform: scaleX(.94); } }
+.grain { position: fixed; inset: -50%; z-index: 50; pointer-events: none; opacity: .04; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)'/%3E%3C/svg%3E"); animation: grain 1s steps(4) infinite; }
+@keyframes grain { 25% { transform: translate(-4%, 3%); } 50% { transform: translate(3%, -4%); } 75% { transform: translate(-2%, -2%); } }
+
+/* ---------- Barre du haut ---------- */
+.barre { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 10px; padding: 12px clamp(14px, 3vw, 28px); background: linear-gradient(180deg, rgba(11,10,20,.92), rgba(11,10,20,.55) 70%, transparent); backdrop-filter: blur(8px); }
+.logo { display: flex; align-items: center; gap: 10px; margin-right: auto; background: none; border: 0; padding: 0; text-align: left; }
+.logo svg { width: 38px; height: 38px; filter: drop-shadow(0 0 8px rgba(34,211,238,.5)); }
+.logo b { display: block; font-family: var(--f-tampon); font-weight: 400; font-size: 20px; line-height: 1; background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.logo small { display: block; margin-top: 2px; font-family: var(--f-titre); font-weight: 600; font-size: 12px; letter-spacing: .14em; text-transform: uppercase; color: var(--pale); }
+.onglet { border: 1px solid var(--trait); background: rgba(255,255,255,.05); padding: 9px 16px; border-radius: 999px; font-family: var(--f-titre); font-weight: 700; font-size: 16px; letter-spacing: .06em; transition: background .2s, border-color .2s, box-shadow .2s; }
+.onglet:hover { background: rgba(255,255,255,.1); }
+.onglet[aria-current="page"] { border-color: var(--cyan); color: #c9f6ff; box-shadow: 0 0 16px rgba(34,211,238,.35); }
+.rond { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; border: 1px solid var(--trait); background: rgba(255,255,255,.05); padding: 0; }
+.rond svg { width: 18px; height: 18px; }
+@media (max-width: 560px) { .logo small, .onglet .long { display: none; } .logo b { font-size: 17px; } .onglet { padding: 8px 12px; } }
+
+main { padding: 8px clamp(14px, 3vw, 28px) 60px; max-width: 1200px; margin: 0 auto; }
+.ecran[hidden] { display: none !important; }
+.bandeau { display: flex; gap: 10px; align-items: flex-start; margin: 4px 0 16px; padding: 10px 16px; border-radius: 14px; background: rgba(255,210,63,.08); border: 1px solid rgba(255,210,63,.3); color: #fbe9b0; font-size: 14px; }
+.bandeau[hidden] { display: none; }
+.bandeau b { color: var(--jaune); }
+@media (max-width: 560px) { .bandeau { display: block; } .tirage { row-gap: 26px; } }
+
+/* ---------- Accueil ---------- */
+.accueil { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: clamp(24px, 5vw, 64px); align-items: center; min-height: calc(100vh - 150px); }
+.accueil h1 { margin: 0; font-family: var(--f-tampon); font-weight: 400; font-size: clamp(50px, 8vw, 104px); line-height: .9; background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 4px 0 rgba(0,0,0,.6)) drop-shadow(0 0 22px rgba(139,92,246,.45)); }
+.accueil h1 span { display: block; margin-top: 16px; font-family: var(--f-titre); font-weight: 700; font-size: .24em; letter-spacing: .16em; text-transform: uppercase; background: none; color: var(--rose); -webkit-text-fill-color: var(--rose); filter: drop-shadow(0 0 10px rgba(255,79,163,.6)); }
+.accueil .intro { max-width: 48ch; color: var(--doux); line-height: 1.6; margin: 20px 0 26px; font-size: 17px; }
+.etat { display: grid; gap: 12px; padding: 18px 20px; border-radius: 18px; background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02)); border: 1px solid var(--trait); box-shadow: inset 0 1px 0 rgba(255,255,255,.08); font-family: var(--f-titre); font-size: 17px; letter-spacing: .04em; }
+.etat-ligne { display: flex; align-items: center; justify-content: space-between; gap: 12px; color: var(--doux); }
+.etat-ligne[hidden] { display: none; }
+.voyants { display: flex; gap: 5px; }
+.voyant { width: 26px; height: 10px; border-radius: 3px; background: #2a2545; box-shadow: inset 0 1px 2px rgba(0,0,0,.6); transform: skewX(-18deg); }
+.voyant.on { background: linear-gradient(90deg, var(--cyan), var(--violet)); box-shadow: 0 0 10px rgba(34,211,238,.7); }
+.minuteur { color: var(--jaune); font-size: 19px; font-weight: 700; }
+.actions { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+.btn { display: inline-flex; align-items: center; gap: 10px; padding: 14px 22px; border-radius: 999px; border: 1px solid var(--trait); background: rgba(255,255,255,.06); font-family: var(--f-titre); font-weight: 800; font-size: 19px; letter-spacing: .08em; text-transform: uppercase; transition: transform .2s var(--ease), background .2s, box-shadow .25s; }
+.btn:hover:not(:disabled) { background: rgba(255,255,255,.12); transform: translateY(-2px); }
+.btn:disabled { opacity: .4; cursor: not-allowed; }
+.btn.alerte { border: 0; color: #1a0d26; background: linear-gradient(90deg, #ffd23f, #ff8bd0 55%, #8be9ff); box-shadow: 0 8px 30px -8px rgba(255,79,163,.8), inset 0 -3px 0 rgba(0,0,0,.15); }
+.btn.alerte:hover:not(:disabled) { box-shadow: 0 10px 40px -6px rgba(255,79,163,.95), inset 0 -3px 0 rgba(0,0,0,.15); }
+.btn svg { width: 20px; height: 20px; }
+.btn small { font-family: var(--f-corps); font-weight: 600; font-size: 12px; letter-spacing: 0; text-transform: none; opacity: .8; }
+.scene-paquet { position: relative; display: grid; place-items: center; min-height: 460px; }
+.scene-paquet::after { content: ""; position: absolute; bottom: 30px; width: 62%; height: 46px; border-radius: 50%; background: radial-gradient(closest-side, rgba(139,92,246,.85), rgba(34,211,238,.25) 60%, transparent); filter: blur(10px); animation: respire 3s ease-in-out infinite; }
+.scene-paquet .paquet { cursor: pointer; z-index: 1; animation: flotte 4.5s ease-in-out infinite; }
+.scene-paquet .paquet:hover { animation-play-state: paused; transform: translateY(-8px) rotate(-2deg) scale(1.03); }
+@keyframes flotte { 0%, 100% { transform: translateY(0) rotate(-3deg); } 50% { transform: translateY(-16px) rotate(2deg); } }
+@media (max-width: 860px) { .accueil { grid-template-columns: minmax(0, 1fr); min-height: 0; padding-top: 6px; } .scene-paquet { min-height: 380px; order: -1; } }
+
+/* ---------- Booster : sachet holographique serti ---------- */
+.paquet { --pw: 230px; position: relative; width: var(--pw); aspect-ratio: 5 / 8; filter: drop-shadow(0 30px 40px rgba(0,0,0,.6)); transition: transform .4s var(--ease); }
+.paquet-haut, .paquet-corps { position: absolute; left: 0; right: 0; overflow: hidden; background:
+  linear-gradient(115deg, transparent 20%, rgba(255,255,255,.45) 32%, transparent 44%, transparent 60%, rgba(255,255,255,.25) 70%, transparent 80%) 0 0 / 250% 100%,
+  conic-gradient(from 200deg at 30% 40%, #ff4fa3, #8b5cf6, #22d3ee, #34d399, #ffd23f, #ff4fa3);
+  animation: reflet-paquet 4s linear infinite; }
+@keyframes reflet-paquet { to { background-position: -250% 0, 0 0; } }
+.paquet-haut { top: 0; height: 9%; z-index: 2; transform-origin: 85% 100%; transition: transform .7s var(--ease), opacity .7s;
+  -webkit-mask: conic-gradient(from -45deg at top, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / 12px 6px repeat-x, linear-gradient(#000 0 0) bottom / 100% calc(100% - 6px) no-repeat; mask: conic-gradient(from -45deg at top, #0000, #000 1deg 89deg, #0000 90deg) 50% 0 / 12px 6px repeat-x, linear-gradient(#000 0 0) bottom / 100% calc(100% - 6px) no-repeat; }
+.paquet-haut::after { content: ""; position: absolute; inset: 0; background: repeating-linear-gradient(90deg, rgba(0,0,0,.18) 0 2px, transparent 2px 5px); }
+.paquet-corps { top: 9%; bottom: 0; display: grid; align-content: center; justify-items: center; gap: 8px; padding: 18px 16px 28px; text-align: center;
+  -webkit-mask: conic-gradient(from 135deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 100% / 12px 6px repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - 6px) no-repeat; mask: conic-gradient(from 135deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% 100% / 12px 6px repeat-x, linear-gradient(#000 0 0) top / 100% calc(100% - 6px) no-repeat; }
+.paquet-corps::before { content: ""; position: absolute; inset: 8% 8% 12%; border-radius: 16px; background: rgba(11,10,20,.82); box-shadow: inset 0 0 0 2px rgba(255,255,255,.25); }
+.paquet-corps > * { position: relative; }
+.paquet-ligne { position: absolute; top: 9%; left: 4%; right: 4%; z-index: 3; border-top: 2px dashed rgba(255,255,255,.7); }
+.paquet-embleme { width: 34%; filter: drop-shadow(0 0 10px rgba(34,211,238,.6)); }
+.paquet-titre { font-family: var(--f-tampon); font-size: calc(var(--pw) * .135); line-height: .92; background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 2px 0 rgba(0,0,0,.7)); }
+.paquet-sous { font-family: var(--f-titre); font-weight: 800; letter-spacing: .16em; text-transform: uppercase; font-size: calc(var(--pw) * .058); color: var(--rose); }
+.paquet-etiquette { display: flex; align-items: stretch; border-radius: 5px; overflow: hidden; background: #fff; color: #111; font-family: var(--f-titre); font-weight: 800; letter-spacing: .08em; font-size: calc(var(--pw) * .07); transform: rotate(-3deg); box-shadow: 0 0 0 2px #111, 0 4px 0 rgba(0,0,0,.35); }
+.paquet-etiquette i { display: grid; place-items: center; padding: 0 5px; background: var(--bleu); color: #fff; font-style: normal; font-size: .7em; }
+.paquet-etiquette span { padding: 3px 8px; }
+.paquet-scelle { position: absolute; top: 12%; right: -14px; z-index: 4; padding: 8px 10px; border-radius: 8px; transform: rotate(12deg); background: var(--jaune); color: #111; font-family: var(--f-tampon); font-size: calc(var(--pw) * .05); box-shadow: 0 4px 0 #a37f00, 0 8px 18px rgba(0,0,0,.4); transition: transform .5s var(--ease), opacity .5s; }
+.paquet-code { position: absolute; bottom: 14px; left: 0; right: 0; text-align: center; font-family: monospace; font-size: 10px; letter-spacing: .3em; color: rgba(255,255,255,.55); }
+.paquet.secoue { animation: secoue .45s linear; }
+@keyframes secoue { 20% { transform: translateX(-7px) rotate(-3deg); } 40% { transform: translateX(7px) rotate(3deg); } 60% { transform: translateX(-5px) rotate(-1deg); } 80% { transform: translateX(3px); } }
+.paquet.ouvert .paquet-scelle { transform: translate(30px, -40px) rotate(60deg); opacity: 0; }
+.paquet.ouvert .paquet-haut { transform: translate(60px, -120px) rotate(28deg); opacity: 0; }
+.paquet.ouvert .paquet-ligne { opacity: 0; }
+.paquet.vide { transition: transform .6s var(--ease), opacity .6s; transform: translateY(90px) scale(.8); opacity: 0; }
+
+/* ---------- Ouverture ---------- */
+.ouverture { position: fixed; inset: 0; z-index: 30; display: grid; grid-template-rows: auto 1fr auto; background: radial-gradient(70% 55% at 50% 45%, #241c48, #0b0a14 75%); }
+.ouverture[hidden] { display: none; }
+.ouverture::after { content: ""; position: absolute; left: 15%; right: 15%; bottom: 18%; height: 60px; border-radius: 50%; pointer-events: none; background: radial-gradient(closest-side, rgba(139,92,246,.6), transparent); filter: blur(14px); }
+.ouverture-tete { position: relative; z-index: 1; display: flex; justify-content: space-between; align-items: center; padding: 16px 22px; font-family: var(--f-titre); font-weight: 700; letter-spacing: .12em; color: var(--pale); font-size: 14px; }
+.ouverture-centre { position: relative; z-index: 1; display: grid; place-items: center; overflow: hidden; }
+.ouverture-aide { position: absolute; bottom: 7%; left: 0; right: 0; text-align: center; font-family: var(--f-titre); font-weight: 700; letter-spacing: .1em; text-transform: uppercase; color: #e2dcff; animation: clignote 1.6s ease-in-out infinite; }
+@keyframes clignote { 50% { opacity: .35; } }
+.ouverture-pied { position: relative; z-index: 1; display: flex; justify-content: center; flex-wrap: wrap; gap: 10px; padding: 16px 16px max(22px, env(safe-area-inset-bottom)); min-height: 86px; }
+.tirage:empty { display: none; }
+.tirage { position: absolute; inset: 0; display: flex; flex-wrap: wrap; align-content: center; justify-content: center; gap: clamp(10px, 1.8vw, 20px); padding: 10px; --w: clamp(130px, 17vw, 210px); }
+@media (max-width: 640px) { .tirage { --w: 30vw; } }
+.slot { position: relative; width: var(--w); aspect-ratio: 63 / 88; perspective: 1200px; opacity: 0; transform: translateY(40vh) scale(.6) rotate(var(--rot, 0deg)); transition: transform .8s var(--ease), opacity .4s; transition-delay: calc(var(--k) * 110ms); }
+.tirage.distribue .slot { opacity: 1; transform: none; }
+.slot::before { content: ""; position: absolute; inset: -14%; border-radius: 20%; opacity: 0; transition: opacity .6s; background: radial-gradient(closest-side, var(--lueur, transparent), transparent); filter: blur(10px); }
+.slot.r-R { --lueur: rgba(56,189,248,.6); } .slot.r-E { --lueur: rgba(192,132,252,.75); } .slot.r-L { --lueur: rgba(255,210,63,.95); } .slot.r-S { --lueur: rgba(255,79,163,1); }
+.tirage.distribue .slot:not(.vue)::before { opacity: 1; animation: pulse 1.4s ease-in-out infinite; }
+@keyframes pulse { 50% { transform: scale(1.06); opacity: .6; } }
+.retourne { position: relative; width: 100%; height: 100%; transform-style: preserve-3d; transition: transform .8s var(--ease); cursor: pointer; }
+.slot.vue .retourne { transform: rotateY(180deg); cursor: zoom-in; }
+.slot:not(.vue) .retourne:hover { transform: translateY(-10px) rotate(-1deg); }
+.face, .dos { position: absolute; inset: 0; backface-visibility: hidden; -webkit-backface-visibility: hidden; }
+.face { transform: rotateY(180deg); }
+.nouveau { position: absolute; bottom: -18px; left: 50%; z-index: 3; padding: 3px 10px; transform: translateX(-50%) rotate(-3deg) rotateY(180deg); background: var(--vert); color: #04220f; font-family: var(--f-titre); font-weight: 800; font-size: clamp(9px, calc(var(--w, 200px) / 17), 13px); letter-spacing: .1em; border-radius: 999px; backface-visibility: hidden; box-shadow: 0 0 14px rgba(52,211,153,.6); }
+.slot.vue .nouveau { transform: translateX(-50%) rotate(-3deg); }
+.slot:not(.vue) .nouveau { opacity: 0; }
+.breche, .breche-texte { display: none; }
+.tremble { animation: tremble .5s linear 2; }
+@keyframes tremble { 25% { transform: translate(-5px, 3px); } 50% { transform: translate(4px, -4px); } 75% { transform: translate(-3px, -2px); } }
+.flash { position: fixed; inset: 0; z-index: 49; pointer-events: none; background: #fff; opacity: 0; }
+.flash.on { animation: flash .6s ease-out; }
+@keyframes flash { 0% { opacity: .8; } 100% { opacity: 0; } }
+
+/* ---------- Cinématique des grosses cartes ---------- */
+.cinema { position: fixed; inset: 0; z-index: 48; display: grid; place-items: center; overflow: hidden; background: rgba(5,4,12,0); transition: background .5s; cursor: pointer; }
+.cinema.on { background: rgba(5,4,12,.9); }
+.cinema canvas { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; }
+.cine-rayons { position: absolute; width: 180vmax; height: 180vmax; left: 50%; top: 50%; margin: -90vmax 0 0 -90vmax; opacity: 0; transition: opacity .8s;
+  background: repeating-conic-gradient(from 0deg, var(--c1) 0 6deg, transparent 6deg 18deg); -webkit-mask-image: radial-gradient(circle, #000 0, transparent 60%); mask-image: radial-gradient(circle, #000 0, transparent 60%); animation: rayons 14s linear infinite; }
+.cinema.revele .cine-rayons { opacity: .55; }
+@keyframes rayons { to { transform: rotate(360deg); } }
+.cine-carte { position: relative; --w: min(340px, 72vw, calc((100vh - 200px) * .716)); width: var(--w); aspect-ratio: 63 / 88; perspective: 1400px; transform: scale(.4) translateY(40vh); opacity: 0; transition: transform .7s var(--ease), opacity .4s; }
+.cinema.on .cine-carte { transform: none; opacity: 1; }
+.cine-carte .retourne { cursor: inherit; }
+.cine-carte::before { content: ""; position: absolute; inset: -18%; border-radius: 30%; background: radial-gradient(closest-side, var(--c1), transparent); filter: blur(14px); opacity: .9; animation: pulse 1s ease-in-out infinite; }
+.cinema.charge .cine-carte .retourne { animation: charge var(--duree) cubic-bezier(.5,0,1,1) forwards; }
+@keyframes charge { 0% { transform: rotate(0); } 20% { transform: rotate(-2deg) translateX(-3px); } 40% { transform: rotate(3deg) translateX(4px) scale(1.02); } 60% { transform: rotate(-4deg) translateX(-6px) scale(1.04); } 80% { transform: rotate(6deg) translateX(8px) scale(1.07); } 100% { transform: rotate(-6deg) scale(1.1); } }
+.cinema.revele .cine-carte .retourne { transform: rotateY(180deg) scale(1.04); transition: transform .9s var(--ease); }
+.cine-titre { position: absolute; left: 0; right: 0; top: 4vh; text-align: center; pointer-events: none; opacity: 0; transform: scale(2.2); letter-spacing: .6em; transition: opacity .5s, transform .7s var(--ease), letter-spacing .9s var(--ease);
+  font-family: var(--f-tampon); font-size: clamp(36px, 8vw, 92px); color: #fff; text-shadow: 0 0 30px var(--c1), 0 6px 0 rgba(0,0,0,.5); }
+.cinema.revele .cine-titre { opacity: 1; transform: none; letter-spacing: .06em; }
+.cine-sous { position: absolute; left: 0; right: 0; bottom: 4vh; text-align: center; opacity: 0; transition: opacity .6s .5s; font-family: var(--f-titre); font-weight: 700; font-size: 20px; letter-spacing: .08em; color: #ddd; }
+.cinema.revele .cine-sous { opacity: 1; }
+.cinema.r-S.revele { animation: tremble .5s linear 3; }
+
+/* ---------- La carte : photo pleine largeur, plaque, compteurs ---------- */
+.carte { --cr: var(--rC); position: relative; width: var(--w, 240px); aspect-ratio: 63 / 88; font-size: calc(var(--w, 240px) / 22); border-radius: 1em; color: #f4f1ff; user-select: none; }
+.carte.r-R { --cr: var(--rR); } .carte.r-E { --cr: var(--rE); } .carte.r-L { --cr: var(--rL); } .carte.r-S { --cr: var(--rS); }
+.c-cadre { position: absolute; inset: 0; display: grid; grid-template-rows: auto auto 1fr auto; border-radius: inherit; overflow: hidden;
+  background: linear-gradient(180deg, #1b1733, #100d20);
+  box-shadow: 0 0 0 .3em var(--cr), 0 0 1.2em color-mix(in srgb, var(--cr) 45%, transparent), 0 1.2em 2em -.6em rgba(0,0,0,.8); }
+.carte.r-C .c-cadre { box-shadow: 0 0 0 .3em #8d94a3, 0 1.2em 2em -.6em rgba(0,0,0,.8); background: linear-gradient(180deg, #23222c, #15141c); }
+.carte.r-L::before, .carte.r-S::before { content: ""; position: absolute; inset: -.3em; border-radius: 1.25em; background: conic-gradient(from var(--angle, 0deg), #ffd23f, #ff4fa3, #8be9ff, #b4ff6e, #ffd23f); animation: tourne-bord 4s linear infinite; }
+.carte.r-S::before { background: conic-gradient(from var(--angle, 0deg), #ff4fa3, #8b5cf6, #22d3ee, #ff4fa3, #ffd23f, #ff4fa3); animation-duration: 2.4s; filter: drop-shadow(0 0 .8em rgba(255,79,163,.9)); }
+.carte.r-L .c-cadre, .carte.r-S .c-cadre { box-shadow: 0 1.2em 2em -.6em rgba(0,0,0,.8); }
+@property --angle { syntax: "<angle>"; inherits: false; initial-value: 0deg; }
+@keyframes tourne-bord { to { --angle: 360deg; } }
+.c-photo { position: relative; aspect-ratio: 5 / 4; overflow: hidden; background: radial-gradient(circle at 50% 70%, #2c2850, #120f22); }
+.c-photo > svg { position: absolute; inset: 0; width: 100%; height: 100%; opacity: .8; }
+.c-img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.c-photo::after { content: ""; position: absolute; inset: 0; pointer-events: none; background: linear-gradient(180deg, rgba(0,0,0,.35), transparent 25%, transparent 55%, #1b1733 100%); }
+.carte.r-C .c-photo::after { background: linear-gradient(180deg, rgba(0,0,0,.35), transparent 25%, transparent 55%, #23222c 100%); }
+.c-cout { position: absolute; left: .45em; top: .45em; z-index: 2; display: flex; align-items: center; gap: .15em; padding: .1em .45em .1em .3em; border-radius: 999px; background: rgba(11,10,20,.78); backdrop-filter: blur(4px); color: var(--jaune); font-family: var(--f-titre); font-weight: 800; font-size: 1.15em; box-shadow: 0 0 0 .08em rgba(255,210,63,.5); }
+.c-cout svg { width: .9em; height: .9em; }
+.c-categorie { position: absolute; right: .45em; top: .5em; z-index: 2; padding: .12em .5em; border-radius: 999px; background: rgba(11,10,20,.78); color: #e7e2ff; font-family: var(--f-titre); font-weight: 700; font-size: .62em; letter-spacing: .1em; text-transform: uppercase; }
+.c-annee { display: none; }
+.c-plaque { position: relative; z-index: 2; display: flex; align-items: stretch; height: 1.7em; margin: -.95em .55em 0; border-radius: .3em; overflow: hidden; background: #fff; box-shadow: 0 0 0 .1em #111, 0 .3em .6em rgba(0,0,0,.5); color: #111; }
+.c-plaque i { flex: none; display: grid; place-items: center; width: 1.2em; background: var(--bleu); color: #fff; font-style: normal; font-family: var(--f-titre); font-weight: 700; font-size: .72em; }
+.c-plaque span { flex: 1; min-width: 0; display: flex; align-items: center; justify-content: center; padding: 0 .3em; font-family: var(--f-titre); font-weight: 800; font-size: .92em; letter-spacing: .08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.c-plaque em { flex: none; display: grid; place-items: center; width: 2.4em; background: #e8e8e8; font-style: normal; font-family: var(--f-titre); font-weight: 700; font-size: .7em; letter-spacing: .02em; color: #333; }
+.c-corps { display: grid; align-content: start; gap: .3em; padding: .4em .6em .2em; min-height: 0; overflow: hidden; }
+.c-nom { display: block; font-family: var(--f-tampon); font-weight: 400; font-size: 1.12em; line-height: 1.02; letter-spacing: .01em; text-transform: uppercase; overflow-wrap: anywhere; color: #fff; text-shadow: 0 0 .5em color-mix(in srgb, var(--cr) 60%, transparent); }
+.c-nom b { font-weight: 400; }
+.c-texte { font-size: .76em; line-height: 1.3; color: #d9d4f2; overflow: hidden; }
+.c-texte b { font-family: var(--f-titre); font-weight: 800; font-size: 1.1em; letter-spacing: .02em; color: var(--cr); }
+.carte.r-C .c-texte b { color: #e6e9ef; }
+.c-texte i { display: block; margin-top: .3em; font-size: .94em; color: #9f98c4; }
+.c-pied { display: flex; align-items: center; justify-content: space-between; gap: .3em; padding: .35em .55em .5em; border-top: .06em solid rgba(255,255,255,.08); }
+.c-stat { display: inline-flex; align-items: center; gap: .25em; font-family: var(--f-titre); font-weight: 800; font-size: 1.1em; color: #fff; }
+.c-stat svg { width: 1.25em; height: 1.25em; padding: .18em; border-radius: 50%; }
+.c-stat.men svg { background: rgba(255,77,77,.2); color: #ff7a7a; box-shadow: 0 0 0 .08em rgba(255,77,77,.6); }
+.c-stat.conf svg { background: rgba(56,189,248,.18); color: #7dd3fc; box-shadow: 0 0 0 .08em rgba(56,189,248,.6); }
+.c-rar { font-family: var(--f-titre); font-weight: 600; font-size: .6em; letter-spacing: .06em; color: var(--pale); text-align: center; line-height: 1.1; }
+.c-rar b { display: block; font-weight: 800; font-size: 1.3em; letter-spacing: .14em; text-transform: uppercase; color: var(--cr); }
+.carte.r-L .c-rar b, .carte.r-S .c-rar b { background: linear-gradient(90deg, #ffd23f, #ff4fa3, #8be9ff); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.c-reflet { position: absolute; inset: 0; z-index: 3; border-radius: inherit; pointer-events: none; opacity: 0; transition: opacity .3s; }
+.carte.r-L .c-reflet, .carte.r-E .c-reflet { opacity: .45; mix-blend-mode: soft-light; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.95) var(--mx, 40%), transparent 70%); }
+.carte.r-S .c-reflet { opacity: .8; mix-blend-mode: overlay; background: linear-gradient(115deg, transparent 35%, rgba(255,255,255,.9) 50%, transparent 65%) 0 0 / 300% 100%; animation: balaye 2.6s linear infinite; }
+@keyframes balaye { from { background-position: 150% 0; } to { background-position: -150% 0; } }
+.carte.holo .c-reflet { opacity: .7; mix-blend-mode: color-dodge; background:
+  linear-gradient(115deg, transparent 10%, rgba(255,0,140,.35) calc(var(--mx, 40%) - 18%), rgba(0,255,230,.35) var(--mx, 40%), rgba(255,240,0,.35) calc(var(--mx, 40%) + 18%), transparent 90%),
+  repeating-linear-gradient(45deg, rgba(255,255,255,.07) 0 2px, transparent 2px 6px); }
+.c-holo { position: absolute; top: 2.3em; left: 50%; transform: translateX(-50%); z-index: 4; padding: .05em .5em; border-radius: 999px; font-family: var(--f-titre); font-weight: 800; font-size: .6em; letter-spacing: .14em; color: #062024; background: linear-gradient(90deg, #ff8ad8, #8affff, #fff38a); }
+/* Dos de carte */
+.dos-carte { width: 100%; height: 100%; border-radius: 1em; font-size: calc(var(--w, 240px) / 22); display: grid; place-items: center; overflow: hidden; position: relative;
+  background: radial-gradient(circle at 50% 42%, rgba(139,92,246,.55), transparent 55%), conic-gradient(#ffffff0d 25%, transparent 0 50%, #ffffff0d 0 75%, transparent 0) 0 0 / 1.8em 1.8em, linear-gradient(160deg, #241d4a, #0b0a14);
+  box-shadow: 0 0 0 .3em #3b2f78, 0 0 0 .4em rgba(255,255,255,.12), 0 1.2em 2em -.6em rgba(0,0,0,.8); }
+.dos-carte::after { content: ""; position: absolute; inset: .7em; border-radius: .6em; border: .1em solid rgba(139,92,246,.6); box-shadow: inset 0 0 1.2em rgba(139,92,246,.4); }
+.dos-carte div { position: relative; z-index: 1; display: grid; justify-items: center; gap: .5em; font-family: var(--f-tampon); font-size: 1.2em; line-height: .95; text-align: center; background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.dos-carte svg { width: 4.4em; height: 4.4em; filter: drop-shadow(0 0 .6em rgba(34,211,238,.7)); }
+
+/* ---------- Garage (classeur) ---------- */
+.titre-ecran { display: flex; flex-wrap: wrap; align-items: end; justify-content: space-between; gap: 14px 24px; margin: 6px 0 20px; }
+.titre-ecran h2 { margin: 0; font-family: var(--f-tampon); font-weight: 400; font-size: clamp(32px, 5vw, 50px); line-height: 1; background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.titre-ecran p { margin: 8px 0 0; color: var(--doux); font-size: 15px; }
+.progression { min-width: min(320px, 100%); }
+.progression-barre { height: 10px; border-radius: 999px; background: #241f40; overflow: hidden; margin-top: 8px; }
+.progression-barre i { display: block; height: 100%; width: 0; border-radius: inherit; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--rose)); box-shadow: 0 0 12px rgba(139,92,246,.7); transition: width 1s var(--ease); }
+.progression span { font-family: var(--f-titre); font-weight: 800; font-size: 19px; letter-spacing: .06em; }
+.filtres { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 22px; }
+.filtre { padding: 8px 15px; border-radius: 999px; border: 1px solid var(--trait); background: rgba(255,255,255,.05); font-family: var(--f-titre); font-weight: 700; font-size: 15px; letter-spacing: .05em; }
+.filtre[aria-pressed="true"] { background: #f4f1ff; color: #120f22; border-color: #f4f1ff; }
+.filtre i { display: inline-block; width: 9px; height: 9px; border-radius: 50%; margin-right: 6px; box-shadow: 0 0 6px currentColor; }
+.grille-classeur { display: grid; grid-template-columns: repeat(auto-fill, minmax(156px, 1fr)); gap: 24px 16px; }
+.case { position: relative; container-type: inline-size; }
+.case .carte { --w: 100cqw; width: 100%; cursor: zoom-in; transition: transform .35s var(--ease); }
+.case .carte:hover { transform: translateY(-6px) rotate(-.6deg); }
+.compte { position: absolute; top: -9px; right: -7px; z-index: 5; min-width: 30px; padding: 2px 8px; border-radius: 999px; background: var(--jaune); color: #111; font-family: var(--f-titre); font-weight: 800; font-size: 14px; text-align: center; box-shadow: 0 2px 8px rgba(0,0,0,.5); }
+.manquante { width: 100%; aspect-ratio: 63 / 88; border-radius: 14px; border: 2px dashed rgba(255,255,255,.12); background: radial-gradient(circle at 50% 40%, rgba(139,92,246,.1), transparent 60%); display: grid; align-content: center; justify-items: center; gap: 8px; padding: 10px; text-align: center; color: rgba(255,255,255,.35); font-family: var(--f-titre); font-weight: 700; letter-spacing: .08em; font-size: 14px; }
+.manquante b { font-family: var(--f-tampon); font-weight: 400; font-size: 26px; color: rgba(255,255,255,.25); }
+.vide-classeur { padding: 40px 20px; text-align: center; color: var(--doux); }
+
+/* ---------- Zoom ---------- */
+.zoom { position: fixed; inset: 0; z-index: 45; display: grid; place-items: center; padding: 20px; background: rgba(8,6,18,.86); backdrop-filter: blur(10px); perspective: 1400px; }
+.zoom[hidden] { display: none; }
+.zoom .carte { --w: min(380px, 82vw, calc((100vh - 120px) * .716)); transition: transform .15s linear; animation: zoomin .5s var(--ease); }
+@keyframes zoomin { from { transform: scale(.7) rotateY(-30deg); opacity: 0; } }
+.zoom-info { position: absolute; bottom: 16px; left: 0; right: 0; text-align: center; color: var(--doux); font-size: 13px; padding: 0 16px; }
+.zoom-info a { color: #c9f6ff; }
+
+/* ---------- Course ---------- */
+.aide-course { max-width: 70ch; color: var(--doux); margin: -6px 0 18px; }
+.case.choix .carte { cursor: pointer; }
+.case.choix .carte:hover { transform: translateY(-6px) scale(1.02); }
+.course { position: fixed; inset: 0; z-index: 35; background: #000; }
+.course[hidden] { display: none; }
+.course canvas { position: absolute; inset: 0; width: 100%; height: 100%; }
+.c-hud { position: absolute; top: 12px; left: 12px; right: 150px; display: flex; flex-wrap: wrap; gap: 8px; }
+.c-hud span { padding: 6px 14px; border-radius: 999px; background: rgba(11,10,20,.65); backdrop-filter: blur(4px); font-family: var(--f-titre); font-size: 18px; letter-spacing: .04em; color: #ddd; box-shadow: inset 0 0 0 1px rgba(255,255,255,.12); }
+.c-hud b { color: #fff; font-size: 22px; }
+.c-quitter { position: absolute; top: 12px; right: 12px; }
+.c-decompte { position: absolute; inset: 0; display: grid; place-items: center; font-family: var(--f-tampon); font-size: clamp(60px, 16vw, 160px); color: var(--jaune); text-shadow: 0 6px 0 #8a6400, 0 0 40px rgba(0,0,0,.6); pointer-events: none; }
+.c-decompte[hidden] { display: none; }
+.c-touches { position: absolute; left: 0; right: 0; bottom: 14px; display: flex; justify-content: space-between; padding: 0 14px; pointer-events: none; }
+.c-touches button { pointer-events: auto; width: 84px; height: 84px; border-radius: 50%; border: 2px solid rgba(255,255,255,.35); background: rgba(11,10,20,.4); color: #fff; font-size: 28px; font-family: var(--f-titre); font-weight: 800; touch-action: none; user-select: none; }
+.c-touches button[data-touche="frein"] { width: 96px; border-radius: 18px; font-size: 18px; letter-spacing: .1em; }
+@media (hover: hover) and (pointer: fine) { .c-touches { display: none; } }
+.c-aide { position: absolute; bottom: 10px; left: 0; right: 0; text-align: center; color: rgba(255,255,255,.75); font-size: 13px; text-shadow: 0 1px 2px #000; }
+@media (hover: none) { .c-aide { display: none; } }
+.c-fin { position: absolute; inset: 0; display: grid; place-items: center; background: rgba(11,10,20,.65); backdrop-filter: blur(5px); text-align: center; }
+.c-fin[hidden] { display: none; }
+.c-fin h3 { margin: 0; font-family: var(--f-tampon); font-weight: 400; font-size: clamp(40px, 8vw, 80px); background: var(--chrome); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.c-fin p { font-size: 20px; color: #fff; }
+.c-fin .actions { justify-content: center; }
+
+/* ---------- Amis et échanges ---------- */
+.bloc-echange { margin: 0 0 30px; }
+.bloc-echange h3 { font-family: var(--f-titre); font-weight: 800; font-size: 22px; letter-spacing: .08em; text-transform: uppercase; margin: 0 0 12px; color: #fff; }
+.liste-amis { display: flex; flex-wrap: wrap; gap: 10px; }
+.ami { display: flex; align-items: center; gap: 10px; padding: 7px 16px 7px 7px; border-radius: 999px; border: 1px solid var(--trait); background: rgba(255,255,255,.05); font-family: var(--f-titre); font-weight: 700; font-size: 17px; }
+.ami img, .ami .pastille-ami { width: 34px; height: 34px; border-radius: 50%; background: linear-gradient(135deg, var(--violet), var(--cyan)); object-fit: cover; }
+.ami[aria-pressed="true"] { border-color: var(--cyan); color: #c9f6ff; box-shadow: 0 0 14px rgba(34,211,238,.35); }
+.proposition { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; padding: 14px; margin-bottom: 10px; border-radius: 18px; background: rgba(255,255,255,.04); border: 1px solid var(--trait); }
+.proposition .fleche { font-size: 28px; color: var(--rose); }
+.proposition p { flex: 1; min-width: 180px; margin: 0; color: var(--doux); }
+.proposition p b { color: #fff; }
+.vide-ech { color: var(--doux); }
+.choix-don { position: fixed; inset: 0; z-index: 46; overflow: auto; padding: 24px; background: rgba(11,10,20,.95); }
+.choix-don[hidden] { display: none; }
+.choix-don h3 { font-family: var(--f-tampon); font-weight: 400; font-size: 26px; margin: 0 0 6px; }
+
+/* ---------- Crédits ---------- */
+.credits { max-width: 760px; line-height: 1.6; color: var(--doux); }
+.credits h3 { font-family: var(--f-titre); font-weight: 800; font-size: 24px; letter-spacing: .06em; text-transform: uppercase; color: #fff; margin: 28px 0 8px; }
+.credits ul { padding-left: 18px; }
+.credits li { margin: 4px 0; font-size: 14px; }
+.credits a { color: #c9f6ff; }
+
+.toast { position: fixed; left: 50%; bottom: 24px; z-index: 60; transform: translateX(-50%) translateY(20px); opacity: 0; padding: 12px 20px; border-radius: 999px; background: #f4f1ff; color: #120f22; font-weight: 700; box-shadow: 0 10px 30px rgba(0,0,0,.5); transition: opacity .3s, transform .3s var(--ease); max-width: calc(100vw - 32px); }
+.toast.on { opacity: 1; transform: translateX(-50%); }
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation-duration: .01ms !important; animation-iteration-count: 1 !important; transition-duration: .01ms !important; transition-delay: 0ms !important; }
+  .grain { display: none; }
+}
+</style>
+</head>
+<body>
+<div class="salle" aria-hidden="true"></div><div class="neon" aria-hidden="true"></div><div class="grain" aria-hidden="true"></div>
+
+<header class="barre">
+  <button class="logo" type="button" data-aller="accueil" aria-label="Retour à l'accueil">
+    <svg viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="11" width="34" height="18" rx="3" fill="#fff" stroke="#17181b" stroke-width="2"/><rect x="3" y="11" width="8" height="18" rx="2" fill="#1d4fd8"/><text x="7" y="23.5" font-size="7" font-family="Arial" font-weight="700" fill="#fff" text-anchor="middle">F</text><text x="24" y="24" font-size="9" font-family="Arial" font-weight="800" fill="#17181b" text-anchor="middle">CG</text></svg>
+    <span><b>CARTE GRISE</b><small>Le jeu de cartes des véhicules</small></span>
+  </button>
+  <button class="onglet" type="button" data-aller="classeur"><span class="long">Garage </span><span id="compteurBarre">0/78</span></button>
+  <button class="rond" type="button" id="btnSon" aria-label="Couper le son" title="Son"></button>
+</header>
+
+<main>
+  <p class="bandeau" id="bandeau" hidden></p>
+
+  <!-- Terminal d'accueil -->
+  <section class="ecran" id="e-accueil">
+    <div class="accueil">
+      <div>
+        <h1>Carte Grise<span>Le jeu de cartes des véhicules cultes</span></h1>
+        <p class="intro">Chaque booster contient 5 véhicules : voitures, motos, trains, avions, bateaux… Complète ton garage jusqu'aux Mythiques, celles qui ont une légende ou un lore complètement absurde. Et quelque part, une seule carte Suprême.</p>
+        <div class="etat" aria-live="polite">
+          <div class="etat-ligne"><span>Boosters disponibles</span><span class="voyants" id="voyants"></span></div>
+          <div class="etat-ligne"><span id="libelleMinuteur">Prochain booster</span><span class="minuteur" id="minuteur">--:--</span></div>
+          <div class="etat-ligne" id="ligneBonus" hidden><span>Boosters gagnés (courses)</span><span class="minuteur" id="bonus">0</span></div>
+        </div>
+        <div class="actions">
+          <button class="btn alerte" type="button" id="btnOuvrir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 8h16v12H4zM4 8l2-4h12l2 4M12 12v5M9.5 14.5h5"/></svg>Ouvrir un booster</button>
+          <button class="btn" type="button" data-aller="classeur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 21V9l9-6 9 6v12M7 21v-6h10v6"/></svg>Garage</button>
+          <button class="btn" type="button" data-aller="course"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>Course <small>+ boosters</small></button>
+          <button class="btn" type="button" data-aller="echanges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>Amis &amp; échanges <small id="badgeEchanges"></small></button>
+        </div>
+      </div>
+      <div class="scene-paquet"><div id="paquetAccueil"></div></div>
+    </div>
+  </section>
+
+  <!-- Classeur -->
+  <section class="ecran" id="e-classeur" hidden>
+    <div class="titre-ecran">
+      <div><h2>Garage</h2><p>Série 1 · « Plein phares » · <span id="totalCartes">0</span> cartes possédées</p></div>
+      <div class="progression"><span id="progTexte">0 / 78 véhicules</span><div class="progression-barre"><i id="progBarre"></i></div></div>
+    </div>
+    <div class="filtres" id="filtres" role="group" aria-label="Filtrer"></div>
+    <div class="grille-classeur" id="grille"></div>
+  </section>
+
+  <!-- Course : choix de la voiture -->
+  <section class="ecran" id="e-course" hidden>
+    <div class="titre-ecran"><div><h2>Course</h2><p>3 tours contre 3 rivaux · 1<sup>er</sup> = 2 boosters · 2<sup>e</sup> ou 3<sup>e</sup> = 1 booster</p></div></div>
+    <p class="aide-course">Choisis une voiture de ton garage. Sa <b>Vitesse</b> donne la pointe et l'accélération, sa <b>Fiabilité</b> l'aide à encaisser les chocs et les sorties de route.</p>
+    <div class="grille-classeur" id="grilleCourse"></div>
+  </section>
+
+  <!-- Amis et échanges -->
+  <section class="ecran" id="e-echanges" hidden>
+    <div class="titre-ecran"><div><h2>Amis &amp; échanges</h2><p>Visite le garage de tes amis et propose des échanges carte contre carte</p></div></div>
+    <div id="zoneEchanges"></div>
+  </section>
+
+  <!-- Crédits -->
+  <section class="ecran" id="e-credits" hidden>
+    <div class="titre-ecran"><div><h2>Crédits</h2><p>Photographes et marques</p></div></div>
+    <div class="credits" id="credits"></div>
+  </section>
+
+  <p style="margin-top:40px;text-align:center"><button class="onglet" type="button" data-aller="credits">Crédits des photos</button></p>
+</main>
+
+<!-- Ouverture d'un booster -->
+<div class="ouverture" id="ouverture" hidden role="dialog" aria-modal="true" aria-label="Ouverture d'un booster">
+  <div class="ouverture-tete"><span id="ouvTitre">BOOSTER · SÉRIE 1 « PLEIN PHARES »</span><button class="onglet" type="button" id="btnFermerOuverture">Fermer</button></div>
+  <div class="ouverture-centre">
+    <div id="paquetOuverture"></div>
+    <div class="tirage" id="tirage"></div>
+    <p class="ouverture-aide" id="aide">Clique sur la pochette pour l'ouvrir</p>
+  </div>
+  <div class="ouverture-pied" id="ouvPied"></div>
+</div>
+
+<!-- La course -->
+<div class="course" id="vueCourse" hidden>
+  <canvas id="piste" aria-label="Course"></canvas>
+  <div class="c-hud"><span>Tour <b id="cTour">1/3</b></span><span>Place <b id="cPlace">4e</b></span><span><b id="cVitesse">0</b> km/h</span><span><b id="cChrono">0:00</b></span></div>
+  <div class="c-decompte" id="cDecompte" hidden>3</div>
+  <button class="onglet c-quitter" type="button" id="btnQuitterCourse">Abandonner</button>
+  <div class="c-touches" aria-hidden="true"><button type="button" data-touche="gauche">◀</button><button type="button" data-touche="frein">FREIN</button><button type="button" data-touche="droite">▶</button></div>
+  <p class="c-aide">← → pour tourner · ↓ pour freiner · l'accélérateur est automatique</p>
+  <div class="c-fin" id="cFin" hidden><div><h3 id="cFinTitre">VICTOIRE !</h3><p id="cFinTexte"></p><div class="actions"><button class="btn alerte" type="button" id="btnRejouer">Rejouer</button><button class="btn" type="button" id="btnFinCourse">Retour</button></div></div></div>
+</div>
+
+<div class="zoom" id="zoom" hidden role="dialog" aria-modal="true" aria-label="Carte agrandie"><div id="zoomCarte"></div><p class="zoom-info" id="zoomInfo"></p></div>
+<div class="breche" id="breche"></div><div class="breche-texte" id="brecheTexte">★ VOITURE MYTHIQUE ★</div><div class="flash" id="flash"></div>
+<div class="toast" id="toast" role="status"></div>
+
+<script src="../bs-jeux.js"></script>
+<script>
+const CARTES = [
+{
+"id": "kangoopower",
+"marque": "KANGOO POWER",
+"n": "Édition Flamant Rose",
+"an": "2024",
+"cl": "Utilitaire tuné",
+"r": "S",
+"cout": 10,
+"men": 9,
+"conf": 15,
+"txt": "<b>100 % beauf.</b> Quand il arrive, toutes les cartes adverses perdent 2 Vitesse : elles sont éblouies par les néons.",
+"cite": "Flamant rose, sono sur le toit, dés en peluche et néons sous le châssis. Le roi incontesté du parking.",
+"local": true,
+"auteur": "Créateur de BS arcade center",
+"lic": "Tous droits réservés",
+"sil": "route"
+},
+{
+"id": "concorde",
+"marque": "AÉROSPATIALE / BAC",
+"n": "Concorde",
+"an": "1969",
+"cl": "Avion",
+"r": "L",
+"cout": 10,
+"men": 15,
+"conf": 8,
+"txt": "<b>Mach 2.</b> Gagne la partie si elle reste en jeu pendant 3 tours.",
+"cite": "Paris–New York en 3 h 30. On arrivait avant d'être parti.",
+"q": "Concorde avion supersonique",
+"sil": "air"
+},
+{
+"id": "kangoo",
+"marque": "RENAULT",
+"n": "Kangoo",
+"an": "1997",
+"cl": "Utilitaire",
+"r": "L",
+"cout": 3,
+"men": 2,
+"conf": 9,
+"txt": "<b>Tout rentre.</b> Pioche 2 cartes : il reste toujours de la place.",
+"cite": "Un frigo, trois enfants, le chien et une échelle. Et il reste de la place.",
+"img": "Renault_Kangoo_I_front_20090121.jpg",
+"auteur": "Rudolf Stricker",
+"lic": "Attribution",
+"sil": "route"
+},
+{
+"id": "multipla",
+"marque": "FIAT",
+"n": "Multipla",
+"an": "1998",
+"cl": "Familiale",
+"r": "L",
+"cout": 4,
+"men": 3,
+"conf": 8,
+"txt": "<b>Regard qui dérange.</b> L'adversaire ne peut pas la cibler : il n'ose pas la regarder.",
+"cite": "Souvent élue voiture la plus moche du monde. Elle s'en fiche, elle a six places.",
+"img": "Fiat_Multipla_(2002)_(29392161886).jpg",
+"auteur": "Andrew Bone",
+"lic": "CC BY 2.0",
+"sil": "route"
+},
+{
+"id": "punto",
+"marque": "FIAT",
+"n": "Punto",
+"an": "1993",
+"cl": "Citadine",
+"r": "L",
+"cout": 2,
+"men": 4,
+"conf": 4,
+"txt": "<b>Première voiture.</b> Coûte 1 de moins pour chaque Citadine que tu as en jeu.",
+"cite": "Passée de main en main dans toute la famille. Le compteur a fait deux fois le tour.",
+"img": "2006_Fiat_Grande_Punto_Sporting_T-J_1.4_Front.jpg",
+"auteur": "Vauxford",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "c15",
+"marque": "CITROËN",
+"n": "C15",
+"an": "1984",
+"cl": "Utilitaire",
+"r": "L",
+"cout": 2,
+"men": 3,
+"conf": 10,
+"txt": "<b>Increvable.</b> Aucune carte de coût 5 ou moins ne peut la détruire.",
+"cite": "Le véhicule officiel des agriculteurs, des artisans et de ton grand-père.",
+"img": "Citroen_C15_(40574316552).jpg",
+"auteur": "Guillaume Vachey",
+"lic": "CC0",
+"sil": "route"
+},
+{
+"id": "hilux",
+"marque": "TOYOTA",
+"n": "Hilux",
+"an": "1968",
+"cl": "Tout-terrain",
+"r": "L",
+"cout": 5,
+"men": 5,
+"conf": 12,
+"txt": "<b>Indestructible.</b> Revient en jeu une fois après avoir été détruit.",
+"cite": "Inondé, brûlé, écrasé… et il redémarre quand même.",
+"img": "2018_Toyota_Hilux_Invincible_X_D-4d_4WD_2.4_Front.jpg",
+"auteur": "Vauxford",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "twingo",
+"marque": "RENAULT",
+"n": "Twingo",
+"an": "1993",
+"cl": "Citadine",
+"r": "L",
+"cout": 1,
+"men": 2,
+"conf": 3,
+"txt": "<b>Le sourire.</b> Tes autres cartes gagnent +1 Fiabilité.",
+"cite": "Elle a l'air de te sourire. Même en panne.",
+"img": "1997_Renault_Twingo_1.15_(1).jpg",
+"auteur": "Vauxford",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "p206",
+"marque": "PEUGEOT",
+"n": "206",
+"an": "1998",
+"cl": "Citadine",
+"r": "L",
+"cout": 3,
+"men": 5,
+"conf": 5,
+"txt": "<b>Kit tuning.</b> Gagne +1 Vitesse à chaque tour.",
+"cite": "Jantes chromées, néons bleus et un pot qui fait plus de bruit que le moteur.",
+"img": "2002_Peugeot_206_LX_1.4_Front.jpg",
+"auteur": "Vauxford",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "saxo",
+"marque": "CITROËN",
+"n": "Saxo",
+"an": "1996",
+"cl": "Citadine",
+"r": "L",
+"cout": 2,
+"men": 6,
+"conf": 3,
+"txt": "<b>Démarrage au feu rouge.</b> Attaque dès le tour où elle arrive.",
+"cite": "Le moteur le plus entendu de la place du village un samedi soir.",
+"img": "Citroen_Saxo_front_20080403.jpg",
+"auteur": "Rudolf Stricker",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "robin",
+"marque": "RELIANT",
+"n": "Robin",
+"an": "1973",
+"cl": "Classique",
+"r": "L",
+"cout": 2,
+"men": 2,
+"conf": 1,
+"txt": "<b>Trois roues.</b> Une chance sur deux de se renverser… et d'emporter une carte adverse avec elle.",
+"cite": "Trois roues. Un virage. Aucune garantie.",
+"img": "Reliant_Robin_Green.jpg",
+"auteur": "Oxyman",
+"lic": "CC BY 2.5",
+"sil": "route"
+},
+{
+"id": "f40",
+"marque": "FERRARI",
+"n": "F40",
+"an": "1987",
+"cl": "Supercar",
+"r": "L",
+"cout": 9,
+"men": 12,
+"conf": 5,
+"txt": "<b>Légende vivante.</b> Double sa Vitesse au premier tour.",
+"cite": "Dernière Ferrari présentée du vivant d'Enzo Ferrari.",
+"img": "F40_Ferrari_20090509.jpg",
+"auteur": "Will Ainsworth",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "delorean",
+"marque": "DELOREAN",
+"n": "DMC-12",
+"an": "1981",
+"cl": "Classique",
+"r": "L",
+"cout": 7,
+"men": 6,
+"conf": 6,
+"txt": "<b>Retour en arrière.</b> Reprends en main la dernière carte que tu as jouée.",
+"cite": "Portes papillon, carrosserie en inox et une réputation de voyageuse dans le temps.",
+"img": "DeLorean_DMC-12_(9979).jpg",
+"auteur": "Grenex",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "ae86",
+"marque": "TOYOTA",
+"n": "Sprinter Trueno AE86",
+"an": "1983",
+"cl": "Sportive",
+"r": "L",
+"cout": 4,
+"men": 7,
+"conf": 5,
+"txt": "<b>Drift.</b> Esquive la première attaque de chaque tour.",
+"cite": "Une petite voiture des années 80 devenue la reine du drift dans les montagnes japonaises.",
+"img": "Toyota_Sprinter_Trueno_AE86_2_door.jpg",
+"auteur": "SprinterTrueno1985",
+"lic": "CC0",
+"sil": "route"
+},
+{
+"id": "r34",
+"marque": "NISSAN",
+"n": "Skyline GT-R R34",
+"an": "1999",
+"cl": "Sportive",
+"r": "L",
+"cout": 8,
+"men": 10,
+"conf": 7,
+"txt": "<b>Godzilla.</b> +2 Vitesse contre les Supercars.",
+"cite": "Surnommée Godzilla. Le poster de chambre de toute une génération.",
+"img": "Nissan_Skyline_R34_GT-R_Nür_001.jpg",
+"auteur": "Tennen-Gas",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "solex",
+"marque": "SOLEX",
+"n": "VéloSoleX",
+"an": "1946",
+"cl": "Deux-roues",
+"r": "L",
+"cout": 1,
+"men": 2,
+"conf": 4,
+"txt": "<b>Pédale tout seul.</b> Ne coûte rien si tu n'as rien joué ce tour.",
+"cite": "Le vélo qui pédale tout seul… surtout dans les descentes.",
+"q": "VéloSoleX",
+"sil": "deuxroues"
+},
+{
+"id": "mob103",
+"marque": "PEUGEOT",
+"n": "103 SP",
+"an": "1971",
+"cl": "Deux-roues",
+"r": "L",
+"cout": 1,
+"men": 4,
+"conf": 3,
+"txt": "<b>Débridée.</b> +3 Vitesse, mais perd 1 Fiabilité à chaque tour.",
+"cite": "La terreur des routes de campagne, pot de détente et bruit de moustique.",
+"q": "Peugeot 103",
+"sil": "deuxroues"
+},
+{
+"id": "orient",
+"marque": "WAGONS-LITS",
+"n": "Orient-Express",
+"an": "1883",
+"cl": "Train",
+"r": "L",
+"cout": 8,
+"men": 6,
+"conf": 9,
+"txt": "<b>Luxe d'antan.</b> Tes cartes Train gagnent +2 Fiabilité.",
+"cite": "Paris–Istanbul en velours, cristal et mystère.",
+"q": "Orient-Express train",
+"sil": "rail"
+},
+{
+"id": "saturnv",
+"marque": "NASA",
+"n": "Saturn V",
+"an": "1967",
+"cl": "Fusée",
+"r": "L",
+"cout": 10,
+"men": 14,
+"conf": 4,
+"txt": "<b>Décollage.</b> Quitte le jeu au bout de 2 tours… en emportant la victoire du tour.",
+"cite": "La fusée qui a emmené des hommes jusqu'à la Lune.",
+"q": "Saturn V",
+"sil": "espace"
+},
+{
+"id": "pedalo",
+"marque": "PLAGE",
+"n": "Pédalo",
+"an": "1960",
+"cl": "Bateau",
+"r": "L",
+"cout": 1,
+"men": 1,
+"conf": 6,
+"txt": "<b>Vacances.</b> Les deux joueurs passent leur prochain tour à pédaler.",
+"cite": "Tu pédales vingt minutes pour avancer de trois mètres. Et tu adores ça.",
+"q": "Pédalo",
+"sil": "mer"
+},
+{
+"id": "p205gti",
+"marque": "PEUGEOT",
+"n": "205 GTI",
+"an": "1984",
+"cl": "Sportive",
+"r": "E",
+"cout": 5,
+"men": 7,
+"conf": 5,
+"txt": "<b>Petite bombe.</b> +2 Vitesse si elle est ta seule carte en jeu.",
+"cite": "La sportive qui faisait rêver dans les années 80.",
+"img": "Peugeot_205.jpg",
+"auteur": "Oyhar",
+"lic": "CC0",
+"sil": "route"
+},
+{
+"id": "r5turbo",
+"marque": "RENAULT",
+"n": "5 Turbo",
+"an": "1980",
+"cl": "Rallye",
+"r": "E",
+"cout": 6,
+"men": 8,
+"conf": 4,
+"txt": "<b>Moteur au milieu.</b> Ne peut pas être bloquée par une carte Utilitaire.",
+"cite": "Une citadine avec un moteur à la place de la banquette arrière.",
+"img": "Renault_5_Turbo-RockvilleMDshow2007.jpg",
+"auteur": "Christopher Ziemnowicz (CZmarlin)",
+"lic": "Domaine public",
+"sil": "route"
+},
+{
+"id": "delta",
+"marque": "LANCIA",
+"n": "Delta HF Integrale",
+"an": "1987",
+"cl": "Rallye",
+"r": "E",
+"cout": 6,
+"men": 8,
+"conf": 6,
+"txt": "<b>Six titres.</b> +1 Vitesse pour chaque carte Rallye en jeu.",
+"cite": "Six titres constructeurs d'affilée en championnat du monde des rallyes.",
+"img": "Lancia_Delta_Integrale_-_2007_Rallye_Deutschland.jpg",
+"auteur": "realname",
+"lic": "CC BY-SA 2.0",
+"sil": "route"
+},
+{
+"id": "quattro",
+"marque": "AUDI",
+"n": "Quattro",
+"an": "1980",
+"cl": "Rallye",
+"r": "E",
+"cout": 6,
+"men": 7,
+"conf": 7,
+"txt": "<b>Quatre roues motrices.</b> Ignore les effets de terrain.",
+"cite": "Elle a changé le rallye pour toujours.",
+"img": "Audi_quattro_IAA.jpg",
+"auteur": "Abehn",
+"lic": "Domaine public",
+"sil": "route"
+},
+{
+"id": "countach",
+"marque": "LAMBORGHINI",
+"n": "Countach",
+"an": "1974",
+"cl": "Supercar",
+"r": "E",
+"cout": 8,
+"men": 10,
+"conf": 3,
+"txt": "<b>Poster.</b> L'adversaire perd 1 énergie en la voyant arriver.",
+"cite": "La voiture en poster sur le mur de toutes les chambres des années 80.",
+"img": "Lamborghini_Countach_25th_Anniversary_1.JPG",
+"auteur": "Tokumeigakarinoaoshima",
+"lic": "CC0",
+"sil": "route"
+},
+{
+"id": "p911",
+"marque": "PORSCHE",
+"n": "911",
+"an": "1964",
+"cl": "Sportive",
+"r": "E",
+"cout": 7,
+"men": 9,
+"conf": 8,
+"txt": "<b>Toujours là.</b> Ne peut pas être renvoyée dans la main.",
+"cite": "Soixante ans plus tard, toujours la même silhouette.",
+"img": "Porsche-911S-Targa-Classic-AVD-byRundvald.jpg",
+"auteur": "Rundvald",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "golfgti",
+"marque": "VOLKSWAGEN",
+"n": "Golf GTI",
+"an": "1976",
+"cl": "Sportive",
+"r": "E",
+"cout": 5,
+"men": 7,
+"conf": 6,
+"txt": "<b>La première.</b> Tes Citadines gagnent +1 Vitesse.",
+"cite": "Celle qui a inventé la petite sportive pour tout le monde.",
+"img": "VW_Golf_I_front_20080414.jpg",
+"auteur": "Rudolf Stricker",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "impreza",
+"marque": "SUBARU",
+"n": "Impreza WRX STI",
+"an": "1992",
+"cl": "Rallye",
+"r": "E",
+"cout": 6,
+"men": 8,
+"conf": 6,
+"txt": "<b>Bleu et or.</b> +2 Fiabilité sur terrain glissant.",
+"cite": "Le bruit du flat-four, reconnaissable entre mille.",
+"img": "2001-2002_Subaru_Impreza_(GDE_MY02)_RS_sedan_(2011-06-15)_01.jpg",
+"auteur": "OSX",
+"lic": "Domaine public",
+"sil": "route"
+},
+{
+"id": "evo",
+"marque": "MITSUBISHI",
+"n": "Lancer Evolution",
+"an": "1992",
+"cl": "Rallye",
+"r": "E",
+"cout": 6,
+"men": 8,
+"conf": 6,
+"txt": "<b>Évolution.</b> Gagne +1 Vitesse et +1 Fiabilité quand une autre carte est détruite.",
+"cite": "Dix générations à se battre contre l'Impreza.",
+"img": "20071001_Lancer_Evolution_X-front.jpg",
+"auteur": "baku13",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "veyron",
+"marque": "BUGATTI",
+"n": "Veyron",
+"an": "2005",
+"cl": "Supercar",
+"r": "E",
+"cout": 10,
+"men": 13,
+"conf": 6,
+"txt": "<b>Plus de 400 km/h.</b> Coûte cher, mais rien ne la rattrape.",
+"cite": "Elle vide son réservoir en quelques minutes à pleine vitesse.",
+"img": "Bugatti_Veyron_16.4_–_Frontansicht_(1),_5._April_2012,_Düsseldorf.jpg",
+"auteur": "M 93",
+"lic": "CC BY-SA 3.0 DE",
+"sil": "route"
+},
+{
+"id": "harley",
+"marque": "HARLEY-DAVIDSON",
+"n": "Fat Boy",
+"an": "1990",
+"cl": "Deux-roues",
+"r": "E",
+"cout": 6,
+"men": 7,
+"conf": 6,
+"txt": "<b>Gros cube.</b> L'adversaire perd 1 énergie en l'entendant arriver.",
+"cite": "On l'entend trois rues avant de la voir.",
+"q": "Harley-Davidson Fat Boy",
+"sil": "deuxroues"
+},
+{
+"id": "tgv",
+"marque": "SNCF",
+"n": "TGV",
+"an": "1981",
+"cl": "Train",
+"r": "E",
+"cout": 7,
+"men": 11,
+"conf": 7,
+"txt": "<b>Grande vitesse.</b> Attaque deux fois par tour.",
+"cite": "Record du monde à 574,8 km/h en 2007. Et pourtant, parfois, il est en retard.",
+"q": "TGV",
+"sil": "rail"
+},
+{
+"id": "vapeur",
+"marque": "LOCOMOTIVE",
+"n": "Locomotive à vapeur",
+"an": "1830",
+"cl": "Train",
+"r": "E",
+"cout": 6,
+"men": 5,
+"conf": 9,
+"txt": "<b>Pleine chauffe.</b> Gagne +1 Vitesse à chaque tour, sans limite.",
+"cite": "Charbon, sifflet et panache de fumée.",
+"q": "Locomotive à vapeur",
+"sil": "rail"
+},
+{
+"id": "a380",
+"marque": "AIRBUS",
+"n": "A380",
+"an": "2005",
+"cl": "Avion",
+"r": "E",
+"cout": 9,
+"men": 10,
+"conf": 8,
+"txt": "<b>Deux étages.</b> Peut porter deux cartes avec elle.",
+"cite": "Le plus gros avion de ligne du monde. Les toilettes sont toujours occupées.",
+"q": "Airbus A380",
+"sil": "air"
+},
+{
+"id": "qm2",
+"marque": "CUNARD",
+"n": "Queen Mary 2",
+"an": "2003",
+"cl": "Bateau",
+"r": "E",
+"cout": 8,
+"men": 5,
+"conf": 12,
+"txt": "<b>Transatlantique.</b> Ne peut pas être détruit pendant 3 tours.",
+"cite": "Une ville flottante, avec piscines, théâtre et planétarium.",
+"q": "Queen Mary 2",
+"sil": "mer"
+},
+{
+"id": "dcv",
+"marque": "CITROËN",
+"n": "2 CV",
+"an": "1948",
+"cl": "Classique",
+"r": "R",
+"cout": 1,
+"men": 1,
+"conf": 5,
+"txt": "<b>Le panier d'œufs.</b> Tes cartes ne peuvent pas perdre de Fiabilité ce tour.",
+"cite": "Conçue pour traverser un champ avec un panier d'œufs sans en casser un.",
+"img": "Citroën_2_CV_Charleston_(2015-08-29_3174_b).jpg",
+"auteur": "Lothar Spurzem",
+"lic": "CC BY-SA 2.0 DE",
+"sil": "route"
+},
+{
+"id": "r4l",
+"marque": "RENAULT",
+"n": "4L",
+"an": "1961",
+"cl": "Classique",
+"r": "R",
+"cout": 2,
+"men": 2,
+"conf": 7,
+"txt": "<b>Passe partout.</b> Peut être jouée sur n'importe quel terrain.",
+"cite": "Elle a fait le tour du monde, et le tour du marché.",
+"img": "Renault_R4_BW_2016-07-17_13-45-32.jpg",
+"auteur": "Berthold Werner",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "ds",
+"marque": "CITROËN",
+"n": "DS",
+"an": "1955",
+"cl": "Classique",
+"r": "R",
+"cout": 4,
+"men": 5,
+"conf": 6,
+"txt": "<b>Suspension magique.</b> Annule la première attaque reçue.",
+"cite": "On aurait dit une soucoupe volante posée sur la route.",
+"img": "12-01-03-autostadtl-by-RalfR-41.jpg",
+"auteur": "Ralf Roletschek",
+"lic": "Licence Art Libre",
+"sil": "route"
+},
+{
+"id": "cox",
+"marque": "VOLKSWAGEN",
+"n": "Coccinelle",
+"an": "1938",
+"cl": "Classique",
+"r": "R",
+"cout": 2,
+"men": 3,
+"conf": 7,
+"txt": "<b>Increvable.</b> Revient en main quand elle est détruite.",
+"cite": "Fabriquée pendant soixante-cinq ans.",
+"img": "Choupette53-VW-Cox-1967-Saint-Briac-byRundvald.jpg",
+"auteur": "Rundvald",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "combi",
+"marque": "VOLKSWAGEN",
+"n": "Combi",
+"an": "1950",
+"cl": "Utilitaire",
+"r": "R",
+"cout": 3,
+"men": 2,
+"conf": 6,
+"txt": "<b>Road trip.</b> Tes cartes en jeu gagnent +1 Vitesse.",
+"cite": "Peace, love et une panne sur l'autoroute des vacances.",
+"img": "Combi-vertblanc-avg-byRundvald.jpg",
+"auteur": "Rundvald",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "v240",
+"marque": "VOLVO",
+"n": "240",
+"an": "1974",
+"cl": "Familiale",
+"r": "R",
+"cout": 3,
+"men": 2,
+"conf": 9,
+"txt": "<b>La brique.</b> +3 Fiabilité contre les Sportives.",
+"cite": "Carrée, lourde et quasiment immortelle.",
+"img": "Goteborg_Volvo_Museum_48_240.jpg",
+"auteur": "Andrzej Otrębski",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "p106",
+"marque": "PEUGEOT",
+"n": "106",
+"an": "1991",
+"cl": "Citadine",
+"r": "R",
+"cout": 2,
+"men": 5,
+"conf": 4,
+"txt": "<b>Rallye du dimanche.</b> +1 Vitesse pour chaque Citadine en jeu.",
+"cite": "La reine des petits rallyes régionaux.",
+"img": "Peugeot_106_front_20090730.jpg",
+"auteur": "Rudolf Stricker",
+"lic": "Attribution",
+"sil": "route"
+},
+{
+"id": "clio2",
+"marque": "RENAULT",
+"n": "Clio 2",
+"an": "1998",
+"cl": "Citadine",
+"r": "R",
+"cout": 2,
+"men": 4,
+"conf": 5,
+"txt": "<b>La voiture de la daronne.</b> Pioche une carte quand elle arrive.",
+"cite": "Garée devant toutes les écoles de France.",
+"img": "Clio_RS_2.2.jpg",
+"auteur": "RobindesB",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "mini",
+"marque": "MINI",
+"n": "Mini",
+"an": "1959",
+"cl": "Citadine",
+"r": "R",
+"cout": 2,
+"men": 4,
+"conf": 4,
+"txt": "<b>Petit gabarit.</b> Ne peut pas être bloquée.",
+"cite": "Quatre places dans trois mètres. Personne n'a compris comment.",
+"img": "1963_MkI_Mini.jpg",
+"auteur": "Brazucs, SteveBaker",
+"lic": "CC BY-SA 3.0",
+"sil": "route"
+},
+{
+"id": "classeg",
+"marque": "MERCEDES-BENZ",
+"n": "Classe G",
+"an": "1979",
+"cl": "Tout-terrain",
+"r": "R",
+"cout": 7,
+"men": 5,
+"conf": 10,
+"txt": "<b>Armoire à glace.</b> Bloque une attaque par tour.",
+"cite": "Conçue pour l'armée, adoptée par les beaux quartiers.",
+"img": "Mercedes_G_400_CDI_Limited_Edition_(W463)_front_20100612.jpg",
+"auteur": "M 93",
+"lic": "Attribution",
+"sil": "route"
+},
+{
+"id": "niva",
+"marque": "LADA",
+"n": "Niva",
+"an": "1977",
+"cl": "Tout-terrain",
+"r": "R",
+"cout": 2,
+"men": 3,
+"conf": 8,
+"txt": "<b>Rustique.</b> Se répare : regagne 2 Fiabilité à chaque tour.",
+"cite": "Elle démarre à -40 °C. Le chauffage, c'est une autre histoire.",
+"img": "Budapest,_Hungexpo,_AMTS_2017,_51.jpg",
+"auteur": "Christo",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "vespa",
+"marque": "PIAGGIO",
+"n": "Vespa",
+"an": "1946",
+"cl": "Deux-roues",
+"r": "R",
+"cout": 2,
+"men": 4,
+"conf": 4,
+"txt": "<b>Dolce vita.</b> Pioche une carte quand elle arrive.",
+"cite": "Lunettes de soleil, foulard et Rome en arrière-plan.",
+"q": "Vespa scooter",
+"sil": "deuxroues"
+},
+{
+"id": "tracteur",
+"marque": "AGRICOLE",
+"n": "Tracteur",
+"an": "1920",
+"cl": "Agricole",
+"r": "R",
+"cout": 3,
+"men": 1,
+"conf": 10,
+"txt": "<b>Barrage.</b> Bloque une route : l'adversaire ne joue qu'une carte ce tour.",
+"cite": "Toujours devant toi sur la départementale. Toujours.",
+"q": "Tracteur agricole",
+"sil": "route"
+},
+{
+"id": "tuktuk",
+"marque": "BAJAJ",
+"n": "Tuk-tuk",
+"an": "1959",
+"cl": "Deux-roues",
+"r": "R",
+"cout": 2,
+"men": 3,
+"conf": 4,
+"txt": "<b>Zigzag.</b> Esquive la première attaque.",
+"cite": "Trois roues, zéro portière et une confiance absolue en la vie.",
+"q": "Tuk-tuk",
+"sil": "route"
+},
+{
+"id": "campingcar",
+"marque": "VACANCES",
+"n": "Camping-car",
+"an": "1960",
+"cl": "Utilitaire",
+"r": "R",
+"cout": 4,
+"men": 2,
+"conf": 7,
+"txt": "<b>Maison roulante.</b> Regagne 2 Fiabilité à chaque tour.",
+"cite": "Toute la maison sur la route des vacances, à 80 km/h sur l'autoroute.",
+"q": "Camping-car",
+"sil": "route"
+},
+{
+"id": "metro",
+"marque": "RATP",
+"n": "Métro MF 77",
+"an": "1978",
+"cl": "Métro",
+"r": "R",
+"cout": 3,
+"men": 4,
+"conf": 6,
+"txt": "<b>Heure de pointe.</b> Tes cartes Commune gagnent +1 Fiabilité.",
+"cite": "Ligne 13, 8 h 30 : on ne monte pas, on est poussé.",
+"q": "MF 77 métro",
+"sil": "rail"
+},
+{
+"id": "cessna",
+"marque": "CESSNA",
+"n": "172 Skyhawk",
+"an": "1956",
+"cl": "Avion",
+"r": "R",
+"cout": 4,
+"men": 5,
+"conf": 5,
+"txt": "<b>Petit avion.</b> Vole au-dessus d'une carte qui bloque.",
+"cite": "L'avion le plus construit de l'histoire.",
+"q": "Cessna 172",
+"sil": "air"
+},
+{
+"id": "helico",
+"marque": "AÉROSPATIALE",
+"n": "Alouette III",
+"an": "1959",
+"cl": "Hélicoptère",
+"r": "R",
+"cout": 5,
+"men": 5,
+"conf": 6,
+"txt": "<b>Vol stationnaire.</b> Ne peut pas être ciblé par les cartes au sol.",
+"cite": "Il se pose partout : montagne, mer, toit d'hôpital.",
+"q": "Alouette III",
+"sil": "air"
+},
+{
+"id": "montgolfiere",
+"marque": "AÉROSTAT",
+"n": "Montgolfière",
+"an": "1783",
+"cl": "Ballon",
+"r": "R",
+"cout": 3,
+"men": 1,
+"conf": 4,
+"txt": "<b>Douceur.</b> Ne peut ni attaquer ni être attaquée pendant 1 tour.",
+"cite": "Le premier vol humain de l'histoire, à Paris, en 1783.",
+"q": "Montgolfière ballon",
+"sil": "air"
+},
+{
+"id": "jetski",
+"marque": "MARIN",
+"n": "Scooter des mers",
+"an": "1972",
+"cl": "Bateau",
+"r": "R",
+"cout": 3,
+"men": 6,
+"conf": 3,
+"txt": "<b>Éclaboussures.</b> L'adversaire défausse une carte au hasard.",
+"cite": "Le roi du lac l'été, l'ennemi juré des pédalos.",
+"q": "Scooter des mers",
+"sil": "mer"
+},
+{
+"id": "sandero",
+"marque": "DACIA",
+"n": "Sandero",
+"an": "2008",
+"cl": "Citadine",
+"r": "C",
+"cout": 1,
+"men": 2,
+"conf": 4,
+"txt": "<b>Petit prix.</b> Coûte 1 énergie de moins.",
+"cite": "Le choix raisonnable. Et il en faut.",
+"img": "Dacia_Sandero_Stepway_III_IMG_4214.jpg",
+"auteur": "Alexander Migl",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "p208",
+"marque": "PEUGEOT",
+"n": "208",
+"an": "2012",
+"cl": "Citadine",
+"r": "C",
+"cout": 2,
+"men": 3,
+"conf": 4,
+"txt": "<b>Écran tactile.</b> Regarde la première carte de ta pioche.",
+"cite": "Tu en croises dix par jour.",
+"img": "2020_Peugeot_208_GT_Line_PureTech_1.2_Front.jpg",
+"auteur": "Vauxford",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "yaris",
+"marque": "TOYOTA",
+"n": "Yaris",
+"an": "1999",
+"cl": "Citadine",
+"r": "C",
+"cout": 2,
+"men": 2,
+"conf": 5,
+"txt": "<b>Fiable.</b> Ne perd pas de Fiabilité au premier tour.",
+"cite": "Elle ne tombe jamais en panne. C'est presque suspect.",
+"img": "2024_Toyota_Yaris_Hybrid_130_(XP210)_IMG_9910.jpg",
+"auteur": "Alexander-93",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "corsa",
+"marque": "OPEL",
+"n": "Corsa",
+"an": "1982",
+"cl": "Citadine",
+"r": "C",
+"cout": 1,
+"men": 2,
+"conf": 3,
+"txt": "<b>Discrète.</b> L'adversaire l'oublie : elle ne peut pas être ciblée au premier tour.",
+"cite": "Tout le monde en a eu une. Personne ne s'en souvient.",
+"img": "Opel_Corsa_F_IMG_8196.jpg",
+"auteur": "Alexander-93",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "fiesta",
+"marque": "FORD",
+"n": "Fiesta",
+"an": "1976",
+"cl": "Citadine",
+"r": "C",
+"cout": 2,
+"men": 3,
+"conf": 3,
+"txt": "<b>Fête.</b> Tes Citadines gagnent +1 Vitesse ce tour.",
+"cite": "Pendant des années, la voiture la plus vendue au Royaume-Uni.",
+"img": "1998_Ford_Fiesta_LX_Zetec_1.2_Front.jpg",
+"auteur": "Vauxford",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "berlingo",
+"marque": "CITROËN",
+"n": "Berlingo",
+"an": "1996",
+"cl": "Utilitaire",
+"r": "C",
+"cout": 2,
+"men": 2,
+"conf": 6,
+"txt": "<b>Coffre géant.</b> Ta main peut contenir une carte de plus.",
+"cite": "Le cousin du Kangoo. Ils ne se parlent plus.",
+"img": "Citroën_Berlingo_Multispace-2.jpg",
+"auteur": "Ketounette",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "scenic",
+"marque": "RENAULT",
+"n": "Scénic",
+"an": "1996",
+"cl": "Familiale",
+"r": "C",
+"cout": 3,
+"men": 2,
+"conf": 6,
+"txt": "<b>Monospace.</b> Peut transporter une carte Personnel… si on en avait.",
+"cite": "Les vacances en famille, version tablette au dos des sièges.",
+"img": "Renault_Scénic_E-Tech_GIMS_2024_1X7A2035.jpg",
+"auteur": "Alexander-93",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "espace",
+"marque": "RENAULT",
+"n": "Espace",
+"an": "1984",
+"cl": "Familiale",
+"r": "C",
+"cout": 3,
+"men": 3,
+"conf": 6,
+"txt": "<b>Sept places.</b> Joue une carte supplémentaire ce tour.",
+"cite": "Le premier monospace européen. Toute une époque.",
+"img": "Renault_Espace_1_Phase_1.jpg",
+"auteur": "Crash71100",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "partner",
+"marque": "PEUGEOT",
+"n": "Partner",
+"an": "1996",
+"cl": "Utilitaire",
+"r": "C",
+"cout": 2,
+"men": 2,
+"conf": 6,
+"txt": "<b>Livraison.</b> Donne une carte de ta main à ton adversaire… colis piégé.",
+"cite": "Toujours garé en double file. Toujours.",
+"img": "Peugeot_Partner_Tepee_(II)_–_Frontansicht,_17._September_2011,_Hilden.jpg",
+"auteur": "M 93",
+"lic": "CC BY-SA 3.0 DE",
+"sil": "route"
+},
+{
+"id": "smart",
+"marque": "SMART",
+"n": "Fortwo",
+"an": "1998",
+"cl": "Citadine",
+"r": "C",
+"cout": 1,
+"men": 2,
+"conf": 2,
+"txt": "<b>Créneau parfait.</b> Se gare partout : peut toujours être jouée.",
+"cite": "Elle se gare en travers d'une place. Et ça passe.",
+"img": "Smart_Fortwo_Coupe_'09_(MIAS).JPG",
+"auteur": "Bull-Doser",
+"lic": "Domaine public",
+"sil": "route"
+},
+{
+"id": "prius",
+"marque": "TOYOTA",
+"n": "Prius",
+"an": "1997",
+"cl": "Électrique",
+"r": "C",
+"cout": 2,
+"men": 2,
+"conf": 5,
+"txt": "<b>Silencieuse.</b> L'adversaire ne l'entend pas arriver.",
+"cite": "Le taxi officiel de toutes les grandes villes.",
+"img": "2012_Toyota_Prius_plug-in_hyrid_--_07-14-2012.JPG",
+"auteur": "IFCAR",
+"lic": "Domaine public",
+"sil": "route"
+},
+{
+"id": "zoe",
+"marque": "RENAULT",
+"n": "Zoe",
+"an": "2012",
+"cl": "Électrique",
+"r": "C",
+"cout": 2,
+"men": 2,
+"conf": 4,
+"txt": "<b>Recharge.</b> Gagne 1 énergie au prochain tour.",
+"cite": "Plus de temps à la borne qu'à rouler, mais quel silence.",
+"img": "Renault_Zoe_charging.jpg",
+"auteur": "Werner Hillebrand-Hansen",
+"lic": "CC BY-SA 2.0",
+"sil": "route"
+},
+{
+"id": "f500",
+"marque": "FIAT",
+"n": "500",
+"an": "2007",
+"cl": "Citadine",
+"r": "C",
+"cout": 2,
+"men": 3,
+"conf": 3,
+"txt": "<b>Trop mignonne.</b> L'adversaire hésite : il joue une carte de moins ce tour.",
+"cite": "Elle a été dessinée pour être adorable. Mission réussie.",
+"img": "2010_Fiat_500_Lounge_1.2_Front.jpg",
+"auteur": "Vauxford",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "polo",
+"marque": "VOLKSWAGEN",
+"n": "Polo",
+"an": "1975",
+"cl": "Citadine",
+"r": "C",
+"cout": 2,
+"men": 3,
+"conf": 4,
+"txt": "<b>Sérieuse.</b> +1 Fiabilité par Citadine en jeu.",
+"cite": "La petite voiture sérieuse par excellence.",
+"img": "2005_Volkswagen_Polo_E_1.2_Front.jpg",
+"auteur": "Vauxford",
+"lic": "CC BY-SA 4.0",
+"sil": "route"
+},
+{
+"id": "velo",
+"marque": "BICYCLETTE",
+"n": "Vélo",
+"an": "1817",
+"cl": "Vélo",
+"r": "C",
+"cout": 1,
+"men": 1,
+"conf": 4,
+"txt": "<b>Écolo.</b> Ne coûte pas de carburant.",
+"cite": "Deux roues, un guidon, et la côte qui monte à la fin.",
+"q": "Bicyclette",
+"sil": "deuxroues"
+},
+{
+"id": "trott",
+"marque": "ÉLECTRIQUE",
+"n": "Trottinette électrique",
+"an": "2017",
+"cl": "Trottinette",
+"r": "C",
+"cout": 1,
+"men": 2,
+"conf": 2,
+"txt": "<b>Sur le trottoir.</b> Passe là où personne n'a le droit.",
+"cite": "Garée en travers du trottoir. Évidemment.",
+"q": "Trottinette électrique",
+"sil": "deuxroues"
+},
+{
+"id": "trottinette",
+"marque": "ENFANCE",
+"n": "Trottinette",
+"an": "1897",
+"cl": "Trottinette",
+"r": "C",
+"cout": 1,
+"men": 1,
+"conf": 3,
+"txt": "<b>Souvenir d'enfance.</b> +1 Fiabilité à une autre carte.",
+"cite": "Celle qui te tapait la cheville à chaque poussée.",
+"q": "Trottinette",
+"sil": "deuxroues"
+},
+{
+"id": "skate",
+"marque": "GLISSE",
+"n": "Skateboard",
+"an": "1950",
+"cl": "Glisse",
+"r": "C",
+"cout": 1,
+"men": 2,
+"conf": 2,
+"txt": "<b>Ollie.</b> Saute par-dessus un obstacle.",
+"cite": "Tu tombes 40 fois pour réussir une figure. Ça vaut le coup.",
+"q": "Skateboard",
+"sil": "deuxroues"
+},
+{
+"id": "bus",
+"marque": "URBAIN",
+"n": "Autobus",
+"an": "1895",
+"cl": "Bus",
+"r": "C",
+"cout": 2,
+"men": 2,
+"conf": 7,
+"txt": "<b>Ligne régulière.</b> Pioche une carte au début de chaque tour.",
+"cite": "Il part toujours au moment où tu arrives à l'arrêt.",
+"q": "Autobus",
+"sil": "route"
+},
+{
+"id": "camion",
+"marque": "ROUTIER",
+"n": "Semi-remorque",
+"an": "1930",
+"cl": "Poids lourd",
+"r": "C",
+"cout": 4,
+"men": 3,
+"conf": 9,
+"txt": "<b>Convoi.</b> Les cartes derrière lui gagnent +1 Vitesse.",
+"cite": "Coups de klaxon aux enfants qui font le geste.",
+"q": "Semi-remorque",
+"sil": "route"
+},
+{
+"id": "ter",
+"marque": "SNCF",
+"n": "TER",
+"an": "1987",
+"cl": "Train",
+"r": "C",
+"cout": 2,
+"men": 3,
+"conf": 5,
+"txt": "<b>Desserte locale.</b> S'arrête partout : +1 énergie au prochain tour.",
+"cite": "Il s'arrête dans des gares dont tu ignorais l'existence.",
+"q": "Transport express régional",
+"sil": "rail"
+},
+{
+"id": "tram",
+"marque": "URBAIN",
+"n": "Tramway",
+"an": "1881",
+"cl": "Tram",
+"r": "C",
+"cout": 2,
+"men": 2,
+"conf": 6,
+"txt": "<b>Voie réservée.</b> Ne peut pas être bloqué.",
+"cite": "Il a priorité sur tout le monde, et il le sait.",
+"q": "Tramway",
+"sil": "rail"
+},
+{
+"id": "bateaumouche",
+"marque": "PARIS",
+"n": "Bateau-mouche",
+"an": "1949",
+"cl": "Bateau",
+"r": "C",
+"cout": 2,
+"men": 1,
+"conf": 6,
+"txt": "<b>Visite guidée.</b> Regarde la main de l'adversaire.",
+"cite": "La tour Eiffel, Notre-Dame et 300 touristes qui prennent la même photo.",
+"q": "Bateaux-Mouches",
+"sil": "mer"
+},
+{
+"id": "voilier",
+"marque": "PLAISANCE",
+"n": "Voilier",
+"an": "1900",
+"cl": "Bateau",
+"r": "C",
+"cout": 2,
+"men": 2,
+"conf": 5,
+"txt": "<b>Vent favorable.</b> +2 Vitesse un tour sur deux.",
+"cite": "Le vent est gratuit. Le bateau, beaucoup moins.",
+"q": "Voilier",
+"sil": "mer"
+}
+];
+const RARETES = { C: "Commune", R: "Rare", E: "Épique", L: "Mythique", S: "Suprême" };
+const ORDRE_RARETE = { S: -1, L: 0, E: 1, R: 2, C: 3 };
+const PAR_ID = Object.fromEntries(CARTES.map((c, i) => [c.id, { ...c, i }]));
+const IMG = (c, w = 800) => "https://commons.wikimedia.org/wiki/Special:FilePath/" + encodeURIComponent(c.img) + "?width=" + w;
+const PAGE_IMG = (c) => "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(c.img.replace(/ /g, "_"));
+
+</script>
+<script>
+"use strict";
+const $ = (id) => document.getElementById(id);
+const reduit = matchMedia("(prefers-reduced-motion: reduce)").matches;
+const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+const PAR_HEURE = 5, TOTAL = CARTES.length;
+const pause = (ms) => new Promise((ok) => setTimeout(ok, reduit ? Math.min(ms, 60) : ms));
+
+// ---------- Icônes ----------
+const ICONES = {
+  Citadine: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><path d="M4 15l2-5h10l3 5M3 15h18v3H3zM7 18v1M17 18v1"/></svg>',
+  menace: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><path d="M4 17a8 8 0 1 1 16 0"/><path d="M12 17l4-6"/></svg>',
+  conf: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M14.5 3a5 5 0 0 0-4.6 6.9L3.5 16.3a1.8 1.8 0 0 0 2.5 2.5l6.4-6.4A5 5 0 0 0 19.6 7l-3 3-2.5-.5-.5-2.5 3-3A5 5 0 0 0 14.5 3z"/></svg>',
+  essence: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M5 3h9v18H5zM7 5v5h5V5zM15 8l3 2v7a1.5 1.5 0 0 0 3 0V9l-3-3"/></svg>',
+  sonOn: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4zM16 9a4 4 0 0 1 0 6M19 6a8 8 0 0 1 0 12"/></svg>',
+  sonOff: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 9h4l5-4v14l-5-4H4zM17 9l5 6M22 9l-5 6"/></svg>',
+};
+const EMBLEME = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="17" fill="none" stroke="#22d3ee" stroke-width="2.5"/><path d="M8 25a12 12 0 0 1 24 0" fill="none" stroke="#ff4fa3" stroke-width="2.5"/><path d="M20 25l6-8" stroke="#ffd23f" stroke-width="3" stroke-linecap="round"/><circle cx="20" cy="25" r="2.5" fill="#fff"/></svg>';
+// Silhouette affichée si la photo ne charge pas
+const SILHOUETTES = {
+  deuxroues: '<svg viewBox="0 0 300 225" aria-hidden="true"><circle cx="80" cy="160" r="34" fill="none" stroke="#2c3036" stroke-width="10"/><circle cx="220" cy="160" r="34" fill="none" stroke="#2c3036" stroke-width="10"/><path d="M80 160l50-60h50l40 60M130 100l-10-24h-24M180 100l10-30h26" fill="none" stroke="#4a6a8a" stroke-width="9" stroke-linecap="round"/></svg>',
+  rail: '<svg viewBox="0 0 300 225" aria-hidden="true"><path d="M20 175h260" stroke="#2c3036" stroke-width="6"/><path d="M40 160V90q0-20 30-30h170q30 0 40 40v60z" fill="#2c3036"/><rect x="80" y="80" width="40" height="30" fill="#4a6a8a"/><rect x="140" y="80" width="40" height="30" fill="#4a6a8a"/><rect x="200" y="80" width="50" height="30" fill="#4a6a8a"/><circle cx="80" cy="165" r="12" fill="#111"/><circle cx="230" cy="165" r="12" fill="#111"/></svg>',
+  air: '<svg viewBox="0 0 300 225" aria-hidden="true"><path d="M30 120l200-14q40 0 50 14-10 14-50 14z" fill="#2c3036"/><path d="M140 110l-30-70h24l60 70zM140 130l-30 60h24l60-60zM40 118l-14-34h14l24 30z" fill="#3a4048"/><circle cx="250" cy="118" r="5" fill="#4a6a8a"/></svg>',
+  mer: '<svg viewBox="0 0 300 225" aria-hidden="true"><path d="M30 140h240l-30 40H60z" fill="#2c3036"/><path d="M150 30v105M150 40l70 90h-70zM146 50l-60 80h60z" fill="#4a6a8a"/><path d="M0 190q25-12 50 0t50 0 50 0 50 0 50 0 50 0" fill="none" stroke="#3a4048" stroke-width="6"/></svg>',
+  espace: '<svg viewBox="0 0 300 225" aria-hidden="true"><path d="M150 20q22 30 22 90v60h-44v-60q0-60 22-90z" fill="#2c3036"/><path d="M128 140l-22 34h22zM172 140l22 34h-22z" fill="#3a4048"/><path d="M138 172h24l-12 40z" fill="#f08a3c"/><circle cx="150" cy="80" r="9" fill="#4a6a8a"/></svg>',
+  route: '<svg viewBox="0 0 300 225" aria-hidden="true"><path d="M30 150q10-38 60-48l40-26q20-10 60-6l50 32q36 6 40 30v22H30z" fill="#2c3036"/><circle cx="85" cy="172" r="22" fill="#111"/><circle cx="225" cy="172" r="22" fill="#111"/><circle cx="85" cy="172" r="9" fill="#666"/><circle cx="225" cy="172" r="9" fill="#666"/><path d="M128 84l18-10h40l34 26H120z" fill="#4a6a8a"/></svg>',
+};
+
+// ---------- Rendu d'une carte ----------
+const PHOTO = (c) => (window.PHOTOS_INTEGREES && PHOTOS_INTEGREES[c.id]) || `../images/voitures/${c.id}.jpg`;
+function carteHTML(cle, o = {}) {
+  const holo = cle.endsWith("*"), c = PAR_ID[cle.replace("*", "")];
+  if (!c) return "";
+  return `<div class="carte r-${c.r} ${holo ? "holo" : ""}" data-cle="${esc(cle)}" ${o.w ? `style="--w:${o.w}"` : ""}>
+    <div class="c-cadre">
+      <div class="c-photo">${SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" src="${PHOTO(c)}" alt="${esc(c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else this.remove()"><span class="c-cout" title="Coût en carburant">${ICONES.essence}${c.cout}</span><span class="c-categorie">${esc(c.cl)}</span></div>
+      <div class="c-plaque"><i>F</i><span>${esc(c.marque)}</span><em>${esc(c.an)}</em></div>
+      <div class="c-corps"><div class="c-nom"><b>${esc(c.n)}</b></div>
+      <div class="c-texte">${c.txt}<i>« ${esc(c.cite)} »</i></div></div>
+      <div class="c-pied"><span class="c-stat men" title="Vitesse">${ICONES.menace}${c.men}</span>
+        <span class="c-rar"><b>${RARETES[c.r]}</b>${String(c.i + 1).padStart(2, "0")}/${TOTAL}</span>
+        <span class="c-stat conf" title="Fiabilité">${ICONES.conf}${c.conf}</span></div>
+    </div>
+    ${holo ? `<span class="c-holo">HOLO</span>` : ""}
+    <span class="c-reflet"></span>
+  </div>`;
+}
+const dosHTML = () => `<div class="dos-carte"><div>${EMBLEME}<span>CARTE<br>GRISE</span></div></div>`;
+const paquetHTML = (w = "220px") => `<div class="paquet" style="--pw:${w}">
+  <div class="paquet-haut"></div><div class="paquet-ligne"></div>
+  <div class="paquet-corps">${EMBLEME.replace("<svg", '<svg class="paquet-embleme"')}
+    <div class="paquet-titre">CARTE<br>GRISE</div><div class="paquet-sous">5 véhicules</div>
+    <div class="paquet-etiquette"><i>F</i><span>SÉRIE·01</span></div></div>
+  <div class="paquet-scelle">NEUF !</div>
+  <div class="paquet-code">${Array.from({ length: 10 }, () => Math.floor(Math.random() * 10)).join("")}</div>
+</div>`;
+
+// ---------- Sons (fabriqués à la volée, rien à télécharger) ----------
+const Son = (() => {
+  let ctx = null, actif = true;
+  try { actif = localStorage.getItem("cg-son") !== "0"; } catch {}
+  const pret = () => { if (!actif) return null; try { ctx ||= new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === "suspended") ctx.resume(); } catch { return null; } return ctx; };
+  const bruit = (duree, freq, q = 1, vol = .3, type = "bandpass") => {
+    const c = pret(); if (!c) return;
+    const b = c.createBuffer(1, c.sampleRate * duree, c.sampleRate), d = b.getChannelData(0);
+    for (let i = 0; i < d.length; i++) d[i] = (Math.random() * 2 - 1) * (1 - i / d.length);
+    const s = c.createBufferSource(), f = c.createBiquadFilter(), g = c.createGain();
+    s.buffer = b; f.type = type; f.frequency.value = freq; f.Q.value = q; g.gain.value = vol;
+    s.connect(f).connect(g).connect(c.destination); s.start();
+  };
+  const ton = (freq, duree, vol = .15, type = "sine", fin = null, depart = 0) => {
+    const c = pret(); if (!c) return;
+    const o = c.createOscillator(), g = c.createGain(), t = c.currentTime + depart;
+    o.type = type; o.frequency.setValueAtTime(freq, t); if (fin) o.frequency.exponentialRampToValueAtTime(fin, t + duree);
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(vol, t + .02); g.gain.exponentialRampToValueAtTime(.001, t + duree);
+    o.connect(g).connect(c.destination); o.start(t); o.stop(t + duree + .05);
+  };
+  return {
+    get actif() { return actif; },
+    basculer() { actif = !actif; try { localStorage.setItem("cg-son", actif ? "1" : "0"); } catch {} },
+    dechire() { bruit(.4, 2600, .7, .3); ton(110, .35, .15, "triangle", 70); },
+    secoue() { bruit(.12, 400, 2, .2); },
+    monte(d, r) { ton(r === "S" ? 60 : 90, d, .16, "sawtooth", r === "S" ? 900 : 600); ton(r === "S" ? 120 : 180, d, .06, "square", r === "S" ? 1800 : 1200); },
+    retourne() { bruit(.07, 3000, 1.5, .25, "highpass"); },
+    rare(r) {
+      if (r === "R") { ton(660, .5, .1); ton(990, .6, .08, "sine", null, .08); }
+      if (r === "E") { ton(440, .7, .12, "triangle"); ton(660, .7, .1, "triangle", null, .1); ton(880, .9, .1, "triangle", null, .2); }
+      if (r === "S") { ton(55, 2.5, .3, "sine", 40); [392, 523, 659, 784, 1047, 1319].forEach((f, i) => { ton(f, 1.2, .1, "triangle", null, i * .12); ton(f * 1.5, 1.2, .05, "sine", null, i * .12 + .06); }); return; }
+      if (r === "L") { ton(70, 1.1, .22, "sawtooth", 420); ton(140, 1.1, .1, "square", 840); ton(420, .5, .08, "sawtooth", 260, 1.1); [523, 659, 784, 1047].forEach((f, i) => ton(f, .5, .09, "triangle", null, 1.25 + i * .09)); }
+    },
+  };
+})();
+
+// ---------- Stockage : serveur (compte du site) ou local (invité) ----------
+const Local = {
+  lire() { try { return JSON.parse(localStorage.getItem("cg-invite") || "{}"); } catch { return {}; } },
+  ecrire(d) { try { localStorage.setItem("cg-invite", JSON.stringify(d)); } catch {} },
+  async etat() {
+    const d = this.lire(), maintenant = Date.now(), r = (d.ouvertures || []).filter((t) => maintenant - t < 36e5);
+    return { restants: Math.max(0, PAR_HEURE - r.length), prochain: r.length >= PAR_HEURE ? new Date(Math.min(...r) + 36e5).toISOString() : null, bonus: d.bonus || 0, maintenant: new Date().toISOString() };
+  },
+  async ouvrir() {
+    const e = await this.etat(), d = this.lire();
+    if (e.restants <= 0) { if ((d.bonus || 0) <= 0) return { erreur: "plus de booster disponible" }; d.bonus--; }
+    else d.ouvertures = [...(d.ouvertures || []).filter((t) => Date.now() - t < 36e5), Date.now()];
+    const cartes = tirerBooster();
+    d.cartes ||= {}; cartes.forEach((k) => (d.cartes[k] = (d.cartes[k] || 0) + 1));
+    this.ecrire(d); return { cartes };
+  },
+  async collection() { return { cartes: this.lire().cartes || {} }; },
+  async depart() { return { course: Date.now() }; },
+  async arrivee(course, place) {
+    const d = this.lire();
+    if (!course || Date.now() - course < 60000) return { erreur: "course trop courte" };
+    d.gains = (d.gains || []).filter((g) => Date.now() - g.t < 864e5);
+    const deja = d.gains.reduce((a, g) => a + g.n, 0);
+    const gain = Math.max(0, Math.min(place === 1 ? 2 : place <= 3 ? 1 : 0, 20 - deja));
+    if (gain) { d.gains.push({ t: Date.now(), n: gain }); d.bonus = (d.bonus || 0) + gain; }
+    this.ecrire(d); return { gain, plafond: deja + gain >= 20 };
+  },
+};
+// Même tirage que le serveur (le serveur fait foi quand on est connecté)
+function tirerBooster() {
+  const pool = (r) => CARTES.filter((c) => c.r === r).map((c) => c.id);
+  const P = { C: pool("C"), R: pool("R"), E: pool("E"), L: pool("L"), S: pool("S") };
+  const au = (l) => l[Math.floor(Math.random() * l.length)];
+  return [1, 2, 3, 4, 5].map((i) => {
+    const x = Math.random();
+    // Suprême 1 booster sur 1000, Mythique environ 3 %, Épique environ 30 %
+    const r = i <= 3 ? (x < .08 ? "R" : "C") : i === 4 ? (x < .12 ? "E" : "R") : (x < .001 ? "S" : x < .031 ? "L" : x < .22 ? "E" : "R");
+    return au(P[r]) + (Math.random() < .04 ? "*" : "");
+  });
+}
+const Serveur = {
+  appel: (action, args) => (window.BS && BS.tcg ? BS.tcg(action, args) : Promise.resolve(null)),
+  async etat() { return this.appel("etat"); },
+  async ouvrir() { return this.appel("ouvrir"); },
+  async collection(joueur) { return this.appel("collection", joueur ? { joueur } : {}); },
+  async depart() { return this.appel("depart"); },
+  async arrivee(course, place) { return course ? this.appel("arrivee", { course, place }) : { erreur: "départ non enregistré" }; },
+};
+let Stock = Local, enLigne = false, etat = null, decalage = 0, collection = {};
+
+function bandeau(html) { const b = $("bandeau"); b.innerHTML = html; b.hidden = !html; }
+async function choisirStockage() {
+  const e = await Serveur.etat().catch(() => null);
+  if (e && !e.erreur) { Stock = Serveur; enLigne = true; bandeau(""); return e; }
+  Stock = Local; enLigne = false;
+  if (e && e.erreur) bandeau(/tcg_etat|does not exist|Could not find|PGRST202/i.test(e.erreur)
+    ? "<b>Base des cartes pas encore installée.</b> Le créateur du site doit relancer le code SQL (admin → Comptes). En attendant, tu joues en mode invité sur cet appareil."
+    : `<b>Serveur indisponible</b> (${esc(e.erreur)}). Mode invité sur cet appareil en attendant.`);
+  else bandeau("<b>Mode invité :</b> ton garage reste sur cet appareil. Connecte-toi sur le site pour le sauvegarder et, bientôt, échanger tes voitures avec tes amis.");
+  return Local.etat();
+}
+
+// ---------- Terminal : boosters disponibles + minuteur ----------
+async function majEtat(e) {
+  etat = e || await Stock.etat();
+  if (!etat || etat.erreur) return;
+  decalage = etat.maintenant ? Date.parse(etat.maintenant) - Date.now() : 0;
+  $("voyants").innerHTML = Array.from({ length: PAR_HEURE }, (_, i) => `<span class="voyant ${i < etat.restants ? "on" : ""}"></span>`).join("");
+  $("ligneBonus").hidden = !etat.bonus; $("bonus").textContent = etat.bonus || 0;
+  const peut = etat.restants > 0 || etat.bonus > 0;
+  $("btnOuvrir").disabled = !peut;
+  tic();
+}
+function tic() {
+  if (!etat) return;
+  const m = $("minuteur");
+  if (!etat.prochain) { $("libelleMinuteur").textContent = "Recharge"; m.textContent = etat.restants >= PAR_HEURE ? "Plein" : "En cours"; return; }
+  const ms = Date.parse(etat.prochain) - (Date.now() + decalage);
+  if (ms <= 0) { majEtat(); return; }
+  $("libelleMinuteur").textContent = "Prochain booster dans";
+  m.textContent = `${Math.floor(ms / 6e4)}:${String(Math.floor(ms / 1000) % 60).padStart(2, "0")}`;
+}
+setInterval(tic, 1000);
+
+// ---------- Collection ----------
+async function chargerCollection() {
+  const r = await Stock.collection();
+  collection = Object.fromEntries(Object.entries((r && r.cartes) || {}).filter(([k]) => PAR_ID[k.replace("*", "")]));
+  majCompteurs();
+}
+const possede = (id) => (collection[id] || 0) + (collection[id + "*"] || 0);
+function majCompteurs() {
+  const n = CARTES.filter((c) => possede(c.id) > 0).length;
+  $("compteurBarre").textContent = `${n}/${TOTAL}`;
+  return n;
+}
+
+// ---------- Ouverture d'un booster ----------
+let enCours = false;
+async function ouvrirBooster() {
+  if (enCours) return;
+  enCours = true; $("btnOuvrir").disabled = true;
+  const avant = { ...collection };
+  const r = await Stock.ouvrir().catch((e) => ({ erreur: e.message }));
+  if (!r || r.erreur || !r.cartes) {
+    enCours = false; majEtat();
+    toast(r && /plus de booster/i.test(r.erreur || "") ? "Plus de booster pour l'instant : attends le minuteur." : "Impossible d'ouvrir un booster : " + ((r && r.erreur) || "réessaie"));
+    return;
+  }
+  const cartes = r.cartes.map(String);
+  cartes.forEach((k) => (collection[k] = (collection[k] || 0) + 1));
+  majCompteurs();
+  // Les plus rares à la fin, pour le suspense
+  const ordre = cartes.map((k, i) => ({ k, i, r: PAR_ID[k.replace("*", "")]?.r || "C" })).sort((a, b) => ORDRE_RARETE[b.r] - ORDRE_RARETE[a.r]);
+  montrerOuverture(ordre, avant);
+  majEtat();
+}
+function montrerOuverture(ordre, avant) {
+  const o = $("ouverture");
+  o.hidden = false; document.body.style.overflow = "hidden";
+  $("paquetOuverture").innerHTML = paquetHTML("min(240px, 52vw)");
+  $("paquetOuverture").style.display = "";
+  $("tirage").className = "tirage"; $("tirage").innerHTML = "";
+  $("ouvPied").innerHTML = "";
+  $("aide").hidden = false; $("aide").textContent = "Clique sur le paquet pour briser le scellé";
+  const paquet = $("paquetOuverture").querySelector(".paquet");
+  let ouvert = false;
+  const briser = async () => {
+    if (ouvert) return; ouvert = true; $("aide").hidden = true;
+    paquet.classList.add("secoue"); Son.secoue(); await pause(450);
+    paquet.classList.remove("secoue"); paquet.classList.add("ouvert"); Son.dechire(); await pause(650);
+    paquet.classList.add("vide"); await pause(350);
+    $("paquetOuverture").style.display = "none";
+    distribuer(ordre, avant);
+  };
+  paquet.addEventListener("click", briser);
+  paquet.setAttribute("role", "button"); paquet.tabIndex = 0;
+  paquet.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); briser(); } });
+  paquet.focus({ preventScroll: true });
+}
+function distribuer(ordre, avant) {
+  const t = $("tirage");
+  t.innerHTML = ordre.map(({ k, r }, i) => {
+    const neuve = !(avant[k.replace("*", "")] || avant[k.replace("*", "") + "*"]);
+    return `<div class="slot r-${r}" style="--k:${i};--rot:${(i - 2) * 6}deg" data-cle="${esc(k)}" data-r="${r}">
+      ${neuve ? `<span class="nouveau">NOUVEAU</span>` : ""}
+      <div class="retourne" role="button" tabindex="0" aria-label="Retourner la carte ${i + 1}"><div class="dos">${dosHTML()}</div><div class="face">${carteHTML(k)}</div></div></div>`;
+  }).join("");
+  requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add("distribue")));
+  $("ouvPied").innerHTML = `<button class="btn" type="button" id="btnTout">Tout retourner</button>`;
+  $("btnTout").onclick = async () => { for (const s of t.querySelectorAll(".slot:not(.vue)")) { await retourner(s); await pause(380); } };
+}
+let aRetourner = 0;
+let cinemaEnCours = false;
+async function retourner(slot) {
+  if (slot.classList.contains("vue")) { zoomer(slot.dataset.cle); return; }
+  if (cinemaEnCours) return;
+  const r = slot.dataset.r;
+  if (["E", "L", "S"].includes(r) && !reduit) await cinema(slot.dataset.cle, r);
+  slot.classList.add("vue"); Son.retourne();
+  if (r === "R") setTimeout(() => Son.rare(r), 250);
+  if (![...$("tirage").querySelectorAll(".slot")].some((s) => !s.classList.contains("vue"))) finOuverture();
+}
+// La grosse animation : la carte arrive face cachée, tremble de plus en plus, explose de lumière et se retourne
+function cinema(cle, r) {
+  return new Promise(async (fini) => {
+    cinemaEnCours = true;
+    const c = PAR_ID[cle.replace("*", "")];
+    const coul = { E: "rgba(192,132,252,.9)", L: "rgba(255,210,63,.95)", S: "rgba(255,79,163,1)" }[r];
+    const palette = { E: ["#a855f7", "#d8b4fe", "#7c3aed", "#fff"], L: ["#ffd23f", "#ff6ec7", "#7df9ff", "#b4ff6e", "#fff"], S: ["#ff4fa3", "#8b5cf6", "#22d3ee", "#ffd23f", "#fff"] }[r];
+    const duree = { E: 900, L: 1700, S: 2600 }[r];
+    const el = document.createElement("div");
+    el.className = "cinema r-" + r; el.style.setProperty("--c1", coul); el.style.setProperty("--duree", duree + "ms");
+    el.innerHTML = `<div class="cine-rayons"></div><canvas></canvas><div class="cine-titre">${r === "S" ? "SUPRÊME" : r === "L" ? "MYTHIQUE" : "ÉPIQUE"}</div>
+      <div class="cine-carte"><div class="retourne"><div class="dos">${dosHTML()}</div><div class="face">${carteHTML(cle)}</div></div></div>
+      <div class="cine-sous">${esc(c.marque)} · ${esc(c.n)} — touche pour continuer</div>`;
+    document.body.appendChild(el);
+    const cv = el.querySelector("canvas"), cx = cv.getContext("2d");
+    const taille = () => { cv.width = innerWidth * 1.5; cv.height = innerHeight * 1.5; }; taille();
+    let parts = [], anim = true;
+    const boucle = () => {
+      if (!anim) return;
+      cx.clearRect(0, 0, cv.width, cv.height);
+      parts.forEach((p) => { p.vy += p.g; p.x += p.vx; p.y += p.vy; p.a += p.va; p.vie--; cx.save(); cx.translate(p.x, p.y); cx.rotate(p.a); cx.globalAlpha = Math.max(0, Math.min(1, p.vie / 40)); cx.fillStyle = p.c; cx.fillRect(-p.t / 2, -p.t / 4, p.t, p.t / 2); cx.restore(); });
+      parts = parts.filter((p) => p.vie > 0);
+      if (r === "S" && el.classList.contains("revele") && Math.random() < .8) parts.push({ x: Math.random() * cv.width, y: -20, vx: (Math.random() - .5) * 2, vy: 2 + Math.random() * 3, g: .03, a: 0, va: .1, t: 10 + Math.random() * 10, c: palette[Math.floor(Math.random() * palette.length)], vie: 400 });
+      requestAnimationFrame(boucle);
+    };
+    const explosion = (n) => { const cx0 = cv.width / 2, cy0 = cv.height / 2; for (let i = 0; i < n; i++) { const a = Math.random() * Math.PI * 2, v = 6 + Math.random() * (r === "E" ? 10 : 18); parts.push({ x: cx0, y: cy0, vx: Math.cos(a) * v, vy: Math.sin(a) * v - 4, g: .25, a: 0, va: (Math.random() - .5) * .4, t: 8 + Math.random() * 14, c: palette[Math.floor(Math.random() * palette.length)], vie: 120 + Math.random() * 80 }); } };
+    requestAnimationFrame(boucle);
+    requestAnimationFrame(() => requestAnimationFrame(() => el.classList.add("on")));
+    await pause(600);
+    el.classList.add("charge"); Son.monte(duree / 1000, r);
+    await pause(duree);
+    flash(); el.classList.remove("charge"); el.classList.add("revele");
+    explosion(r === "S" ? 420 : r === "L" ? 260 : 120);
+    Son.rare(r === "S" ? "S" : r);
+    if (r !== "E") setTimeout(() => explosion(r === "S" ? 260 : 120), 450);
+    const fermer = () => { el.removeEventListener("click", fermer); el.classList.remove("on"); el.style.opacity = "0"; el.style.transition = "opacity .4s"; setTimeout(() => { anim = false; el.remove(); cinemaEnCours = false; fini(); }, 400); };
+    setTimeout(() => el.addEventListener("click", fermer), 600);
+  });
+}
+function finOuverture() {
+  const reste = etat ? etat.restants + (etat.bonus || 0) : 0;
+  $("ouvPied").innerHTML = `${reste > 0 ? `<button class="btn alerte" type="button" id="btnEncore">Ouvrir un autre <small>(${reste} restant${reste > 1 ? "s" : ""})</small></button>` : ""}
+    <button class="btn" type="button" id="btnVersClasseur">Voir mon garage</button>`;
+  $("btnVersClasseur").onclick = () => { fermerOuverture(); aller("classeur"); };
+  const enc = $("btnEncore"); if (enc) enc.onclick = () => { enCours = false; ouvrirBooster(); };
+  enCours = false;
+}
+function fermerOuverture() {
+  // Si on ferme avant de tout retourner, les cartes sont quand même gagnées
+  $("ouverture").hidden = true; document.body.style.overflow = ""; enCours = false;
+  majEtat(); if (!$("e-classeur").hidden) afficherClasseur();
+}
+function flash() { const f = $("flash"); f.classList.remove("on"); void f.offsetWidth; f.classList.add("on"); }
+function breche() {
+  Son.rare("L");
+  ["breche", "brecheTexte"].forEach((id) => { const el = $(id); el.classList.remove("on"); void el.offsetWidth; el.classList.add("on"); });
+  const c = document.querySelector(".ouverture-centre"); c.classList.remove("tremble"); void c.offsetWidth; if (!reduit) c.classList.add("tremble");
+}
+
+// ---------- Classeur ----------
+let filtre = "tous";
+const FILTRES = [["tous", "Toutes"], ["S", "Suprême", "var(--rS)"], ["L", "Mythiques", "var(--rL)"], ["E", "Épiques", "var(--rE)"], ["R", "Rares", "var(--rR)"], ["C", "Communes", "var(--rC)"], ["holo", "Holo"], ["manque", "Manquantes"]];
+function afficherClasseur() {
+  $("filtres").innerHTML = FILTRES.map(([k, l, c]) => `<button class="filtre" type="button" data-filtre="${k}" aria-pressed="${filtre === k}">${c ? `<i style="background:${c}"></i>` : ""}${l}</button>`).join("");
+  const n = majCompteurs();
+  $("progTexte").textContent = `${n} / ${TOTAL} véhicules`;
+  requestAnimationFrame(() => ($("progBarre").style.width = (n / TOTAL * 100) + "%"));
+  $("totalCartes").textContent = Object.values(collection).reduce((a, b) => a + b, 0);
+  const liste = CARTES.map((c, i) => ({ ...c, i })).filter((c) => {
+    if (filtre === "manque") return !possede(c.id);
+    if (filtre === "holo") return (collection[c.id + "*"] || 0) > 0;
+    return filtre === "tous" || c.r === filtre;
+  });
+  $("grille").innerHTML = liste.length ? liste.map((c) => {
+    const nb = possede(c.id), holo = (collection[c.id + "*"] || 0) > 0;
+    if (!nb) return `<div class="case"><div class="manquante"><b>${String(c.i + 1).padStart(2, "0")}</b><span>${RARETES[c.r]}</span><span>???</span></div></div>`;
+    return `<div class="case">${nb > 1 ? `<span class="compte">×${nb}</span>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
+  }).join("") : `<p class="vide-classeur">Aucune voiture ici pour l'instant.</p>`;
+}
+
+// ---------- Zoom avec inclinaison 3D ----------
+// Crédits des photos récupérées à l'envoi (fichier écrit par l'outil d'envoi)
+let CREDITS = {};
+fetch("../images/voitures/credits.json").then((r) => (r.ok ? r.json() : {})).then((j) => (CREDITS = j || {})).catch(() => {});
+const credit = (c) => c.auteur ? { auteur: c.auteur, lic: c.lic, page: c.local || !c.img ? "" : PAGE_IMG(c) } : CREDITS[c.id] || null;
+function zoomer(cle) {
+  const c = PAR_ID[cle.replace("*", "")]; if (!c) return;
+  $("zoomCarte").innerHTML = carteHTML(cle, { w: "min(380px, 82vw, calc((100vh - 120px) * .716))" });
+  const cr = credit(c);
+  $("zoomInfo").innerHTML = cr ? `Photo : ${esc(cr.auteur)} · ${esc(cr.lic)}` + (cr.page ? ` · <a href="${esc(cr.page)}" target="_blank" rel="noopener">Wikimedia Commons</a>` : "") : "";
+  $("zoom").hidden = false;
+}
+$("zoom").addEventListener("click", (e) => { if (!e.target.closest(".carte") && !e.target.closest("a")) $("zoom").hidden = true; });
+document.addEventListener("pointermove", (e) => {
+  const carte = e.target.closest?.(".zoom .carte, .case .carte, .slot.vue .carte"); if (!carte) return;
+  const b = carte.getBoundingClientRect(), x = (e.clientX - b.left) / b.width, y = (e.clientY - b.top) / b.height;
+  carte.style.setProperty("--mx", (x * 100) + "%");
+  if (carte.closest(".zoom") && !reduit) carte.style.transform = `rotateY(${(x - .5) * 22}deg) rotateX(${(.5 - y) * 22}deg)`;
+});
+
+// ---------- Course : choix de la voiture ----------
+let derniereVoiture = null;
+function afficherChoixCourse() {
+  const mes = CARTES.map((c, i) => ({ ...c, i })).filter((c) => possede(c.id));
+  $("grilleCourse").innerHTML = mes.length ? mes.map((c) => `<div class="case choix" data-course="${esc(c.id)}">${carteHTML(c.id)}</div>`).join("")
+    : `<p class="vide-classeur">Ton garage est vide : ouvre d'abord un booster pour avoir une voiture.</p>`;
+}
+async function lancerCourse(id) {
+  const c = PAR_ID[id]; if (!c) return;
+  derniereVoiture = id;
+  $("vueCourse").hidden = false; document.body.style.overflow = "hidden";
+  await Course.demarrer(c);
+}
+function quitterCourse() { Course.arreter(); $("vueCourse").hidden = true; document.body.style.overflow = ""; majEtat(); }
+$("btnQuitterCourse").onclick = quitterCourse;
+$("btnFinCourse").onclick = quitterCourse;
+$("btnRejouer").onclick = () => { Course.arreter(); lancerCourse(derniereVoiture); };
+
+// ---------- Amis et échanges ----------
+let amiOuvert = null, garageAmi = {}, carteVoulue = null;
+async function afficherEchanges() {
+  const z = $("zoneEchanges");
+  if (!enLigne) { z.innerHTML = `<p class="vide-ech">Connecte-toi sur le site pour voir le garage de tes amis et échanger des cartes.</p>`; return; }
+  z.innerHTML = `<p class="vide-ech">Chargement…</p>`;
+  const [ra, re] = await Promise.all([Serveur.appel("amis"), Serveur.appel("echanges")]);
+  if (!ra || ra.erreur || !re || re.erreur) { z.innerHTML = `<p class="vide-ech">Impossible de charger : ${esc((ra && ra.erreur) || (re && re.erreur) || "réessaie")}. Le créateur du site doit peut-être relancer le code SQL (admin → Comptes).</p>`; return; }
+  const recues = re.echanges.filter((e) => e.recu), envoyees = re.echanges.filter((e) => !e.recu);
+  $("badgeEchanges").textContent = recues.length ? `(${recues.length})` : "";
+  const ligne = (e) => `<div class="proposition">
+      <div class="mini">${carteHTML(e.recu ? e.donne : e.recoit, { w: "110px" })}</div><span class="fleche">⇄</span><div class="mini">${carteHTML(e.recu ? e.recoit : e.donne, { w: "110px" })}</div>
+      <p>${e.recu ? `<b>${esc(e.autre)}</b> te propose sa carte contre la tienne.` : `Proposé à <b>${esc(e.autre)}</b> : tu donnes ta carte contre la sienne.`}</p>
+      ${e.recu ? `<button class="btn alerte" type="button" data-accepter="${e.id}">Accepter</button><button class="btn" type="button" data-refuser="${e.id}">Refuser</button>` : `<button class="btn" type="button" data-refuser="${e.id}">Annuler</button>`}
+    </div>`;
+  z.innerHTML = `
+    <div class="bloc-echange"><h3>Propositions reçues</h3>${recues.length ? recues.map(ligne).join("") : `<p class="vide-ech">Rien pour l'instant.</p>`}</div>
+    <div class="bloc-echange"><h3>Mes amis</h3>${ra.amis.length ? `<div class="liste-amis">${ra.amis.map((a) => `<button class="ami" type="button" data-ami="${esc(a.id)}" data-pseudo="${esc(a.pseudo)}" aria-pressed="${amiOuvert === a.id}">${a.avatar ? `<img src="${esc(a.avatar)}" alt="">` : `<span class="pastille-ami"></span>`}${esc(a.pseudo)}</button>`).join("")}</div>` : `<p class="vide-ech">Ajoute des amis depuis la page Amis du site (code #1234) pour voir leur garage.</p>`}</div>
+    <div class="bloc-echange" id="garageAmi"></div>
+    <div class="bloc-echange"><h3>Mes propositions envoyées</h3>${envoyees.length ? envoyees.map(ligne).join("") : `<p class="vide-ech">Aucune.</p>`}</div>`;
+  if (amiOuvert) ouvrirGarageAmi(amiOuvert, document.querySelector(`[data-ami="${CSS.escape(amiOuvert)}"]`)?.dataset.pseudo || "");
+}
+async function ouvrirGarageAmi(id, pseudo) {
+  amiOuvert = id;
+  document.querySelectorAll("[data-ami]").forEach((b) => b.setAttribute("aria-pressed", b.dataset.ami === id));
+  const z = $("garageAmi"); z.innerHTML = `<p class="vide-ech">Chargement du garage…</p>`;
+  const r = await Serveur.collection(id);
+  garageAmi = Object.fromEntries(Object.entries((r && r.cartes) || {}).filter(([k]) => PAR_ID[k.replace("*", "")]));
+  const cles = Object.keys(garageAmi).sort((a, b) => PAR_ID[a.replace("*", "")].i - PAR_ID[b.replace("*", "")].i);
+  z.innerHTML = `<h3>Garage de ${esc(pseudo)} · ${new Set(cles.map((k) => k.replace("*", ""))).size} / ${TOTAL}</h3>
+    ${cles.length ? `<p class="vide-ech" style="margin-top:-6px">Clique sur une carte pour proposer un échange.</p><div class="grille-classeur">${cles.map((k) => `<div class="case choix" data-vouloir="${esc(k)}">${garageAmi[k] > 1 ? `<span class="compte">×${garageAmi[k]}</span>` : ""}${carteHTML(k)}</div>`).join("")}</div>` : `<p class="vide-ech">Son garage est vide.</p>`}`;
+}
+function choisirDon(cle) {
+  carteVoulue = cle;
+  const mes = Object.keys(collection).filter((k) => collection[k] > 0).sort((a, b) => PAR_ID[a.replace("*", "")].i - PAR_ID[b.replace("*", "")].i);
+  let d = $("choixDon");
+  if (!d) { d = document.createElement("div"); d.id = "choixDon"; d.className = "choix-don"; document.body.appendChild(d); }
+  d.hidden = false;
+  d.innerHTML = `<div class="titre-ecran"><div><h3>Que donnes-tu en échange ?</h3><p class="vide-ech">Tu veux : ${esc(PAR_ID[cle.replace("*", "")].marque + " " + PAR_ID[cle.replace("*", "")].n)}${cle.endsWith("*") ? " (holo)" : ""}</p></div><button class="onglet" type="button" data-fermer-don>Annuler</button></div>
+    ${mes.length ? `<div class="grille-classeur">${mes.map((k) => `<div class="case choix" data-donner="${esc(k)}">${collection[k] > 1 ? `<span class="compte">×${collection[k]}</span>` : ""}${carteHTML(k)}</div>`).join("")}</div>` : `<p class="vide-ech">Tu n'as encore aucune carte à donner.</p>`}`;
+}
+async function proposer(donne) {
+  $("choixDon").hidden = true;
+  const r = await Serveur.appel("proposer", { a: amiOuvert, donne, recoit: carteVoulue });
+  toast(r && !r.erreur ? "Proposition envoyée !" : "Impossible : " + ((r && r.erreur) || "réessaie"));
+  afficherEchanges();
+}
+async function repondre(id, accepte) {
+  const r = await Serveur.appel("repondre", { id: Number(id), accepte });
+  toast(r && !r.erreur ? (accepte ? "Échange effectué !" : "C'est fait.") : "Impossible : " + ((r && r.erreur) || "réessaie"));
+  if (accepte && r && !r.erreur) { Son.rare("R"); await chargerCollection(); }
+  afficherEchanges();
+}
+
+// ---------- Crédits ----------
+function afficherCredits() {
+  $("credits").innerHTML = `
+    <p><b>Carte Grise</b> est un jeu de fan gratuit et non officiel, fait pour BS arcade center.</p>
+    <p>Les noms de marques et de modèles appartiennent à leurs propriétaires respectifs. Ce jeu n'est ni soutenu ni sponsorisé par les constructeurs et entreprises cités. Aucun logo de marque n'est utilisé.</p>
+    <p>Les photos viennent de <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a>, sous licence libre. Elles sont copiées sur ce site depuis Wikimedia, redimensionnées et recadrées, avec un dégradé en bas. Leurs licences restent celles indiquées ci-dessous.</p>
+    <h3>Photos</h3>
+    <ul>${CARTES.map((c) => { const cr = credit(c); return cr ? `<li>${esc(c.marque)} ${esc(c.n)} : photo de ${esc(cr.auteur)}, ${esc(cr.lic)}.${cr.page ? ` <a href="${esc(cr.page)}" target="_blank" rel="noopener">Voir sur Wikimedia Commons</a>` : ""}</li>` : `<li>${esc(c.marque)} ${esc(c.n)} : illustration provisoire (pas encore de photo).</li>`; }).join("")}</ul>
+    <h3>Textes</h3>
+    <p>Les capacités et les petites phrases des cartes sont écrites pour le jeu.</p>`;
+}
+
+// ---------- Navigation ----------
+function aller(ecran) {
+  ["accueil", "classeur", "credits", "course", "echanges"].forEach((e) => ($("e-" + e).hidden = e !== ecran));
+  document.querySelectorAll("[data-aller]").forEach((b) => b.classList.contains("onglet") && b.toggleAttribute("aria-current", b.dataset.aller === ecran));
+  if (ecran === "classeur") afficherClasseur();
+  if (ecran === "credits") afficherCredits();
+  if (ecran === "course") afficherChoixCourse();
+  if (ecran === "echanges") afficherEchanges();
+  scrollTo({ top: 0, behavior: "instant" });
+}
+document.addEventListener("click", (e) => {
+  const a = e.target.closest("[data-aller]"); if (a) { aller(a.dataset.aller); return; }
+  const f = e.target.closest("[data-filtre]"); if (f) { filtre = f.dataset.filtre; afficherClasseur(); return; }
+  const s = e.target.closest(".slot .retourne"); if (s) { retourner(s.closest(".slot")); return; }
+  const co = e.target.closest("[data-course]"); if (co) { lancerCourse(co.dataset.course); return; }
+  const am = e.target.closest("[data-ami]"); if (am) { ouvrirGarageAmi(am.dataset.ami, am.dataset.pseudo); return; }
+  const vo = e.target.closest("[data-vouloir]"); if (vo) { choisirDon(vo.dataset.vouloir); return; }
+  const dn = e.target.closest("[data-donner]"); if (dn) { proposer(dn.dataset.donner); return; }
+  if (e.target.closest("[data-fermer-don]")) { $("choixDon").hidden = true; return; }
+  const ac = e.target.closest("[data-accepter]"); if (ac) { repondre(ac.dataset.accepter, true); return; }
+  const rf = e.target.closest("[data-refuser]"); if (rf) { repondre(rf.dataset.refuser, false); return; }
+  const c = e.target.closest(".case .carte"); if (c) { zoomer(c.dataset.cle); return; }
+});
+document.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") { if (!$("zoom").hidden) $("zoom").hidden = true; else if (!$("ouverture").hidden) fermerOuverture(); }
+  if ((e.key === "Enter" || e.key === " ") && e.target.matches?.(".retourne")) { e.preventDefault(); retourner(e.target.closest(".slot")); }
+});
+$("btnOuvrir").onclick = ouvrirBooster;
+$("btnFermerOuverture").onclick = fermerOuverture;
+$("paquetAccueil").innerHTML = paquetHTML();
+$("paquetAccueil").onclick = () => { if (!$("btnOuvrir").disabled) ouvrirBooster(); };
+const majSon = () => { $("btnSon").innerHTML = Son.actif ? ICONES.sonOn : ICONES.sonOff; $("btnSon").setAttribute("aria-label", Son.actif ? "Couper le son" : "Activer le son"); };
+$("btnSon").onclick = () => { Son.basculer(); majSon(); };
+majSon();
+let minuteurToast;
+function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add("on"); clearTimeout(minuteurToast); minuteurToast = setTimeout(() => el.classList.remove("on"), 3600); }
+
+// ---------- Démarrage ----------
+(async () => {
+  $("voyants").innerHTML = Array.from({ length: PAR_HEURE }, () => `<span class="voyant"></span>`).join("");
+  const e = await choisirStockage();
+  await Promise.all([majEtat(e), chargerCollection()]);
+})();
+// Si le joueur se connecte pendant que le jeu est ouvert
+addEventListener("message", (e) => { if (e.data && e.data.type === "bs-profil" && e.data.profil && !enLigne) setTimeout(async () => { const r = await choisirStockage(); await Promise.all([majEtat(r), chargerCollection()]); }, 800); });
+
+// =========================================================
+// CARTE GRISE : la course (pseudo-3D façon arcade) et les échanges
+// =========================================================
+const Course = (() => {
+  const SEG = 200, LARGEUR = 2000, BANDES = 3, CAM_H = 1000, PROF_CAM = 1 / Math.tan((100 / 2) * Math.PI / 180), DIST = 260, TOURS = 3;
+  const VMAX_BASE = SEG * 60;
+  let cv, cx, W, H, segments = [], longueur = 0, raf = 0, actif = false;
+  let joueur, rivaux = [], t0 = 0, chrono = 0, decompte = 0, fini = false, touches = {}, voiture = null, idCourse = null, decor = [];
+  const couleurs = (i) => {
+    const s = Math.floor(i / BANDES) % 2;
+    return { route: s ? "#5d6066" : "#62656b", herbe: s ? "#2f7d3a" : "#2a7034", bord: s ? "#f2f2f2" : "#e53935", ligne: s ? "#f5f5f5" : null };
+  };
+  const ajouter = (n, courbe, y = 0) => { for (let k = 0; k < n; k++) { const i = segments.length, yPrec = i ? segments[i - 1].p2.y : 0; segments.push({ i, courbe, p1: { y: yPrec, z: i * SEG }, p2: { y: yPrec + y, z: (i + 1) * SEG }, c: couleurs(i) }); } };
+  const virage = (e, t, s, c, h = 0) => { const hh = h / (e + t + s); for (let n = 0; n < e; n++) ajouter(1, c * (n / e), hh); for (let n = 0; n < t; n++) ajouter(1, c, hh); for (let n = 0; n < s; n++) ajouter(1, c * (1 - n / s), hh); };
+  function circuit() {
+    segments = [];
+    virage(20, 60, 20, 0, 0); virage(40, 90, 40, 4, 2000); virage(30, 70, 30, 0, -2000); virage(40, 110, 40, -5, 0);
+    virage(30, 60, 30, 0, 3000); virage(50, 80, 50, 6, -3000); virage(30, 60, 30, -3, 0); virage(40, 100, 40, 3, 1500);
+    virage(40, 80, 40, -6, 0); virage(30, 70, 30, 0, 0);
+    longueur = segments.length * SEG;
+    decor = [];
+    for (let i = 20; i < segments.length; i += 6) decor.push({ seg: i, x: (i % 12 < 6 ? -1 : 1) * (1.6 + (i * 37 % 10) / 10), type: i % 30 === 0 ? "panneau" : i % 18 === 0 ? "pneus" : "arbre" });
+    for (let i = 0; i < 6; i++) decor.push({ seg: i * 2, x: -1.3, type: "depart" }, { seg: i * 2, x: 1.3, type: "depart" });
+  }
+  const seg = (z) => segments[Math.floor(z / SEG) % segments.length];
+  const proj = (p, cx_, cy, cz) => {
+    const z = p.z - cz, s = PROF_CAM / z;
+    return { x: Math.round(W / 2 + s * (-cx_) * W / 2), y: Math.round(H / 2 - s * (p.y - cy) * H / 2), w: Math.round(s * LARGEUR * W / 2), s };
+  };
+  const poly = (x1, y1, w1, x2, y2, w2, c) => { cx.fillStyle = c; cx.beginPath(); cx.moveTo(x1 - w1, y1); cx.lineTo(x2 - w2, y2); cx.lineTo(x2 + w2, y2); cx.lineTo(x1 + w1, y1); cx.closePath(); cx.fill(); };
+  // Voiture vue de l'arrière (dessin simple)
+  function voitureArriere(x, y, w, couleur, freine) {
+    const h = w * .55;
+    cx.fillStyle = "rgba(0,0,0,.35)"; cx.beginPath(); cx.ellipse(x, y, w * .55, h * .12, 0, 0, 7); cx.fill();
+    cx.fillStyle = "#111"; cx.fillRect(x - w * .48, y - h * .32, w * .18, h * .32); cx.fillRect(x + w * .30, y - h * .32, w * .18, h * .32);
+    cx.fillStyle = couleur; cx.beginPath(); cx.roundRect(x - w * .5, y - h * .78, w, h * .58, w * .08); cx.fill();
+    cx.beginPath(); cx.roundRect(x - w * .36, y - h * 1.08, w * .72, h * .36, w * .1); cx.fill();
+    cx.fillStyle = "rgba(20,30,45,.85)"; cx.beginPath(); cx.roundRect(x - w * .3, y - h * 1.02, w * .6, h * .26, w * .06); cx.fill();
+    cx.fillStyle = freine ? "#ff2a2a" : "#b3121b"; cx.fillRect(x - w * .46, y - h * .66, w * .16, h * .12); cx.fillRect(x + w * .30, y - h * .66, w * .16, h * .12);
+    cx.fillStyle = "#f2f2f2"; cx.fillRect(x - w * .12, y - h * .48, w * .24, h * .12);
+    cx.fillStyle = "#1d4fd8"; cx.fillRect(x - w * .12, y - h * .48, w * .04, h * .12);
+  }
+  function objet(o, x, y, s) {
+    const w = s * W * 600;
+    if (w < 2) return;
+    if (o.type === "arbre") { cx.fillStyle = "#5b3a1e"; cx.fillRect(x - w * .06, y - w * .5, w * .12, w * .5); cx.fillStyle = "#1f5e2a"; cx.beginPath(); cx.moveTo(x, y - w * 1.5); cx.lineTo(x - w * .45, y - w * .4); cx.lineTo(x + w * .45, y - w * .4); cx.fill(); cx.fillStyle = "#287a35"; cx.beginPath(); cx.moveTo(x, y - w * 1.8); cx.lineTo(x - w * .32, y - w * 1); cx.lineTo(x + w * .32, y - w * 1); cx.fill(); }
+    else if (o.type === "panneau") { cx.fillStyle = "#444"; cx.fillRect(x - w * .04, y - w * .9, w * .08, w * .9); cx.fillStyle = "#ffd23f"; cx.fillRect(x - w * .5, y - w * 1.25, w, w * .4); cx.fillStyle = "#111"; cx.font = `800 ${Math.max(6, w * .22)}px Barlow Condensed, Arial`; cx.textAlign = "center"; cx.fillText(o.x < 0 ? "▶ ▶" : "◀ ◀", x, y - w * .97); }
+    else if (o.type === "pneus") { cx.fillStyle = "#151515"; for (let k = 0; k < 3; k++) { cx.beginPath(); cx.ellipse(x, y - w * (.12 + k * .2), w * .3, w * .1, 0, 0, 7); cx.fill(); } }
+    else if (o.type === "depart") { cx.fillStyle = "#ddd"; cx.fillRect(x - w * .05, y - w * 1.6, w * .1, w * 1.6); }
+  }
+  function dessiner() {
+    const grad = cx.createLinearGradient(0, 0, 0, H * .6); grad.addColorStop(0, "#1b2a55"); grad.addColorStop(.6, "#f08a3c"); grad.addColorStop(1, "#ffd27a");
+    cx.fillStyle = grad; cx.fillRect(0, 0, W, H);
+    // Collines au loin (parallaxe selon les virages)
+    const dec = (joueur.decor % W + W) % W;
+    cx.fillStyle = "#3b2a4d"; cx.beginPath(); cx.moveTo(0, H * .55);
+    for (let x = -W; x <= W * 2; x += 40) cx.lineTo(x - dec * .3, H * .5 - Math.sin(x * .006) * H * .07 - Math.sin(x * .017) * H * .03);
+    cx.lineTo(W, H); cx.lineTo(0, H); cx.fill();
+    const base = seg(joueur.z), pct = (joueur.z % SEG) / SEG, camY = CAM_H + base.p1.y + (base.p2.y - base.p1.y) * pct;
+    let maxy = H, x = 0, dx = -(base.courbe * pct);
+    const vus = [];
+    for (let n = 0; n < DIST; n++) {
+      const s = segments[(base.i + n) % segments.length], boucle = s.i < base.i, cz = joueur.z - (boucle ? longueur : 0);
+      const p1 = proj(s.p1, joueur.x * LARGEUR - x, camY, cz), p2 = proj(s.p2, joueur.x * LARGEUR - x - dx, camY, cz);
+      s.ecran = { p1, p2, clip: maxy, dx: x };
+      x += dx; dx += s.courbe;
+      if (s.p1.z - cz <= PROF_CAM || p2.y >= p1.y || p2.y >= maxy) continue;
+      cx.fillStyle = s.c.herbe; cx.fillRect(0, p2.y, W, p1.y - p2.y);
+      poly(p1.x, p1.y, p1.w * 1.15, p2.x, p2.y, p2.w * 1.15, s.c.bord);
+      poly(p1.x, p1.y, p1.w, p2.x, p2.y, p2.w, s.c.route);
+      if (s.c.ligne) { const l1 = p1.w / 40, l2 = p2.w / 40; poly(p1.x, p1.y, l1, p2.x, p2.y, l2, s.c.ligne); }
+      if (s.i < 3) { for (let k = -4; k < 4; k++) { const larg = p1.w / 4; cx.fillStyle = (k + s.i) % 2 ? "#fff" : "#111"; cx.fillRect(p1.x + k * larg, p2.y, larg, Math.max(1, p1.y - p2.y)); } }
+      maxy = p2.y; vus.push(s);
+    }
+    // Décor et rivaux, du plus loin au plus près
+    for (let n = vus.length - 1; n >= 0; n--) {
+      const s = vus[n];
+      for (const o of decor) if (o.seg === s.i) { const p = s.ecran.p1; objet(o, p.x + p.s * o.x * LARGEUR * W / 2, Math.min(p.y, s.ecran.clip), p.s); }
+      for (const r of rivaux) if (seg(r.z).i === s.i) { const p = s.ecran.p1; voitureArriere(p.x + p.s * r.x * LARGEUR * W / 2, p.y, p.s * W * 420, r.couleur, false); }
+    }
+    const bump = joueur.v > 0 ? Math.sin(Date.now() / 40) * (Math.abs(joueur.x) > 1 ? 3 : .6) : 0;
+    voitureArriere(W / 2, H - 20 + bump, Math.min(W * .22, 260), joueur.couleur, touches.frein);
+  }
+  // ---------- Physique ----------
+  function maj(dt) {
+    if (decompte > 0) { decompte -= dt; return; }
+    if (!fini) chrono += dt;
+    const s = seg(joueur.z), vpct = joueur.v / joueur.vmax;
+    if (window.__pilote) { touches.gauche = joueur.x > .15; touches.droite = joueur.x < -.15; }
+    const gauche = touches.gauche, droite = touches.droite;
+    const dxt = dt * 2.2 * vpct;
+    if (gauche) joueur.x -= dxt; if (droite) joueur.x += dxt;
+    joueur.x -= dxt * vpct * s.courbe * .22;
+    joueur.decor += s.courbe * vpct * dt * 300;
+    if (touches.frein) joueur.v -= joueur.vmax * 1.2 * dt;
+    else if (!fini) joueur.v += joueur.acc * dt;
+    else joueur.v -= joueur.vmax * .5 * dt;
+    if (Math.abs(joueur.x) > 1 && joueur.v > joueur.vmax * joueur.horsPiste) joueur.v -= joueur.vmax * 1.6 * dt;
+    joueur.x = Math.max(-2.2, Math.min(2.2, joueur.x));
+    joueur.v = Math.max(0, Math.min(joueur.vmax, joueur.v));
+    // Chocs avec les rivaux
+    for (const r of rivaux) {
+      const d = ((r.z - joueur.z) % longueur + longueur) % longueur;
+      if (d < SEG * 1.2 && Math.abs(r.x - joueur.x) < .45 && joueur.v > r.v) { joueur.v = r.v * joueur.choc; joueur.x += joueur.x > r.x ? .12 : -.12; Son?.secoue?.(); }
+    }
+    joueur.z += joueur.v * dt; joueur.total += joueur.v * dt;
+    if (joueur.z >= longueur) joueur.z -= longueur;
+    for (const r of rivaux) {
+      // Élastique : les rivaux trop loin devant ralentissent un peu, ceux derrière accélèrent (courses serrées)
+      const ecart = (r.total - joueur.total) / longueur, cible = r.vmax * (ecart > .08 ? .9 : ecart < -.08 ? 1.08 : 1);
+      if (decompte <= 0) r.v += (cible - r.v) * Math.min(1, dt * .8);
+      const rs = seg(r.z); r.x += (r.cible - r.x) * dt * .8 - rs.courbe * .002;
+      if (Math.random() < dt * .3) r.cible = (Math.random() * 1.4 - .7);
+      r.z += r.v * dt; r.total += r.v * dt; if (r.z >= longueur) r.z -= longueur;
+    }
+    if (!fini && joueur.total >= longueur * TOURS) terminer();
+  }
+  const place = () => 1 + rivaux.filter((r) => r.total > joueur.total).length;
+  function hud() {
+    const tour = Math.min(TOURS, Math.floor(joueur.total / longueur) + 1);
+    $("cTour").textContent = `${tour}/${TOURS}`;
+    $("cPlace").textContent = `${place()}ᵉ`.replace("1ᵉ", "1er");
+    $("cVitesse").textContent = Math.round(joueur.v / VMAX_BASE * 230);
+    $("cChrono").textContent = `${Math.floor(chrono / 60)}:${String(Math.floor(chrono % 60)).padStart(2, "0")}`;
+    const d = $("cDecompte");
+    if (decompte > 0) { d.hidden = false; d.textContent = Math.ceil(decompte); }
+    else if (decompte > -1 && !fini) { d.hidden = false; d.textContent = "GO !"; decompte -= 1 / 60; }
+    else d.hidden = true;
+  }
+  let derniere = 0;
+  function boucle(t) {
+    if (!actif) return;
+    const dt = Math.min(.05, (t - derniere) / 1000 || 0); derniere = t;
+    maj(dt); dessiner(); hud();
+    raf = requestAnimationFrame(boucle);
+  }
+  function taille() { const r = cv.getBoundingClientRect(); W = cv.width = Math.round(r.width * Math.min(2, devicePixelRatio || 1) * .75); H = cv.height = Math.round(r.height * Math.min(2, devicePixelRatio || 1) * .75); }
+  // ---------- Départ / arrivée ----------
+  async function demarrer(c) {
+    voiture = c; cv = $("piste"); cx = cv.getContext("2d");
+    circuit(); taille();
+    const fv = Math.min(1.12, .82 + c.men / 13 * .32), fr = Math.min(1, c.conf / 12);
+    joueur = { x: 0, z: 0, v: 0, total: 0, decor: 0, vmax: VMAX_BASE * fv, acc: VMAX_BASE * (.28 + c.men / 13 * .3), horsPiste: .55 - fr * .25, choc: .35 + fr * .4, couleur: COULEURS[c.i % COULEURS.length] };
+    rivaux = [.74, .81, .88].map((k, n) => ({ x: [-.5, .5, 0][n], cible: [-.5, .5, 0][n], z: SEG * (n + 2) * 2, v: 0, total: SEG * (n + 2) * 2, vmax: VMAX_BASE * k, couleur: ["#2e7d32", "#f9a825", "#6a1b9a"][n] }));
+    chrono = 0; decompte = 3.2; fini = false; actif = true; touches = {};
+    idCourse = null;
+    const r = await Stock.depart?.().catch(() => null); if (r && r.course) idCourse = r.course;
+    derniere = performance.now(); raf = requestAnimationFrame(boucle);
+  }
+  async function terminer() {
+    fini = true;
+    const p = place();
+    const gainPrevu = p === 1 ? 2 : p <= 3 ? 1 : 0;
+    $("cFin").hidden = false;
+    $("cFinTitre").textContent = p === 1 ? "VICTOIRE !" : `${p}ᵉ place`;
+    $("cFinTexte").textContent = "Enregistrement…";
+    let gain = 0, msg = "";
+    const r = await Stock.arrivee?.(idCourse, p).catch((e) => ({ erreur: e.message }));
+    if (r && !r.erreur) { gain = r.gain; msg = r.plafond ? " (limite de 20 boosters par jour atteinte)" : ""; }
+    else if (r && r.erreur) msg = " (" + r.erreur + ")";
+    $("cFinTexte").textContent = gain ? `+${gain} booster${gain > 1 ? "s" : ""} gagné${gain > 1 ? "s" : ""} !${msg}` : (gainPrevu ? "Aucun booster cette fois" + msg : "Termine sur le podium pour gagner des boosters.") ;
+    if (gain) Son.rare(gain > 1 ? "E" : "R");
+    majEtat();
+  }
+  function arreter() { actif = false; cancelAnimationFrame(raf); $("cFin").hidden = true; }
+  // Commandes : clavier + boutons tactiles
+  addEventListener("keydown", (e) => { if (!actif) return; const k = { ArrowLeft: "gauche", KeyA: "gauche", KeyQ: "gauche", ArrowRight: "droite", KeyD: "droite", ArrowDown: "frein", KeyS: "frein", Space: "frein" }[e.code]; if (k) { touches[k] = true; e.preventDefault(); } });
+  addEventListener("keyup", (e) => { const k = { ArrowLeft: "gauche", KeyA: "gauche", KeyQ: "gauche", ArrowRight: "droite", KeyD: "droite", ArrowDown: "frein", KeyS: "frein", Space: "frein" }[e.code]; if (k) touches[k] = false; });
+  document.addEventListener("pointerdown", (e) => { const b = e.target.closest("[data-touche]"); if (b && actif) { touches[b.dataset.touche] = true; b.setPointerCapture?.(e.pointerId); } });
+  ["pointerup", "pointercancel", "pointerleave"].forEach((t) => document.addEventListener(t, (e) => { const b = e.target.closest?.("[data-touche]"); if (b) touches[b.dataset.touche] = false; }));
+  addEventListener("resize", () => { if (actif) taille(); });
+  return { demarrer, arreter, get actif() { return actif; } };
+})();
+const COULEURS = ["#e53935", "#1e88e5", "#fdd835", "#43a047", "#fb8c00", "#8e24aa", "#00acc1", "#f4f4f4", "#3949ab", "#c0ca33"];
+
+</script>
+</body>
+</html>

@@ -175,6 +175,17 @@
       "video": "images/cul-sec-apercu.mp4",
       "solo": true,
       "enLigne": true
+    },
+    {
+      "id": "jmwdr0y57",
+      "titre": "Carte Grise",
+      "genre": "Cartes",
+      "description": "Le jeu de cartes des voitures cultes ! Ouvre 5 boosters par heure et complète ton garage : des citadines du quotidien jusqu'aux Mythiques, les voitures de légende… ou au lore complètement absurde (Kangoo, Multipla, Punto, Twingo…).\n\nJeu de fan gratuit et non officiel. Photos : Wikimedia Commons (licences libres). Les marques appartiennent à leurs propriétaires.",
+      "fichier": "jeux/carte-grise-v8n3x.html",
+      "image": "images/carte-grise-jaquette-p2k7w.jpg",
+      "captures": [],
+      "solo": true,
+      "enLigne": false
     }
   ],
   "blocs": [

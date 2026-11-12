@@ -987,6 +987,41 @@
     } catch (e) { console.warn(e); zone.hidden = true; }
   };
 
+  // =========================================================
+  // Jeu de cartes « Carte Grise » : boosters (5 par heure, comptés par le serveur) et garages
+  // =========================================================
+  P.tcg = async (action, a = {}) => {
+    if (!(await pret()) || !connecte()) return null;
+    const err = (e) => ({ erreur: String(e?.message || e || "erreur") });
+    try {
+      if (action === "etat") { const { data, error } = await sb.rpc("tcg_etat"); return error ? err(error) : data; }
+      if (action === "ouvrir") { const { data, error } = await sb.rpc("tcg_ouvrir"); return error ? err(error) : { cartes: data }; }
+      if (action === "depart") { const { data, error } = await sb.rpc("tcg_depart"); return error ? err(error) : { course: data }; }
+      if (action === "arrivee") { const { data, error } = await sb.rpc("tcg_arrivee", { p_course: a.course, p_place: a.place }); return error ? err(error) : data; }
+      if (action === "amis") {
+        const L = await relations();
+        return { amis: L.filter((r) => r.statut === "accepte" && r.profil).map((r) => ({ id: r.id, pseudo: r.profil.pseudo, avatar: imageSure(r.profil.avatar) || "", tag: r.profil.tag || "" })) };
+      }
+      if (action === "echanges") {
+        const moi = session.user.id;
+        const { data, error } = await sb.from("tcg_echanges").select("id, de, a, donne, recoit, statut, cree").eq("statut", "attente").order("cree", { ascending: false }).limit(100);
+        if (error) return err(error);
+        const ids = [...new Set(data.flatMap((e) => [e.de, e.a]).filter((x) => x !== moi))];
+        const { data: pr } = ids.length ? await sb.from("profils").select("id, pseudo").in("id", ids) : { data: [] };
+        const noms = Object.fromEntries((pr || []).map((p) => [p.id, p.pseudo]));
+        return { moi, echanges: data.map((e) => ({ ...e, recu: e.a === moi, autre: noms[e.a === moi ? e.de : e.a] || "Joueur" })) };
+      }
+      if (action === "proposer") { const { data, error } = await sb.rpc("tcg_proposer", { p_a: a.a, p_donne: a.donne, p_recoit: a.recoit }); return error ? err(error) : { id: data }; }
+      if (action === "repondre") { const { error } = await sb.rpc("tcg_repondre", { p_id: a.id, p_accepte: !!a.accepte }); return error ? err(error) : { ok: true }; }
+      if (action === "collection") {
+        const id = a.joueur || session.user.id;
+        const { data, error } = await sb.from("tcg_cartes").select("carte, nombre").eq("joueur", id).gt("nombre", 0).limit(2000);
+        return error ? err(error) : { cartes: Object.fromEntries(data.map((x) => [x.carte, x.nombre])) };
+      }
+    } catch (e) { return err(e); }
+    return null;
+  };
+
   // Modération : retirer un score truqué (seulement le compte qui a l'e-mail de l'onglet Contact)
   document.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-retirer-score]"); if (!b || !estModerateur()) return;
