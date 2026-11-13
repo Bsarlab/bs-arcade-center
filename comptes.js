@@ -995,7 +995,11 @@
     const err = (e) => ({ erreur: String(e?.message || e || "erreur") });
     try {
       if (action === "etat") { const { data, error } = await sb.rpc("tcg_etat"); return error ? err(error) : data; }
-      if (action === "ouvrir") { const { data, error } = await sb.rpc("tcg_ouvrir"); return error ? err(error) : { cartes: data }; }
+      if (action === "ouvrir") { const { data, error } = await sb.rpc("tcg_ouvrir", { p_serie: Number(a.serie) === 2 ? 2 : 1 }); return error ? err(error) : { cartes: data }; }
+      if (action === "combat") {
+        const { data, error } = await sb.rpc("tcg_combat", { p_deck: (a.deck || []).map(String).slice(0, 5), p_adv: a.adversaire || null, p_bot: Number(a.bot) || 1 });
+        return error ? err(error) : data;
+      }
       if (action === "depart") { const { data, error } = await sb.rpc("tcg_depart"); return error ? err(error) : { course: data }; }
       if (action === "arrivee") { const { data, error } = await sb.rpc("tcg_arrivee", { p_course: a.course, p_place: a.place }); return error ? err(error) : data; }
       if (action === "amis") {

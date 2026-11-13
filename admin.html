@@ -383,7 +383,7 @@ create policy "presence des amis" on public.presences for select using (
 create policy "ma presence" on public.presences for insert with check (auth.uid() = joueur);
 create policy "maj ma presence" on public.presences for update using (auth.uid() = joueur) with check (auth.uid() = joueur);
 
--- Jeu de cartes « Carte Grise » (tous les véhicules) : garages publics, 5 boosters par heure, boosters gagnés
+-- Jeu de cartes « CARDS CENTER » (série 1 : véhicules, série 2 : sportifs) : garages publics, 5 boosters par heure, boosters gagnés
 create table if not exists public.tcg_cartes (
   joueur uuid not null references public.profils(id) on delete cascade,
   carte text not null check (char_length(carte) <= 20),
@@ -421,16 +421,20 @@ begin
   return json_build_object('restants', greatest(0, 5 - n), 'prochain', case when n >= 5 then premier + interval '1 hour' end, 'bonus', b, 'maintenant', now());
 end $$;
 
--- Tirage fait par le serveur : impossible de choisir ses cartes depuis le navigateur
-create or replace function public.tcg_ouvrir() returns text[] language plpgsql security definer set search_path = public as $$
+-- Tirage fait par le serveur : impossible de choisir ses cartes depuis le navigateur. Chaque série a son booster.
+drop function if exists public.tcg_ouvrir();
+create or replace function public.tcg_ouvrir(p_serie int default 1) returns text[] language plpgsql security definer set search_path = public as $$
 declare n int; src text; res text[] := '{}'; i int; r float; pool text[]; c text;
-  communes text[] := array['sandero', 'p208', 'yaris', 'corsa', 'fiesta', 'berlingo', 'scenic', 'espace', 'partner', 'smart', 'prius', 'zoe', 'f500', 'polo', 'velo', 'trott', 'trottinette', 'skate', 'bus', 'camion', 'ter', 'tram', 'bateaumouche', 'voilier'];
-  rares text[] := array['dcv', 'r4l', 'ds', 'cox', 'combi', 'v240', 'p106', 'clio2', 'mini', 'classeg', 'niva', 'vespa', 'tracteur', 'tuktuk', 'campingcar', 'metro', 'cessna', 'helico', 'montgolfiere', 'jetski'];
-  epiques text[] := array['p205gti', 'r5turbo', 'delta', 'quattro', 'countach', 'p911', 'golfgti', 'impreza', 'evo', 'veyron', 'harley', 'tgv', 'vapeur', 'a380', 'qm2'];
-  legendaires text[] := array['concorde', 'kangoo', 'multipla', 'punto', 'c15', 'hilux', 'twingo', 'p206', 'saxo', 'robin', 'f40', 'delorean', 'ae86', 'r34', 'solex', 'mob103', 'orient', 'saturnv', 'pedalo'];
-  supremes text[] := array['kangoopower'];
+  communes text[]; rares text[]; epiques text[]; legendaires text[]; supremes text[];
 begin
   if auth.uid() is null then raise exception 'connexion requise'; end if;
+  if p_serie is null or p_serie not in (1, 2) then raise exception 'série inconnue'; end if;
+  select array_agg(carte) into communes from tcg_valeurs where serie = p_serie and rarete = 'C';
+  select array_agg(carte) into rares from tcg_valeurs where serie = p_serie and rarete = 'R';
+  select array_agg(carte) into epiques from tcg_valeurs where serie = p_serie and rarete = 'E';
+  select array_agg(carte) into legendaires from tcg_valeurs where serie = p_serie and rarete = 'L';
+  select array_agg(carte) into supremes from tcg_valeurs where serie = p_serie and rarete = 'S';
+  if communes is null or supremes is null then raise exception 'cartes pas encore installées : relance le code SQL'; end if;
   perform pg_advisory_xact_lock(hashtext('tcg' || auth.uid()::text));
   select count(*) into n from tcg_ouvertures where joueur = auth.uid() and source = 'heure' and quand > now() - interval '1 hour';
   if n < 5 then src := 'heure';
@@ -456,97 +460,235 @@ begin
   return res;
 end $$;
 revoke all on function public.tcg_etat() from public, anon;
-revoke all on function public.tcg_ouvrir() from public, anon;
+revoke all on function public.tcg_ouvrir(int) from public, anon;
 grant execute on function public.tcg_etat() to authenticated;
-grant execute on function public.tcg_ouvrir() to authenticated;
+grant execute on function public.tcg_ouvrir(int) to authenticated;
 
 -- Points Carte Grise : chaque véhicule possédé compte une seule fois (doublons et holo non comptés)
 -- Commune 10 · Rare 25 · Épique 75 · Mythique 250 · Suprême 2000
 create table if not exists public.tcg_valeurs (carte text primary key, points int not null);
+alter table public.tcg_valeurs add column if not exists puissance int not null default 0;
+alter table public.tcg_valeurs add column if not exists serie int not null default 1;
+alter table public.tcg_valeurs add column if not exists rarete text not null default 'C';
 alter table public.tcg_valeurs enable row level security;
 drop policy if exists "valeurs publiques" on public.tcg_valeurs;
 create policy "valeurs publiques" on public.tcg_valeurs for select using (true);
-insert into public.tcg_valeurs (carte, points) values
-  ('sandero', 10),
-  ('p208', 10),
-  ('yaris', 10),
-  ('corsa', 10),
-  ('fiesta', 10),
-  ('berlingo', 10),
-  ('scenic', 10),
-  ('espace', 10),
-  ('partner', 10),
-  ('smart', 10),
-  ('prius', 10),
-  ('zoe', 10),
-  ('f500', 10),
-  ('polo', 10),
-  ('velo', 10),
-  ('trott', 10),
-  ('trottinette', 10),
-  ('skate', 10),
-  ('bus', 10),
-  ('camion', 10),
-  ('ter', 10),
-  ('tram', 10),
-  ('bateaumouche', 10),
-  ('voilier', 10),
-  ('dcv', 25),
-  ('r4l', 25),
-  ('ds', 25),
-  ('cox', 25),
-  ('combi', 25),
-  ('v240', 25),
-  ('p106', 25),
-  ('clio2', 25),
-  ('mini', 25),
-  ('classeg', 25),
-  ('niva', 25),
-  ('vespa', 25),
-  ('tracteur', 25),
-  ('tuktuk', 25),
-  ('campingcar', 25),
-  ('metro', 25),
-  ('cessna', 25),
-  ('helico', 25),
-  ('montgolfiere', 25),
-  ('jetski', 25),
-  ('p205gti', 75),
-  ('r5turbo', 75),
-  ('delta', 75),
-  ('quattro', 75),
-  ('countach', 75),
-  ('p911', 75),
-  ('golfgti', 75),
-  ('impreza', 75),
-  ('evo', 75),
-  ('veyron', 75),
-  ('harley', 75),
-  ('tgv', 75),
-  ('vapeur', 75),
-  ('a380', 75),
-  ('qm2', 75),
-  ('concorde', 250),
-  ('kangoo', 250),
-  ('multipla', 250),
-  ('punto', 250),
-  ('c15', 250),
-  ('hilux', 250),
-  ('twingo', 250),
-  ('p206', 250),
-  ('saxo', 250),
-  ('robin', 250),
-  ('f40', 250),
-  ('delorean', 250),
-  ('ae86', 250),
-  ('r34', 250),
-  ('solex', 250),
-  ('mob103', 250),
-  ('orient', 250),
-  ('saturnv', 250),
-  ('pedalo', 250),
-  ('kangoopower', 2000)
-on conflict (carte) do update set points = excluded.points;
+insert into public.tcg_valeurs (carte, points, puissance, serie, rarete) values
+  ('kangoopower', 2000, 168, 1, 'S'),
+  ('concorde', 250, 126, 1, 'L'),
+  ('kangoo', 250, 102, 1, 'L'),
+  ('multipla', 250, 102, 1, 'L'),
+  ('punto', 250, 96, 1, 'L'),
+  ('c15', 250, 106, 1, 'L'),
+  ('hilux', 250, 114, 1, 'L'),
+  ('twingo', 250, 90, 1, 'L'),
+  ('p206', 250, 100, 1, 'L'),
+  ('saxo', 250, 98, 1, 'L'),
+  ('robin', 250, 86, 1, 'L'),
+  ('f40', 250, 114, 1, 'L'),
+  ('delorean', 250, 104, 1, 'L'),
+  ('ae86', 250, 104, 1, 'L'),
+  ('r34', 250, 114, 1, 'L'),
+  ('solex', 250, 92, 1, 'L'),
+  ('mob103', 250, 94, 1, 'L'),
+  ('orient', 250, 110, 1, 'L'),
+  ('saturnv', 250, 116, 1, 'L'),
+  ('pedalo', 250, 94, 1, 'L'),
+  ('p205gti', 75, 79, 1, 'E'),
+  ('r5turbo', 75, 79, 1, 'E'),
+  ('delta', 75, 83, 1, 'E'),
+  ('quattro', 75, 83, 1, 'E'),
+  ('countach', 75, 81, 1, 'E'),
+  ('p911', 75, 89, 1, 'E'),
+  ('golfgti', 75, 81, 1, 'E'),
+  ('impreza', 75, 83, 1, 'E'),
+  ('evo', 75, 83, 1, 'E'),
+  ('veyron', 75, 93, 1, 'E'),
+  ('harley', 75, 81, 1, 'E'),
+  ('tgv', 75, 91, 1, 'E'),
+  ('vapeur', 75, 83, 1, 'E'),
+  ('a380', 75, 91, 1, 'E'),
+  ('qm2', 75, 89, 1, 'E'),
+  ('dcv', 25, 47, 1, 'R'),
+  ('r4l', 25, 53, 1, 'R'),
+  ('ds', 25, 57, 1, 'R'),
+  ('cox', 25, 55, 1, 'R'),
+  ('combi', 25, 51, 1, 'R'),
+  ('v240', 25, 57, 1, 'R'),
+  ('p106', 25, 53, 1, 'R'),
+  ('clio2', 25, 53, 1, 'R'),
+  ('mini', 25, 51, 1, 'R'),
+  ('classeg', 25, 65, 1, 'R'),
+  ('niva', 25, 57, 1, 'R'),
+  ('vespa', 25, 51, 1, 'R'),
+  ('tracteur', 25, 57, 1, 'R'),
+  ('tuktuk', 25, 49, 1, 'R'),
+  ('campingcar', 25, 53, 1, 'R'),
+  ('metro', 25, 55, 1, 'R'),
+  ('cessna', 25, 55, 1, 'R'),
+  ('helico', 25, 57, 1, 'R'),
+  ('montgolfiere', 25, 45, 1, 'R'),
+  ('jetski', 25, 53, 1, 'R'),
+  ('sandero', 10, 32, 1, 'C'),
+  ('p208', 10, 34, 1, 'C'),
+  ('yaris', 10, 34, 1, 'C'),
+  ('corsa', 10, 30, 1, 'C'),
+  ('fiesta', 10, 32, 1, 'C'),
+  ('berlingo', 10, 36, 1, 'C'),
+  ('scenic', 10, 36, 1, 'C'),
+  ('espace', 10, 38, 1, 'C'),
+  ('partner', 10, 36, 1, 'C'),
+  ('smart', 10, 28, 1, 'C'),
+  ('prius', 10, 34, 1, 'C'),
+  ('zoe', 10, 32, 1, 'C'),
+  ('f500', 10, 32, 1, 'C'),
+  ('polo', 10, 34, 1, 'C'),
+  ('velo', 10, 30, 1, 'C'),
+  ('trott', 10, 28, 1, 'C'),
+  ('trottinette', 10, 28, 1, 'C'),
+  ('skate', 10, 28, 1, 'C'),
+  ('bus', 10, 38, 1, 'C'),
+  ('camion', 10, 44, 1, 'C'),
+  ('ter', 10, 36, 1, 'C'),
+  ('tram', 10, 36, 1, 'C'),
+  ('bateaumouche', 10, 34, 1, 'C'),
+  ('voilier', 10, 34, 1, 'C'),
+  ('mbappe', 2000, 174, 2, 'S'),
+  ('messi', 250, 128, 2, 'L'),
+  ('ronaldo', 250, 126, 2, 'L'),
+  ('kane', 250, 128, 2, 'L'),
+  ('yamal', 250, 126, 2, 'L'),
+  ('wemby', 250, 136, 2, 'L'),
+  ('lebron', 250, 130, 2, 'L'),
+  ('dupont', 250, 130, 2, 'L'),
+  ('djokovic', 250, 132, 2, 'L'),
+  ('nadal', 250, 130, 2, 'L'),
+  ('marchand', 250, 132, 2, 'L'),
+  ('bolt', 250, 126, 2, 'L'),
+  ('pogacar', 250, 132, 2, 'L'),
+  ('hamilton', 250, 132, 2, 'L'),
+  ('riner', 250, 136, 2, 'L'),
+  ('woods', 250, 130, 2, 'L'),
+  ('zidane', 250, 132, 2, 'L'),
+  ('pele', 250, 128, 2, 'L'),
+  ('maradona', 250, 126, 2, 'L'),
+  ('henry', 250, 124, 2, 'L'),
+  ('ronaldinho', 250, 122, 2, 'L'),
+  ('r9', 250, 124, 2, 'L'),
+  ('dembele', 75, 95, 2, 'E'),
+  ('rodri', 75, 99, 2, 'E'),
+  ('haaland', 75, 95, 2, 'E'),
+  ('vinicius', 75, 95, 2, 'E'),
+  ('putellas', 75, 97, 2, 'E'),
+  ('curry', 75, 93, 2, 'E'),
+  ('sga', 75, 97, 2, 'E'),
+  ('jokic', 75, 99, 2, 'E'),
+  ('lbb', 75, 93, 2, 'E'),
+  ('alcaraz', 75, 99, 2, 'E'),
+  ('sinner', 75, 99, 2, 'E'),
+  ('ledecky', 75, 101, 2, 'E'),
+  ('duplantis', 75, 99, 2, 'E'),
+  ('antonelli', 75, 97, 2, 'E'),
+  ('verstappen', 75, 101, 2, 'E'),
+  ('topuria', 75, 101, 2, 'E'),
+  ('usyk', 75, 103, 2, 'E'),
+  ('scheffler', 75, 101, 2, 'E'),
+  ('mcilroy', 75, 99, 2, 'E'),
+  ('karabatic', 75, 101, 2, 'E'),
+  ('cruyff', 75, 99, 2, 'E'),
+  ('beckenbauer', 75, 101, 2, 'E'),
+  ('platini', 75, 97, 2, 'E'),
+  ('iniesta', 75, 97, 2, 'E'),
+  ('zlatan', 75, 97, 2, 'E'),
+  ('benzema', 75, 97, 2, 'E'),
+  ('griezmann', 75, 97, 2, 'E'),
+  ('neymar', 75, 93, 2, 'E'),
+  ('modric', 75, 99, 2, 'E'),
+  ('bellingham', 25, 73, 2, 'R'),
+  ('salah', 25, 71, 2, 'R'),
+  ('hakimi', 25, 73, 2, 'R'),
+  ('bonmati', 25, 73, 2, 'R'),
+  ('doncic', 25, 71, 2, 'R'),
+  ('giannis', 25, 77, 2, 'R'),
+  ('ramos', 25, 71, 2, 'R'),
+  ('penaud', 25, 69, 2, 'R'),
+  ('kolisi', 25, 75, 2, 'R'),
+  ('sabalenka', 25, 73, 2, 'R'),
+  ('swiatek', 25, 73, 2, 'R'),
+  ('zverev', 25, 73, 2, 'R'),
+  ('mcintosh', 25, 75, 2, 'R'),
+  ('lyles', 25, 69, 2, 'R'),
+  ('mclaughlin', 25, 75, 2, 'R'),
+  ('vingegaard', 25, 75, 2, 'R'),
+  ('evenepoel', 25, 73, 2, 'R'),
+  ('vdpoel', 25, 73, 2, 'R'),
+  ('norris', 25, 75, 2, 'R'),
+  ('makhachev', 25, 79, 2, 'R'),
+  ('gane', 25, 75, 2, 'R'),
+  ('inoue', 25, 77, 2, 'R'),
+  ('cantona', 25, 73, 2, 'R'),
+  ('maldini', 25, 75, 2, 'R'),
+  ('buffon', 25, 71, 2, 'R'),
+  ('beckham', 25, 73, 2, 'R'),
+  ('drogba', 25, 75, 2, 'R'),
+  ('weah', 25, 73, 2, 'R'),
+  ('etoo', 25, 73, 2, 'R'),
+  ('xavi', 25, 75, 2, 'R'),
+  ('kaka', 25, 73, 2, 'R'),
+  ('ribery', 25, 71, 2, 'R'),
+  ('rooney', 25, 73, 2, 'R'),
+  ('lewandowski', 25, 73, 2, 'R'),
+  ('sramos', 25, 75, 2, 'R'),
+  ('neuer', 25, 71, 2, 'R'),
+  ('vandijk', 25, 75, 2, 'R'),
+  ('courtois', 25, 71, 2, 'R'),
+  ('kante', 25, 75, 2, 'R'),
+  ('lloris', 25, 67, 2, 'R'),
+  ('giroud', 25, 71, 2, 'R'),
+  ('son', 25, 71, 2, 'R'),
+  ('kvara', 25, 69, 2, 'R'),
+  ('musiala', 25, 71, 2, 'R'),
+  ('pedri', 10, 50, 2, 'C'),
+  ('olise', 10, 48, 2, 'C'),
+  ('saka', 10, 48, 2, 'C'),
+  ('maignan', 10, 50, 2, 'C'),
+  ('saliba', 10, 50, 2, 'C'),
+  ('debruyne', 10, 50, 2, 'C'),
+  ('doue', 10, 46, 2, 'C'),
+  ('gobert', 10, 54, 2, 'C'),
+  ('edwards', 10, 50, 2, 'C'),
+  ('flagg', 10, 50, 2, 'C'),
+  ('ntamack', 10, 50, 2, 'C'),
+  ('alldritt', 10, 54, 2, 'C'),
+  ('dutoit', 10, 56, 2, 'C'),
+  ('gauff', 10, 54, 2, 'C'),
+  ('fils', 10, 50, 2, 'C'),
+  ('manaudou', 10, 48, 2, 'C'),
+  ('grousset', 10, 48, 2, 'C'),
+  ('warholm', 10, 54, 2, 'C'),
+  ('seixas', 10, 50, 2, 'C'),
+  ('leclerc', 10, 54, 2, 'C'),
+  ('hadjar', 10, 50, 2, 'C'),
+  ('fiorot', 10, 52, 2, 'C'),
+  ('rahm', 10, 54, 2, 'C'),
+  ('mem', 10, 52, 2, 'C'),
+  ('pogba', 10, 54, 2, 'C'),
+  ('lautaro', 10, 50, 2, 'C'),
+  ('palmer', 10, 50, 2, 'C'),
+  ('osimhen', 10, 50, 2, 'C'),
+  ('valverde', 10, 52, 2, 'C'),
+  ('vitinha', 10, 52, 2, 'C'),
+  ('wirtz', 10, 50, 2, 'C'),
+  ('cubarsi', 10, 50, 2, 'C'),
+  ('endrick', 10, 46, 2, 'C'),
+  ('zaireemery', 10, 50, 2, 'C'),
+  ('cherki', 10, 46, 2, 'C'),
+  ('barcola', 10, 46, 2, 'C'),
+  ('guler', 10, 46, 2, 'C'),
+  ('tchouameni', 10, 50, 2, 'C'),
+  ('theo', 10, 50, 2, 'C'),
+  ('thuram', 10, 48, 2, 'C')
+on conflict (carte) do update set points = excluded.points, puissance = excluded.puissance, serie = excluded.serie, rarete = excluded.rarete;
 create or replace function public.tcg_points_de(j uuid) returns int language sql stable security definer set search_path = public as $$
   select coalesce(sum(v.points), 0)::int from tcg_valeurs v
   where exists (select 1 from tcg_cartes c where c.joueur = j and c.nombre > 0 and replace(c.carte, '*', '') = v.carte);
@@ -562,6 +704,66 @@ begin
 end $$;
 drop trigger if exists tcg_points on public.tcg_cartes;
 create trigger tcg_points after insert or update or delete on public.tcg_cartes for each row execute function public.tcg_maj_points();
+
+-- Duels : 5 cartes contre 5, calculés par le serveur (impossible de tricher). Victoire = boosters, 5 par jour au maximum.
+create table if not exists public.tcg_combats (
+  id bigint generated always as identity primary key,
+  joueur uuid not null references public.profils(id) on delete cascade,
+  quand timestamptz not null default now(),
+  adversaire text not null,
+  victoire boolean not null,
+  gain int not null default 0
+);
+create index if not exists tcg_combats_joueur on public.tcg_combats (joueur, quand desc);
+alter table public.tcg_combats enable row level security;
+drop policy if exists "mes combats" on public.tcg_combats;
+create policy "mes combats" on public.tcg_combats for select using (auth.uid() = joueur);
+create or replace function public.tcg_combat(p_deck text[], p_adv uuid default null, p_bot int default 1) returns json language plpgsql security definer set search_path = public as $$
+declare lui text[]; m json[] := '{}'; i int; pa float; pb float; ga int := 0; gb int := 0; deja int; g int := 0; vic boolean; nom text; prix int;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  if p_deck is null or coalesce(array_length(p_deck, 1), 0) <> 5 then raise exception 'il faut 5 cartes'; end if;
+  if (select count(distinct x) from unnest(p_deck) x) <> 5 then raise exception 'il faut 5 cartes différentes'; end if;
+  if exists (select 1 from unnest(p_deck) x where not exists (select 1 from tcg_cartes c where c.joueur = auth.uid() and c.carte = x and c.nombre > 0)) then raise exception 'carte non possédée'; end if;
+  perform pg_advisory_xact_lock(hashtext('tcgc' || auth.uid()::text));
+  if exists (select 1 from tcg_combats where joueur = auth.uid() and quand > now() - interval '8 seconds') then raise exception 'attends quelques secondes entre deux duels'; end if;
+  if p_adv is not null then
+    if p_adv = auth.uid() then raise exception 'tu ne peux pas te défier toi-même'; end if;
+    select array_agg(carte order by pw desc) into lui from (
+      select c.carte, v.puissance * (case when c.carte like '%*' then 1.1 else 1 end) as pw
+      from tcg_cartes c join tcg_valeurs v on v.carte = replace(c.carte, '*', '')
+      where c.joueur = p_adv and c.nombre > 0 order by pw desc limit 5) t;
+    if lui is null or array_length(lui, 1) < 5 then raise exception 'cet adversaire n''a pas encore 5 cartes'; end if;
+    select array_agg(x order by random()) into lui from unnest(lui) x;
+    nom := coalesce((select pseudo from profils where id = p_adv), 'Joueur');
+    prix := 1;
+  else
+    p_bot := greatest(1, least(3, coalesce(p_bot, 1)));
+    select array_agg(carte) into lui from (select carte from tcg_valeurs
+      where rarete = any (case p_bot when 1 then array['C', 'R'] when 2 then array['R', 'E'] else array['E', 'L'] end)
+      order by random() limit 5) t;
+    nom := 'bot' || p_bot;
+    prix := p_bot - 1;
+  end if;
+  for i in 1..5 loop
+    pa := (select puissance from tcg_valeurs where carte = replace(p_deck[i], '*', '')) * (case when p_deck[i] like '%*' then 1.1 else 1 end) * (0.85 + random() * 0.3);
+    pb := (select puissance from tcg_valeurs where carte = replace(lui[i], '*', '')) * (case when lui[i] like '%*' then 1.1 else 1 end) * (0.85 + random() * 0.3);
+    if pa >= pb then ga := ga + 1; else gb := gb + 1; end if;
+    m := m || json_build_object('a', p_deck[i], 'b', lui[i], 'pa', round(pa::numeric), 'pb', round(pb::numeric));
+  end loop;
+  vic := ga > gb;
+  if vic and prix > 0 then
+    select coalesce(sum(gain), 0) into deja from tcg_combats where joueur = auth.uid() and quand > now() - interval '1 day';
+    g := greatest(0, least(prix, 5 - deja));
+    if g > 0 then
+      insert into tcg_bonus (joueur, nombre) values (auth.uid(), g) on conflict (joueur) do update set nombre = tcg_bonus.nombre + g;
+    end if;
+  end if;
+  insert into tcg_combats (joueur, adversaire, victoire, gain) values (auth.uid(), coalesce(p_adv::text, nom), vic, g);
+  return json_build_object('adversaire', lui, 'nom', nom, 'manches', array_to_json(m), 'victoire', vic, 'gain', g, 'score', json_build_array(ga, gb), 'plafond', vic and prix > 0 and g < prix);
+end $$;
+revoke all on function public.tcg_combat(text[], uuid, int) from public, anon;
+grant execute on function public.tcg_combat(text[], uuid, int) to authenticated;
 revoke all on function public.tcg_points_de(uuid) from public, anon;
 revoke all on function public.tcg_maj_points() from public, anon, authenticated;
 -- Remet à jour les points de tous les joueurs (utile la première fois)
