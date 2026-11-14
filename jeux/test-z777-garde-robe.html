@@ -612,7 +612,7 @@ function zwVue(k) {
       zwR = { r: new Be.WebGLRenderer({ canvas: c, antialias: !0, alpha: !0 }), sc: new Be.Scene(), cam: new Be.PerspectiveCamera(26, c.width / c.height, 0.1, 40) };
       zwR.r.setPixelRatio(Math.min(2, window.devicePixelRatio || 1)); zwR.r.setSize(c.width, c.height, !1);
       zwR.r.toneMapping = Be.ACESFilmicToneMapping; zwR.r.toneMappingExposure = 1.1;
-      zwR.cam.position.set(0, 1.15, 5.2); zwR.cam.lookAt(0, 0.95, 0);
+      zwR.cam.position.set(0, 1.0, 6.6); zwR.cam.lookAt(0, 0.92, 0);
       zwR.sc.add(new Be.HemisphereLight(16777215, 3355443, 1.8));
       var l1 = new Be.DirectionalLight(16777215, 2.4); l1.position.set(2, 4, 3); zwR.sc.add(l1);
       var l2 = new Be.DirectionalLight(14263619, 1.4); l2.position.set(-3, 2, -2); zwR.sc.add(l2);
