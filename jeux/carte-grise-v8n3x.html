@@ -798,6 +798,18 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
 .choix-cadre { display: grid; justify-items: center; gap: 8px; width: 116px; padding: 14px 8px 10px; border-radius: 16px; border: 2px solid transparent; background: var(--surface, rgba(127,127,127,.12)); color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
 .choix-cadre img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
 .choix-cadre[aria-pressed="true"] { border-color: currentColor; }
+/* Annonce du god pack, après l'ouverture du booster */
+.god-annonce { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; justify-items: center; gap: 14px; pointer-events: none; animation: god-arrive .5s cubic-bezier(.2, 1.6, .4, 1) both; }
+.god-annonce.part { animation: god-part .45s ease-in both; }
+.god-eclat { position: absolute; left: 50%; top: 50%; width: 140vmax; height: 140vmax; margin: -70vmax 0 0 -70vmax; background: repeating-conic-gradient(from 0deg, rgba(255,210,63,.55) 0 6deg, transparent 6deg 14deg, rgba(255,79,163,.4) 14deg 20deg, transparent 20deg 28deg); -webkit-mask-image: radial-gradient(circle, #000 5%, transparent 50%); mask-image: radial-gradient(circle, #000 5%, transparent 50%); animation: rayons 5s linear infinite; }
+.god-titre { position: relative; font-family: var(--f-tampon, var(--f-titre)); font-size: clamp(46px, 11vw, 120px); line-height: 1; letter-spacing: .04em; white-space: nowrap; }
+.god-titre span { display: inline-block; background: linear-gradient(90deg, #ffd23f, #ff4fa3, #22d3ee, #ffd23f) 0 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 18px rgba(255,210,63,.7)); animation: god-lettre .6s cubic-bezier(.2, 1.8, .4, 1) calc(var(--i) * 70ms) both, god-texte 2s linear infinite; }
+.god-sous { position: relative; font-family: var(--f-titre); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #fff4c2; text-shadow: 0 0 10px #ff4fa3; font-size: clamp(12px, 2.2vw, 18px); text-align: center; padding: 0 16px; animation: god-arrive .5s .7s both; }
+@keyframes god-arrive { from { opacity: 0; transform: scale(.3) rotate(-8deg); } }
+@keyframes god-part { to { opacity: 0; transform: scale(1.6); } }
+@keyframes god-lettre { from { opacity: 0; transform: translateY(-120px) scale(2.4) rotate(-25deg); } }
+@media (prefers-reduced-motion: reduce) { .god-annonce, .god-titre span, .god-sous, .god-eclat { animation: none; } }
+
 </style>
 </head>
 <body>
@@ -6516,11 +6528,18 @@ function tirerBooster(se = 1, god = false) {
   for (let i = 1; i <= 5; i++) {
     const x = Math.random();
     let r;
-    if (god) r = i === 1 ? "L" : i === 2 ? "E" : i === 5 && x < .01 ? "S" : x < .3 ? "L" : "E";
+    // God pack : au plus une Épique, le reste en Mythique, avec 5 % de chance de Suprême par carte
+    if (god) r = i === 1 && x < .5 ? "E" : x > .95 ? "S" : "L";
     else if (i <= 3) r = x < .08 ? "R" : "C";
     else if (i === 4) r = x < .12 ? "E" : "R";
     else r = x < .001 ? "S" : x < .031 ? "L" : x < .22 ? "E" : "R";
     res.push(pioche(r) + (Math.random() < (god ? .25 : .04) ? "*" : ""));
+  }
+  if (god && !res.some((k) => !possede(k.replace("*", "")))) {
+    const neuves = (rs) => CARTES.filter((c) => c.se === se && rs.includes(c.r) && !possede(c.id));
+    let n = neuves(["L", "S"]), place = 1 + Math.floor(Math.random() * 4);
+    if (!n.length) { n = neuves(["E"]); place = 0; }
+    if (n.length) res[place] = n[Math.floor(Math.random() * n.length)].id + (Math.random() < .25 ? "*" : "");
   }
   return res;
 }
@@ -6603,8 +6622,8 @@ async function ouvrirBooster() {
     return;
   }
   const cartes = r.cartes.map(String);
-  // Un booster normal n'a jamais de Mythique en 1re carte : c'est la signature d'un god pack
-  godPack = PAR_ID[cartes[0].replace("*", "")]?.r === "L";
+  // Un booster normal a toujours des Communes ou des Rares : un booster sans aucune, c'est un god pack
+  godPack = cartes.every((k) => ["E", "L", "S"].includes(PAR_ID[k.replace("*", "")]?.r));
   cartes.forEach((k) => (collection[k] = (collection[k] || 0) + 1));
   majCompteurs();
   // Les plus rares à la fin, pour le suspense
@@ -6616,14 +6635,12 @@ function montrerOuverture(ordre, avant) {
   const o = $("ouverture");
   o.hidden = false; document.body.style.overflow = "hidden";
   $("paquetOuverture").innerHTML = paquetHTML("min(240px, 52vw)", serieActive);
-  o.classList.toggle("god", godPack);
-  if (godPack) { $("paquetOuverture").querySelector(".paquet").classList.add("god"); setTimeout(() => { flash(); Son.corne(); }, 300); }
+  o.classList.remove("god");
   $("ouvTitre").textContent = `Booster · série ${serieActive} « ${SERIES[serieActive].nom} »`;
   $("paquetOuverture").style.display = "";
   $("tirage").className = "tirage"; $("tirage").innerHTML = "";
   $("ouvPied").innerHTML = "";
-  $("aide").hidden = false; $("aide").textContent = godPack ? "✨ GOD PACK ! Clique pour l'ouvrir ✨" : "Clique sur le booster pour le déchirer";
-  $("ouvTitre").textContent = (godPack ? "✨ GOD PACK ✨ · " : "") + $("ouvTitre").textContent;
+  $("aide").hidden = false; $("aide").textContent = "Clique sur le booster pour le déchirer";
   const paquet = $("paquetOuverture").querySelector(".paquet");
   let ouvert = false;
   const briser = async () => {
@@ -6632,12 +6649,25 @@ function montrerOuverture(ordre, avant) {
     paquet.classList.remove("secoue"); paquet.classList.add("ouvert"); Son.dechire(); await pause(650);
     paquet.classList.add("vide"); await pause(350);
     $("paquetOuverture").style.display = "none";
+    if (godPack) await annonceGod(o);
     distribuer(ordre, avant);
   };
   paquet.addEventListener("click", briser);
   paquet.setAttribute("role", "button"); paquet.tabIndex = 0;
   paquet.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); briser(); } });
   paquet.focus({ preventScroll: true });
+}
+// Le god pack se révèle une fois le booster déchiré, avant de retourner les cartes
+async function annonceGod(o) {
+  o.classList.add("god");
+  $("ouvTitre").textContent = "✨ GOD PACK ✨ · " + $("ouvTitre").textContent;
+  const a = document.createElement("div");
+  a.className = "god-annonce";
+  a.innerHTML = `<div class="god-eclat"></div><div class="god-titre">${lettres("GOD PACK")}</div><div class="god-sous">Que des Mythiques et des Suprêmes… ou presque !</div>`;
+  $("tirage").before(a);
+  flash(); Son.corne(); await pause(350); flash(); Son.rare("S");
+  await pause(2600);
+  a.classList.add("part"); await pause(450); a.remove();
 }
 function distribuer(ordre, avant) {
   const t = $("tirage");
@@ -6919,7 +6949,7 @@ function afficherClasseur() {
   $("grille").innerHTML = liste.length ? liste.map((c) => {
     const nb = possede(c.id), holo = (collection[c.id + "*"] || 0) > 0;
     if (!nb) return `<div class="case"><div class="manquante"><b>${String(c.i + 1).padStart(2, "0")}</b><span>${RARETES[c.r]}</span><span>???</span></div></div>`;
-    return `<div class="case">${nb > 1 ? `<span class="compte">×${nb}</span><button class="recycler" type="button" data-recycler="${c.id}" title="Recycler un doublon">♻ +${POUSSIERE[c.r]}</button>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
+    return `<div class="case">${nb > 1 ? `<span class="compte">×${nb}</span><button class="recycler" type="button" data-recycler="${c.id}" title="Recycler un doublon">♻ +${POUSSIERE[c.r] * ((collection[c.id] || 0) > 0 ? 1 : 2)}</button>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
   }).join("") : `<p class="vide-classeur">Aucune carte ici pour l'instant.</p>`;
 }
 
@@ -7306,7 +7336,10 @@ const POUSSIERE = { C: 1, R: 2, E: 3, L: 10, S: 25 };
 // Ce que rapporterait le recyclage de tous les doublons (on garde toujours 1 exemplaire, de préférence holo)
 function doublons() {
   let cartes = 0, gain = 0;
-  CARTES.forEach((c) => { const t = possede(c.id); if (t > 1) { cartes += t - 1; gain += (t - 1) * POUSSIERE[c.r]; } });
+  CARTES.forEach((c) => {
+    const n = collection[c.id] || 0, h = collection[c.id + "*"] || 0, t = n + h;
+    if (t > 1) { const rn = Math.min(n, t - 1); cartes += t - 1; gain += (rn + 2 * (t - 1 - rn)) * POUSSIERE[c.r]; }
+  });
   return { cartes, gain };
 }
 Local.recycler = async function (id) {
@@ -7318,7 +7351,7 @@ Local.recycler = async function (id) {
     const extra = id ? 1 : total - 1, rn = Math.min(n, extra), rh = extra - rn;
     if (n - rn > 0) d.cartes[c.id] = n - rn; else delete d.cartes[c.id];
     if (h - rh > 0) d.cartes[c.id + "*"] = h - rh; else delete d.cartes[c.id + "*"];
-    cartes += extra; gain += extra * POUSSIERE[c.r];
+    cartes += extra; gain += (rn + 2 * rh) * POUSSIERE[c.r];
   });
   const q = (d.poussiere || 0) + gain, b = Math.floor(q / 100);
   d.poussiere = q % 100; d.bonus = (d.bonus || 0) + b;
@@ -7328,7 +7361,7 @@ Local.recycler = async function (id) {
 function blocPoussiere() {
   const q = (etat && etat.poussiere) || 0, { cartes, gain } = doublons();
   return `<div class="poussiere">
-    <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${q} / 100</b><div class="obj-barre"><i style="width:${q}%"></i></div><small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 · Suprême +25 par doublon recyclé. À 100, tu gagnes un booster.</small></div>
+    <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${q} / 100</b><div class="obj-barre"><i style="width:${q}%"></i></div><small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 · Suprême +25 par doublon recyclé, le double pour une holo. À 100, tu gagnes un booster.</small></div>
     <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${gain})` : "Aucun doublon à recycler"}</button>
   </div>`;
 }

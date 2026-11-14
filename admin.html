@@ -427,7 +427,7 @@ alter table public.tcg_ouvertures add column if not exists god boolean not null 
 -- Tirage fait par le serveur : impossible de choisir ses cartes depuis le navigateur. Chaque série a son booster.
 drop function if exists public.tcg_ouvrir();
 create or replace function public.tcg_ouvrir(p_serie int default 1) returns text[] language plpgsql security definer set search_path = public as $$
-declare n int; src text; res text[] := '{}'; i int; r float; pool text[]; c text; tot int; god boolean;
+declare n int; src text; res text[] := '{}'; i int; r float; pool text[]; c text; tot int; god boolean; neuve text; place int;
   communes text[]; rares text[]; epiques text[]; legendaires text[]; supremes text[];
 begin
   if auth.uid() is null then raise exception 'connexion requise'; end if;
@@ -449,18 +449,32 @@ begin
     src := 'bonus';
   end if;
   -- God pack : 1 booster sur 100 garanti (le 100e, le 200e…), sinon 1 chance sur 1000.
-  -- Dedans : une Mythique, une Épique, puis que des Épiques ou mieux.
+  -- Dedans : au plus une Épique, tout le reste en Mythique ou Suprême (5 % de Suprême par carte).
   select count(*) into tot from tcg_ouvertures where joueur = auth.uid();
   god := (tot + 1) % 100 = 0 or random() < 0.001;
+  -- God pack : au moins une carte que le joueur n'a pas encore (Mythique ou Suprême, sinon Épique)
+  if god then
+    select v.carte into neuve from tcg_valeurs v where v.serie = p_serie and v.rarete in ('L', 'S')
+      and not exists (select 1 from tcg_cartes t where t.joueur = auth.uid() and replace(t.carte, '*', '') = v.carte and t.nombre > 0)
+      order by random() limit 1;
+    place := 2 + floor(random() * 4)::int;
+    if neuve is null then
+      select v.carte into neuve from tcg_valeurs v where v.serie = p_serie and v.rarete = 'E'
+        and not exists (select 1 from tcg_cartes t where t.joueur = auth.uid() and replace(t.carte, '*', '') = v.carte and t.nombre > 0)
+        order by random() limit 1;
+      place := 1;
+    end if;
+  end if;
   for i in 1..5 loop
     r := random();
     -- Suprême : 1 booster sur 1000. Mythique : environ 3 %. Épique : environ 30 %.
-    if god then pool := case when i = 1 then legendaires when i = 2 then epiques when i = 5 and r < 0.01 then supremes when r < 0.3 then legendaires else epiques end;
+    if god then pool := case when i = 1 and r < 0.5 then epiques when r > 0.95 then supremes else legendaires end;
     elsif i <= 3 then pool := case when r < 0.08 then rares else communes end;
     elsif i = 4 then pool := case when r < 0.12 then epiques else rares end;
     else pool := case when r < 0.001 then supremes when r < 0.031 then legendaires when r < 0.22 then epiques else rares end;
     end if;
     c := pool[1 + floor(random() * array_length(pool, 1))::int];
+    if god and i = place and neuve is not null then c := neuve; end if;
     if random() < (case when god then 0.25 else 0.04 end) then c := c || '*'; end if;
     res := res || c;
     insert into tcg_cartes (joueur, carte, nombre) values (auth.uid(), c, 1)
@@ -1072,7 +1086,8 @@ begin
     update tcg_cartes set nombre = nombre - rn where joueur = auth.uid() and carte = r.base and rn > 0;
     update tcg_cartes set nombre = nombre - rh where joueur = auth.uid() and carte = r.base || '*' and rh > 0;
     nb := nb + extra;
-    gain := gain + extra * case r.rarete when 'C' then 1 when 'R' then 2 when 'E' then 3 when 'L' then 10 else 25 end;
+    -- Une holo recyclée rapporte le double
+    gain := gain + (rn + 2 * rh) * case r.rarete when 'C' then 1 when 'R' then 2 when 'E' then 3 when 'L' then 10 else 25 end;
   end loop;
   delete from tcg_cartes where joueur = auth.uid() and nombre <= 0;
   insert into tcg_poussiere (joueur, quantite) values (auth.uid(), gain)
