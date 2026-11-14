@@ -859,13 +859,16 @@ begin
   else
     p_bot := greatest(1, least(4, coalesce(p_bot, 1)));
     if p_bot = 4 then
-      -- Le Roi des Suprêmes : 5 Suprêmes tirées au hasard. Elles ont parfois des étoiles :
-      -- 30 % aucune, 40 % de 1 à 8, 25 % de 9 à 15, 5 % de 16 à 22 (en moyenne +12 % de puissance)
-      select array_agg(carte order by random()) into lui from (select carte from tcg_valeurs where rarete = 'S' order by random() limit 5) t;
+      -- Le Roi des Suprêmes : surtout des Suprêmes, parfois 1 ou 2 Mythiques (40 % aucune, 40 % une, 20 % deux).
+      -- Ses Suprêmes ont parfois des étoiles : 25 % aucune, 40 % de 1 à 8, 28 % de 9 à 15, 7 % de 16 à 22
+      tir := random();
+      select array_agg(carte order by random()) into lui from (
+        (select carte from tcg_valeurs where rarete = 'S' order by random() limit (case when tir < 0.4 then 5 when tir < 0.8 then 4 else 3 end))
+        union all (select carte from tcg_valeurs where rarete = 'L' order by random() limit (case when tir < 0.4 then 0 when tir < 0.8 then 1 else 2 end))) t;
       for i in 1..5 loop
         if (select rarete from tcg_valeurs where carte = lui[i]) = 'S' then
           tir := random();
-          eb[i] := case when tir < 0.30 then 0 when tir < 0.70 then 1 + floor(random() * 8) when tir < 0.95 then 9 + floor(random() * 7) else 16 + floor(random() * 7) end;
+          eb[i] := case when tir < 0.25 then 0 when tir < 0.65 then 1 + floor(random() * 8) when tir < 0.93 then 9 + floor(random() * 7) else 16 + floor(random() * 7) end;
         end if;
       end loop;
     else

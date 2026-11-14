@@ -6737,9 +6737,8 @@ async function retourner(slot) {
   if (cinemaEnCours) return;
   const r = slot.dataset.r;
   // Dans un god pack, les Épiques se retournent sans cinématique (sinon c'est trop long)
-  // Dans un god pack, seule la Suprême a sa grande cinématique : les autres se retournent simplement (sinon c'est illisible)
-  if (["E", "L", "S"].includes(r) && !reduit && !(godPack && r !== "S")) await cinema(slot.dataset.cle, r);
-  if (godPack && r === "L") setTimeout(() => Son.rare("E"), 200);
+  // Dans un god pack : chaque Mythique et la Suprême ont leur animation ; les Épiques se retournent simplement (pour garder le rythme)
+  if (["E", "L", "S"].includes(r) && !reduit && !(godPack && r === "E")) await cinema(slot.dataset.cle, r);
   slot.classList.add("vue"); Son.retourne();
   if (r === "R") setTimeout(() => Son.rare(r), 250);
   if (![...$("tirage").querySelectorAll(".slot")].some((s) => !s.classList.contains("vue"))) finOuverture();
@@ -7145,7 +7144,7 @@ const BOTS = {
   1: { nom: "Le débutant", av: "🐣", txt: "Communes et Rares · entraînement, pas de booster", rar: ["C", "R"], prix: 0 },
   2: { nom: "La collectionneuse", av: "💼", txt: "Rares et Épiques · victoire = 1 booster", rar: ["R", "E"], prix: 1 },
   3: { nom: "Le boss", av: "👑", txt: "Épiques et Mythiques · victoire = 2 boosters", rar: ["E", "L"], prix: 2 },
-  4: { nom: "Le Roi des Suprêmes", av: "🐉", txt: "5 Suprêmes, parfois étoilées · victoire = 3 boosters", rar: ["S"], prix: 3 },
+  4: { nom: "Le Roi des Suprêmes", av: "🐉", txt: "Suprêmes parfois étoilées et Mythiques · victoire = 3 boosters", rar: ["S"], prix: 3 },
 };
 const puissance = (cle, et) => { const c = PAR_ID[cle.replace("*", "")]; return c ? Math.round(c.pw * (cle.endsWith("*") ? 1.1 : 1) * (1 + .02 * (et ?? etoilesDe(c)))) : 0; };
 let adversaire = { type: "bot", bot: 1 }, deck = [], joueursDuel = null, dernierDuel = null;
@@ -7154,10 +7153,14 @@ Local.combat = async function (main, bot) {
   const d = this.lire();
   if (main.some((k) => !(d.cartes || {})[k])) return { erreur: "carte non possédée" };
   const B = BOTS[bot] || BOTS[1];
-  const pool = CARTES.filter((c) => B.rar.includes(c.r)).map((c) => c.id).sort(() => Math.random() - .5).slice(0, 5);
-  // Le Roi des Suprêmes : 5 Suprêmes, parfois avec des étoiles (30 % aucune, 40 % 1-8, 25 % 9-15, 5 % 16-22)
+  const melange = (l) => l.sort(() => Math.random() - .5);
+  let pool = melange(CARTES.filter((c) => B.rar.includes(c.r)).map((c) => c.id)).slice(0, 5);
+  // Le Roi des Suprêmes : surtout des Suprêmes, parfois 1 ou 2 Mythiques (40 % aucune, 40 % une, 20 % deux)
+  if (bot === 4) { const t = Math.random(), nl = t < .4 ? 0 : t < .8 ? 1 : 2, de = (r) => melange(CARTES.filter((c) => c.r === r).map((c) => c.id));
+    pool = melange([...de("S").slice(0, 5 - nl), ...de("L").slice(0, nl)]); }
+  // Ses Suprêmes ont parfois des étoiles : 25 % aucune, 40 % de 1 à 8, 28 % de 9 à 15, 7 % de 16 à 22
   const eb = pool.map((k) => { if (bot !== 4 || PAR_ID[k].r !== "S") return 0; const t = Math.random(), x = Math.random();
-    return t < .3 ? 0 : t < .7 ? 1 + Math.floor(x * 8) : t < .95 ? 9 + Math.floor(x * 7) : 16 + Math.floor(x * 7); });
+    return t < .25 ? 0 : t < .65 ? 1 + Math.floor(x * 8) : t < .93 ? 9 + Math.floor(x * 7) : 16 + Math.floor(x * 7); });
   const manches = main.map((a, i) => ({ a, b: pool[i], eb: eb[i], pa: Math.round(puissance(a) * (.85 + Math.random() * .3)), pb: Math.round(puissance(pool[i], eb[i]) * (.85 + Math.random() * .3)) }));
   const ga = manches.filter((m) => m.pa >= m.pb).length, victoire = ga >= 3;
   const gain = victoire ? B.prix : 0;
