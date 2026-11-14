@@ -273,6 +273,8 @@ declare ancien numeric; ancien_ordre text; ancien_libelle text;
 begin
   if auth.uid() is null then return null; end if;
   if p_ordre not in ('haut', 'bas', 'cumul') then p_ordre := 'haut'; end if;
+  -- Objectifs du jour des jeux : une victoire ou un score envoyé compte comme une action réussie
+  begin perform public.jeu_noter(left(p_jeu, 40), case when p_ordre = 'cumul' then 'victoire' else 'action' end, 1); exception when undefined_function or undefined_table then null; end;
   -- Carte Grise : les points sont calculés par le serveur, pas envoyés par le navigateur
   if left(p_jeu, 40) = 'jmwdr0y57' then return null; end if;
   insert into profils (id, pseudo) select auth.uid(), 'Joueur' where not exists (select 1 from profils where id = auth.uid());
@@ -918,6 +920,102 @@ begin
 end $$;
 drop trigger if exists tcg_cadre_profil on public.profils;
 create trigger tcg_cadre_profil before insert or update on public.profils for each row execute function public.tcg_verifier_cadre();
+
+-- ---------- Objectifs du jour des jeux du site (hors CARDS CENTER) et leurs cadres ----------
+-- Chaque jeu a 3 objectifs par jour. Les réussir tous 3 jours différents débloque le cadre du jeu.
+create table if not exists public.jeu_journal (
+  joueur uuid not null references public.profils(id) on delete cascade,
+  jeu text not null,
+  jour date not null,
+  secondes int not null default 0,
+  sessions int not null default 0,
+  victoires int not null default 0,
+  actions int not null default 0,
+  derniere timestamptz,
+  derniere_action timestamptz,
+  complet boolean not null default false,
+  primary key (joueur, jeu, jour)
+);
+alter table public.jeu_journal enable row level security;
+create or replace function public.jeu_defs() returns jsonb language sql immutable as $$ select '{
+  "jmvgdsi5v": {"nom": "Golf with TEC3H", "cadre": "golf", "obj": [["secondes", 600, "Joue 10 minutes"], ["sessions", 2, "Lance 2 parties d''au moins 1 minute"], ["actions", 1, "Termine un parcours"]]},
+  "jmvgplix8": {"nom": "BRELAN", "cadre": "brelan", "obj": [["secondes", 600, "Joue 10 minutes"], ["sessions", 2, "Lance 2 parties d''au moins 1 minute"], ["actions", 1, "Passe un niveau en solo"]]},
+  "jmvhuwavm": {"nom": "Loup-Garou de Brumeval", "cadre": "loup", "obj": [["secondes", 600, "Joue 10 minutes"], ["sessions", 2, "Lance 2 parties d''au moins 1 minute"], ["victoires", 1, "Gagne une partie"]]},
+  "jmvp0a0wh": {"nom": "Bal Masqué", "cadre": "bal", "obj": [["secondes", 600, "Joue 10 minutes"], ["sessions", 2, "Lance 2 parties d''au moins 1 minute"], ["victoires", 1, "Gagne une partie"]]},
+  "jmvz9p0v8": {"nom": "La Bousculade", "cadre": "bousc", "obj": [["secondes", 600, "Joue 10 minutes"], ["sessions", 2, "Lance 2 parties d''au moins 1 minute"], ["victoires", 1, "Gagne une partie avec des amis"]]},
+  "jmw0lc154": {"nom": "Zone 777", "cadre": "z777", "obj": [["secondes", 600, "Joue 10 minutes"], ["sessions", 2, "Lance 2 parties d''au moins 1 minute"], ["actions", 1, "Termine une nuit"]]},
+  "jmw0rvbcc": {"nom": "Cul Sec !", "cadre": "culsec", "obj": [["secondes", 600, "Joue 10 minutes"], ["sessions", 2, "Lance 2 parties d''au moins 1 minute"], ["secondes", 1200, "Joue 20 minutes au total"]]}
+}'::jsonb $$;
+create or replace function public.jeu_aujourdhui() returns date language sql stable as $$ select (now() at time zone 'Europe/Paris')::date $$;
+-- État des objectifs du jour d'un jeu ; débloque le cadre au 3e jour complet
+create or replace function public.jeu_verifier(p_jeu text) returns json language plpgsql security definer set search_path = public as $$
+declare d jsonb := jeu_defs() -> p_jeu; j jeu_journal; o jsonb; liste jsonb := '[]'; tous boolean := true; v int; jours int; deb boolean;
+begin
+  if auth.uid() is null or d is null then return null; end if;
+  select * into j from jeu_journal where joueur = auth.uid() and jeu = p_jeu and jour = jeu_aujourdhui();
+  for o in select * from jsonb_array_elements(d -> 'obj') loop
+    v := case o ->> 0 when 'secondes' then coalesce(j.secondes, 0) when 'sessions' then coalesce(j.sessions, 0) when 'victoires' then coalesce(j.victoires, 0) else coalesce(j.actions, 0) end;
+    liste := liste || jsonb_build_object('nom', o ->> 2, 'type', o ->> 0, 'val', least(v, (o ->> 1)::int), 'but', (o ->> 1)::int, 'fait', v >= (o ->> 1)::int);
+    if v < (o ->> 1)::int then tous := false; end if;
+  end loop;
+  if tous and j.joueur is not null and not j.complet then
+    update jeu_journal set complet = true where joueur = auth.uid() and jeu = p_jeu and jour = j.jour;
+  end if;
+  select count(*) into jours from jeu_journal where joueur = auth.uid() and jeu = p_jeu and complet;
+  if jours >= 3 then insert into tcg_cadres (joueur, cadre) values (auth.uid(), d ->> 'cadre') on conflict do nothing; end if;
+  deb := exists (select 1 from tcg_cadres where joueur = auth.uid() and cadre = d ->> 'cadre');
+  return json_build_object('jeu', p_jeu, 'cadre', d ->> 'cadre', 'objectifs', liste, 'complet', tous, 'jours', jours, 'jours_but', 3, 'debloque', deb);
+end $$;
+-- Ajoute au journal du jour (appelé par le site, jamais directement par le navigateur)
+create or replace function public.jeu_noter(p_jeu text, p_type text, p_val int default 1) returns void language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null or not (jeu_defs() ? p_jeu) then return; end if;
+  insert into profils (id, pseudo) select auth.uid(), 'Joueur' where not exists (select 1 from profils where id = auth.uid());
+  insert into jeu_journal (joueur, jeu, jour) values (auth.uid(), p_jeu, jeu_aujourdhui()) on conflict do nothing;
+  if p_type = 'victoire' then
+    update jeu_journal set victoires = victoires + 1, actions = actions + 1 where joueur = auth.uid() and jeu = p_jeu and jour = jeu_aujourdhui();
+  elsif p_type = 'action' then
+    update jeu_journal set actions = actions + 1, derniere_action = now() where joueur = auth.uid() and jeu = p_jeu and jour = jeu_aujourdhui()
+      and (derniere_action is null or derniere_action < now() - interval '20 seconds');
+  end if;
+  perform jeu_verifier(p_jeu);
+end $$;
+revoke all on function public.jeu_noter(text, text, int) from public, anon, authenticated;
+revoke all on function public.jeu_verifier(text) from public, anon, authenticated;
+-- Temps de jeu : le site envoie une minute toutes les minutes pendant qu'on joue (au plus 6 h par jour et par jeu)
+create or replace function public.jeu_session(p_jeu text, p_secondes int, p_nouvelle boolean default false) returns json language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null or not (jeu_defs() ? p_jeu) then return null; end if;
+  insert into profils (id, pseudo) select auth.uid(), 'Joueur' where not exists (select 1 from profils where id = auth.uid());
+  insert into jeu_journal (joueur, jeu, jour) values (auth.uid(), p_jeu, jeu_aujourdhui()) on conflict do nothing;
+  update jeu_journal set
+    secondes = least(secondes + least(greatest(coalesce(p_secondes, 0), 0), 75), 21600),
+    sessions = sessions + case when p_nouvelle then 1 else 0 end,
+    derniere = now()
+  where joueur = auth.uid() and jeu = p_jeu and jour = jeu_aujourdhui()
+    and (derniere is null or derniere < now() - interval '45 seconds');
+  return jeu_verifier(p_jeu);
+end $$;
+-- Action propre à un jeu qui n'envoie pas de score (ex. Zone 777 : une nuit terminée)
+create or replace function public.jeu_evenement(p_jeu text, p_type text default 'action') returns json language plpgsql security definer set search_path = public as $$
+begin
+  perform jeu_noter(left(p_jeu, 40), 'action', 1);
+  return jeu_verifier(left(p_jeu, 40));
+end $$;
+create or replace function public.jeu_objectifs(p_jeu text) returns json language sql security definer set search_path = public as $$ select jeu_verifier(p_jeu) $$;
+-- Pour la page de profil : la progression vers le cadre de chaque jeu
+create or replace function public.jeu_objectifs_resume() returns json language sql stable security definer set search_path = public as $$
+  select coalesce(json_object_agg(k, json_build_object('jours', (select count(*) from jeu_journal where joueur = auth.uid() and jeu = k and complet), 'cadre', v ->> 'cadre')), '{}'::json)
+  from jsonb_each(jeu_defs()) as e(k, v) where auth.uid() is not null
+$$;
+revoke all on function public.jeu_session(text, int, boolean) from public, anon;
+revoke all on function public.jeu_evenement(text, text) from public, anon;
+revoke all on function public.jeu_objectifs(text) from public, anon;
+revoke all on function public.jeu_objectifs_resume() from public, anon;
+grant execute on function public.jeu_session(text, int, boolean) to authenticated;
+grant execute on function public.jeu_evenement(text, text) to authenticated;
+grant execute on function public.jeu_objectifs(text) to authenticated;
+grant execute on function public.jeu_objectifs_resume() to authenticated;
 
 -- Jours et semaines à l'heure de Paris (la semaine commence le lundi)
 create or replace function public.tcg_debut_jour() returns timestamptz language sql stable as $$ select ((now() at time zone 'Europe/Paris')::date)::timestamp at time zone 'Europe/Paris' $$;

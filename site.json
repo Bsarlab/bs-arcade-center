@@ -157,7 +157,8 @@
       ],
       "video": "images/zone-777-apercu.mp4",
       "solo": true,
-      "enLigne": true
+      "enLigne": true,
+      "version": "dacdc447"
     },
     {
       "id": "jmw0rvbcc",
@@ -186,7 +187,7 @@
       "captures": [],
       "solo": true,
       "enLigne": false,
-      "version": "dabeef18"
+      "version": "dacdc447"
     }
   ],
   "blocs": [

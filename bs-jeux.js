@@ -30,6 +30,8 @@
     connecte: !!profil,
     score: function (valeur, options) { return appeler("score", [Number(valeur), options || {}]); },
     victoire: function () { return appeler("victoire", []); },
+    // BS.evenement("nuit") -> compte une action réussie pour les objectifs du jour du jeu
+    evenement: function (type) { return appeler("evenement", [String(type || "action")]); },
     tcg: function (action, args) { return appeler("tcg", [action, args || {}]); },
   };
   // Mise à jour si le joueur se connecte pendant que le jeu est ouvert

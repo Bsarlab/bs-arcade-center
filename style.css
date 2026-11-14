@@ -1264,3 +1264,22 @@ form.carte-amis > .btn { justify-self: start; }
 .choix-cadre.verrou .choix-cadre-img { filter: saturate(.55) brightness(.85); }
 .choix-cadre:disabled:not(.verrou) { cursor: default; opacity: .6; }
 .choix-cadre[aria-pressed="true"] { border-color: currentColor; }
+
+/* ---------- Objectifs du jour d'un jeu (page du jeu) ---------- */
+.objectifs-jeu { display: grid; grid-template-columns: 1fr 220px; gap: clamp(18px, 3vw, 32px); align-items: center; padding: clamp(20px, 4vw, 32px); border-radius: var(--r-l); background: var(--carte); box-shadow: var(--ombre); }
+.objectifs-liste h2 { margin: 4px 0 14px; }
+.objectifs-liste ul { list-style: none; margin: 0 0 12px; padding: 0; display: grid; gap: 10px; }
+.objectifs-liste li { display: grid; grid-template-columns: 28px 1fr auto; align-items: center; gap: 12px; padding: 10px 14px; border-radius: 14px; background: rgba(127,127,127,.1); }
+.objectifs-liste li b { display: block; font-size: 15px; margin-bottom: 6px; }
+.objectifs-liste li i { display: block; height: 6px; border-radius: 6px; background: linear-gradient(90deg, var(--principal, #ff4fa3) var(--p), rgba(127,127,127,.25) var(--p)); }
+.objectifs-liste li small { font-variant-numeric: tabular-nums; opacity: .75; }
+.objectifs-liste .coche { display: grid; place-items: center; width: 28px; height: 28px; border-radius: 50%; border: 2px solid rgba(127,127,127,.45); font-weight: 900; }
+.objectifs-liste li.fait .coche { background: #16a34a; border-color: #16a34a; color: #fff; }
+.objectifs-liste li.fait b { text-decoration: line-through; opacity: .7; }
+.objectifs-cadre { display: grid; justify-items: center; text-align: center; gap: 6px; padding: 34px 12px 16px; border-radius: 18px; background: rgba(127,127,127,.1); }
+.objectifs-cadre .choix-cadre-img { width: 110px; height: 110px; margin-bottom: 18px; }
+.objectifs-cadre .choix-cadre-img img { width: 76px; height: 76px; border-radius: 50%; object-fit: cover; }
+.objectifs-cadre small { font-size: 12px; opacity: .8; line-height: 1.4; }
+.objectifs-cadre.verrou .choix-cadre-img { filter: saturate(.55) brightness(.85); }
+.choix-cadre small em { font-style: normal; font-weight: 700; display: block; margin-top: 3px; }
+@media (max-width: 700px) { .objectifs-jeu { grid-template-columns: 1fr; } }

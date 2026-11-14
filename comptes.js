@@ -176,13 +176,16 @@
   };
 
   // ---------- Cadres gagnés dans CARDS CENTER : on choisit celui qui s'affiche autour de sa photo, partout sur le site ----------
-  const NOMS_CADRES = { or: "Champion de la ligue", argent: "2e de la ligue", bronze: "3e de la ligue", top10: "Top 10 de la ligue", assidu: "Assidu", supreme: "Suprême", god: "Béni des dieux" };
+  const NOMS_CADRES = { or: "Dragon rouge", argent: "Couronne d'argent", bronze: "Couronne de bronze", top10: "Top 10 de la ligue", assidu: "Assidu", supreme: "Suprême", god: "Béni des dieux" };
   async function remplirCadres() {
     const z = $("cadresProfil"); if (!z || !sb || !session) return;
     const { data, error } = await sb.rpc("tcg_cadres_lire");
     if (error || !data || !$("cadresProfil")) return;
     const base = (imageSure(data.avatar) || "").replace(/#c=[a-z0-9]+$/, ""), actuel = ((data.avatar || "").match(/#c=([a-z0-9]+)$/) || [])[1] || "";
     const liste = data.cadres || [], apercu = base || AVATARS[0];
+    // Progression vers les cadres des autres jeux (objectifs du jour)
+    let prog = {};
+    try { const r = await sb.rpc("jeu_objectifs_resume"); Object.values(r.data || {}).forEach((v) => (prog[v.cadre] = v.jours)); } catch {}
     const catalogue = (window.BS_CADRES && BS_CADRES.jeux) || [];
     z.innerHTML = `<p class="sous-titre">Mes cadres de profil</p>
       <p class="meta">Ton cadre s'affiche autour de ta photo partout sur le site. Les cadres verrouillés montrent ce que tu peux gagner.</p>
@@ -193,7 +196,7 @@
         ${g.cadres.map((c) => { const a = liste.includes(c.id);
           return `<button type="button" class="choix-cadre${a ? "" : " verrou"}" ${a && base ? `data-cadre-profil="${esc(c.id)}"` : "disabled"} aria-pressed="${actuel === c.id}" title="${esc(c.comment)}">
             <span class="choix-cadre-img"><img src="${esc(apercu + "#c=" + c.id)}" alt=""></span><b>${esc(c.nom)}</b>
-            <small>${a ? (actuel === c.id ? "Affiché" : "Débloqué · clique pour l'afficher") : "🔒 " + esc(c.comment)}</small></button>`; }).join("")}
+            <small>${a ? (actuel === c.id ? "Affiché" : "Débloqué · clique pour l'afficher") : "🔒 " + esc(c.comment) + (c.id in prog ? ` <em>${prog[c.id]} / 3 jours</em>` : "")}</small></button>`; }).join("")}
       </div></div>`).join("")}`;
   }
   document.addEventListener("click", async (e) => {
@@ -390,6 +393,56 @@
       ? "Score non enregistré : la base des classements n'est pas installée (admin → Comptes → code SQL)."
       : /JWT|401|expired/i.test(m) ? "Score non enregistré : reconnecte-toi à ton compte." : "Score non enregistré : " + (e?.message || "erreur inconnue"), 6000);
   }
+  // ---------- Objectifs du jour des jeux du site (3 par jour ; 3 jours complets = le cadre du jeu) ----------
+  const JEUX_OBJECTIFS = { jmvgdsi5v: "Golf with TEC3H", jmvgplix8: "BRELAN", jmvhuwavm: "Loup-Garou de Brumeval", jmvp0a0wh: "Bal Masqué", jmvz9p0v8: "La Bousculade", jmw0lc154: "Zone 777", jmw0rvbcc: "Cul Sec !" };
+  const etatObjectifs = {};
+  // Pendant qu'on joue (onglet visible), le site compte une minute de jeu toutes les minutes
+  function demarrerChrono(id) {
+    if (!JEUX_OBJECTIFS[id]) return null;
+    let premiere = true;
+    return setInterval(async () => {
+      if (document.visibilityState !== "visible" || !connecte()) return;
+      const { data, error } = await sb.rpc("jeu_session", { p_jeu: id, p_secondes: 60, p_nouvelle: premiere });
+      if (error) { console.warn(error); return; }
+      premiere = false; suivreObjectifs(id, data);
+    }, 60000);
+  }
+  // Prévient le joueur quand il finit ses objectifs du jour ou débloque le cadre du jeu
+  function suivreObjectifs(id, d) {
+    if (!d) return;
+    const avant = etatObjectifs[id]; etatObjectifs[id] = d;
+    if (avant) {
+      const nom = (window.BS_CADRES?.trouver?.(d.cadre) || {}).nom || "du jeu";
+      if (d.debloque && !avant.debloque) notifier(`🎉 Nouveau cadre débloqué : « ${nom} » ! Va dans ton profil pour l'afficher.`, 7000);
+      else if (d.complet && !avant.complet) notifier(`✅ Objectifs du jour réussis (${d.jours} / ${d.jours_but} jours pour le cadre)`, 6000);
+      else d.objectifs.forEach((o, i) => { if (o.fait && !avant.objectifs?.[i]?.fait) notifier(`✅ Objectif réussi : ${o.nom}`, 4500); });
+    }
+    if (document.getElementById("objectifsJeu")?.dataset.jeu === id) dessinerObjectifs(id, d);
+  }
+  function dessinerObjectifs(id, d) {
+    const zone = document.getElementById("objectifsJeu"); if (!zone) return;
+    const c = window.BS_CADRES?.trouver?.(d.cadre), av = (imageSure(profil?.avatar) || "").replace(/#c=[a-z0-9]+$/, "") || AVATARS[0];
+    const pct = (o) => Math.round((o.val / o.but) * 100);
+    const val = (o) => o.type === "secondes" ? `${Math.floor(o.val / 60)} / ${Math.floor(o.but / 60)} min` : `${o.val} / ${o.but}`;
+    zone.innerHTML = `<div class="conteneur"><div class="objectifs-jeu">
+      <div class="objectifs-liste"><p class="etiquette">Objectifs du jour</p><h2>${d.complet ? "Tout est fait pour aujourd'hui !" : "Joue pour gagner le cadre du jeu"}</h2>
+        <ul>${d.objectifs.map((o) => `<li class="${o.fait ? "fait" : ""}"><span class="coche">${o.fait ? "✓" : ""}</span><div><b>${esc(o.nom)}</b><i style="--p:${pct(o)}%"></i></div><small>${val(o)}</small></li>`).join("")}</ul>
+        <p class="meta">Les objectifs reviennent chaque jour à minuit. Le temps compte seulement quand le jeu est ouvert à l'écran.</p></div>
+      <div class="objectifs-cadre${d.debloque ? "" : " verrou"}"><span class="choix-cadre-img"><img src="${esc(av + "#c=" + d.cadre)}" alt=""></span>
+        <b>${esc(c?.nom || "Cadre du jeu")}</b>
+        <small>${d.debloque ? "Débloqué ! Affiche-le depuis ton profil." : `🔒 Réussis tous les objectifs du jour ${d.jours_but} jours différents · ${d.jours} / ${d.jours_but}`}</small></div>
+    </div></div>`;
+  }
+  async function afficherObjectifs(id) {
+    const classement = document.getElementById("classementJeu");
+    if (!JEUX_OBJECTIFS[id] || !classement || !connecte()) { document.getElementById("objectifsJeu")?.remove(); return; }
+    let zone = document.getElementById("objectifsJeu");
+    if (!zone) { zone = document.createElement("section"); zone.className = "section serree"; zone.id = "objectifsJeu"; classement.before(zone); }
+    zone.dataset.jeu = id;
+    const { data, error } = await sb.rpc("jeu_objectifs", { p_jeu: id });
+    if (error || !data) { zone.remove(); return; }
+    etatObjectifs[id] = data; dessinerObjectifs(id, data);
+  }
   window.BS_PLATEFORME = {
     actif: () => actifs(),
     // Avant d'ouvrir un jeu : on remet la sauvegarde du joueur connecté
@@ -415,13 +468,14 @@
       proprios[id] = session.user.id;
       try { localStorage.setItem("bs-proprio-jeux", JSON.stringify(proprios)); } catch {}
       partie = { id, avant: instantane(), cles, envoye: JSON.stringify(restaure), minuterie: setInterval(() => envoyerSauvegarde(false), 20000) };
+      partie.chrono = demarrerChrono(id);
     },
     // Après le jeu (fermeture ou changement) : on envoie la progression
     async apresJeu(id) {
       quitterSalle();
       setTimeout(() => this.envoyerPresence?.(true), 400);
       if (!partie || partie.id !== id) return;
-      clearInterval(partie.minuterie);
+      clearInterval(partie.minuterie); clearInterval(partie.chrono);
       await new Promise((ok) => setTimeout(ok, 60)); // laisse le jeu finir d'écrire
       await envoyerSauvegarde(true);
       partie = null;
@@ -435,6 +489,14 @@
       const { data, error } = await sb.rpc("envoyer_score", { p_jeu: id, p_score: valeur, p_ordre: ordre, p_libelle: String(o.libelle || "").slice(0, 20) });
       if (error) { console.warn(error); erreurScore(error); return null; }
       return data;
+    },
+    // Action propre à un jeu pour ses objectifs du jour (ex. une nuit terminée dans Zone 777)
+    async evenement(type) {
+      const id = (typeof jeuActuel !== "undefined" && jeuActuel?.id) || partie?.id;
+      if (!id || !connecte() || !JEUX_OBJECTIFS[id]) return null;
+      const { data, error } = await sb.rpc("jeu_evenement", { p_jeu: id, p_type: String(type || "action").slice(0, 20) });
+      if (error) { console.warn(error); return null; }
+      suivreObjectifs(id, data); return data;
     },
     // Victoire : +1 au compteur du joueur (une seule fois par partie)
     async victoire() {
@@ -458,6 +520,7 @@
     async afficherClassement(id) {
       const zone = document.getElementById("classementJeu"); if (!zone || !actifs()) return;
       if (!sb) { try { await window.demarrerComptes(); } catch {} }
+      afficherObjectifs(id).catch((e) => console.warn(e));
       const lignes = await this.classement(id);
       if (!document.body.contains(zone)) return;
       const moi = session?.user?.id, unite = uniteScore(lignes[0]);

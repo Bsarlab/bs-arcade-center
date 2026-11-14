@@ -728,7 +728,7 @@ body[data-theme="3"] .scene-paquet::after { background: radial-gradient(closest-
 .ligue-prix li b { min-width: 74px; color: var(--texte); }
 .ligue-prix li span { flex: 1; }
 .cadre-mini { width: 18px; height: 18px; border-radius: 50%; background: var(--nuit3); }
-.cadre-mini.c-or { box-shadow: 0 0 0 3px #ffd23f, 0 0 10px #ffd23f; } .cadre-mini.c-argent { box-shadow: 0 0 0 3px #eef2f8; } .cadre-mini.c-bronze { box-shadow: 0 0 0 3px #e39a5b; } .cadre-mini.c-top10 { box-shadow: 0 0 0 3px #8b5cf6, 0 0 10px #8b5cf6; }
+.cadre-mini.c-or { box-shadow: 0 0 0 3px #ff2b2b, 0 0 10px #ff2b2b; } .cadre-mini.c-argent { box-shadow: 0 0 0 3px #eef2f8; } .cadre-mini.c-bronze { box-shadow: 0 0 0 3px #e39a5b; } .cadre-mini.c-top10 { box-shadow: 0 0 0 3px #8b5cf6, 0 0 10px #8b5cf6; }
 .ligue-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
 .ligue-liste li { display: grid; grid-template-columns: 40px 40px 1fr auto; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 14px; background: rgba(255,255,255,.04); font-family: var(--f-titre); font-weight: 700; font-size: 18px; }
 .ligue-liste li.vide { display: block; color: var(--doux); font-family: var(--f-corps); font-weight: 500; }
@@ -7251,8 +7251,8 @@ function fermerArene() { majBoite(); $("arene").hidden = true; document.body.sty
 
 
 // ---------- Objectifs, ligue, messagerie et cadres de profil ----------
-const CADRES = { or: "Champion de la ligue", argent: "2e de la ligue", bronze: "3e de la ligue", top10: "Top 10 de la ligue", assidu: "Assidu", supreme: "Suprême", god: "Béni des dieux" };
-const RECOMPENSES_LIGUE = [["1er", "15 boosters + cadre Or", "or"], ["2e", "10 boosters + cadre Argent", "argent"], ["3e", "7 boosters + cadre Bronze", "bronze"], ["4e à 10e", "4 boosters + cadre Top 10", "top10"], ["11e à 50e", "2 boosters", ""]];
+const CADRES = { or: "Dragon rouge", argent: "Couronne d'argent", bronze: "Couronne de bronze", top10: "Top 10 de la ligue", assidu: "Assidu", supreme: "Suprême", god: "Béni des dieux" };
+const RECOMPENSES_LIGUE = [["1er", "15 boosters + cadre Dragon rouge", "or"], ["2e", "10 boosters + Couronne d'argent", "argent"], ["3e", "7 boosters + Couronne de bronze", "bronze"], ["4e à 10e", "4 boosters + cadre Top 10", "top10"], ["11e à 50e", "2 boosters", ""]];
 const dans = (iso) => {
   const ms = Date.parse(iso) - (Date.now() + decalage);
   if (!(ms > 0)) return "quelques instants";

@@ -33,20 +33,45 @@
   const svg = (contenu) => `<svg class="cadre-svg" viewBox="-30 -30 160 160" aria-hidden="true" focusable="false">${contenu}</svg>`;
 
   const DESSINS = {
-    // Champion de la ligue : couronne, laurier doré, étincelles qui tournent
-    or: () => svg(`${laurier("#ffd23f", "#e0a800")}${anneau("cd-or", ["#fff3b0", "#ffd23f", "#b8860b", "#ffe680"], 6)}
-      <g>${tourne(14)}${etoile(-14, 50, 5, "#fff3b0", 0)}${etoile(114, 50, 5, "#fff3b0", .8)}${etoile(50, 118, 4, "#ffd23f", .4)}</g>
-      <g><path d="M28 -2 25 -24 38 -12 50 -30 62 -12 75 -24 72 -2Z" fill="#ffd23f" stroke="#8a6400" stroke-width="2" stroke-linejoin="round"/><path d="M28 -2h44v6H28z" fill="#e0a800" stroke="#8a6400" stroke-width="1.5"/>
-      <circle cx="50" cy="-14" r="4" fill="#ff2b55" stroke="#8a6400"/><circle cx="36" cy="-8" r="2.6" fill="#22d3ee"/><circle cx="64" cy="-8" r="2.6" fill="#3ee07a"/>${etoile(50, -34, 4, "#fff", .2)}</g>
-      ${ruban("N°1", "#ffd23f", "#8a6400", "#5a3c00")}`),
-    // 2e : laurier argenté et étoile
-    argent: () => svg(`${laurier("#eef2f8", "#aab4c2")}${anneau("cd-ar", ["#ffffff", "#c9d2de", "#7d8794", "#eef2f8"], 6)}
-      <g>${tourne(16)}${etoile(-12, 50, 4, "#fff", 0)}${etoile(112, 50, 4, "#fff", .7)}</g>
-      ${etoile(50, -12, 11, "#eef2f8")}<circle cx="50" cy="-12" r="3" fill="#7d8794"/>${ruban("2e", "#eef2f8", "#6b7480", "#39404a")}`),
-    // 3e : laurier de bronze
-    bronze: () => svg(`${laurier("#e39a5b", "#b8692c")}${anneau("cd-br", ["#ffd0a6", "#e39a5b", "#7a4a22", "#f0b07a"], 6)}
+    // Champion de la ligue : un dragon rouge enroulé autour de la photo, ailes déployées, éclairs rouges
+    or: () => {
+      const eclair = (x, y, r, d) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 -14 7 -14 2 -3 9 -3 -5 16 -1 3 -7 3Z" fill="#ff2b2b" stroke="#ffd0d0" stroke-width="1" stroke-linejoin="round">${anime ? `<animate attributeName="opacity" values="1;.15;1;1;.4;1" dur="1.3s" begin="${d}s" repeatCount="indefinite"/>` : ""}</path></g>`;
+      const pics = Array.from({ length: 9 }, (_, i) => { const a = 25 + i * 19, [x1, y1] = pt(a - 5, 66), [x2, y2] = pt(a, 74), [x3, y3] = pt(a + 5, 66); return `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}Z" fill="#7a0d12"/>`; }).join("");
+      const [cx1, cy1] = pt(20, 60), [cx2, cy2] = pt(200, 60), [qx, qy] = pt(250, 60), [tx, ty] = pt(262, 61);
+      return svg(`<defs><linearGradient id="cd-dr" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#ff5a3c"/><stop offset=".5" stop-color="#c3121b"/><stop offset="1" stop-color="#5c0509"/></linearGradient></defs>
+        <g>${anime ? `<animateTransform attributeName="transform" type="translate" values="0 0;0 -2;0 0" dur="2s" repeatCount="indefinite"/>` : ""}
+          <path d="M44 -6C30 -30 8 -34 -22 -26c8 4 12 8 12 14-8-3-16-2-22 4 9 1 14 4 16 10-8 0-14 4-16 10 14-6 30-4 44 4Z" fill="#8f0a12" stroke="#ff5a3c" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M56 -6C70 -30 92 -34 122 -26c-8 4-12 8-12 14 8-3 16-2 22 4-9 1-14 4-16 10 8 0 14 4 16 10-14-6-30-4-44 4Z" fill="#8f0a12" stroke="#ff5a3c" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M-2 -22-6 -14M-12 -14-14 -4M102 -22 106 -14M112 -14 114 -4" stroke="#ff8a6b" stroke-width="1.2"/></g>
+        <circle cx="50" cy="50" r="52.5" fill="none" stroke="#2a0306" stroke-width="5"/>
+        ${pics}
+        <path d="M${f(cx1)} ${f(cy1)}A60 60 0 0 1 ${f(cx2)} ${f(cy2)}A60 60 0 0 1 ${f(qx)} ${f(qy)}" fill="none" stroke="url(#cd-dr)" stroke-width="13" stroke-linecap="round"/>
+        <path d="M${f(cx1)} ${f(cy1)}A60 60 0 0 1 ${f(cx2)} ${f(cy2)}" fill="none" stroke="#ffb199" stroke-width="2" stroke-dasharray="3 5" opacity=".7"/>
+        <path d="M${f(qx)} ${f(qy)}L${f(tx - 10)} ${f(ty - 9)}L${f(tx + 2)} ${f(ty - 3)}L${f(tx - 6)} ${f(ty + 8)}Z" fill="#c3121b" stroke="#5c0509" stroke-width="1.5"/>
+        <g transform="translate(${f(cx1)} ${f(cy1)}) rotate(20)">
+          <path d="M-9 4C-12 -8 -6 -18 6 -20 16 -21 24 -16 28 -9L20 -6 26 -2 18 1C12 6 0 10 -9 4Z" fill="url(#cd-dr)" stroke="#5c0509" stroke-width="1.5" stroke-linejoin="round"/>
+          <path d="M0 -18-6 -30 4 -20M8 -20 6 -33 13 -21" fill="#ffd23f" stroke="#8a6400" stroke-width="1"/>
+          <circle cx="12" cy="-12" r="2.6" fill="#ffd23f"/><circle cx="12.6" cy="-12" r="1" fill="#000"/>
+          <path d="M26 -4c6 1 9 -2 12 -6M27 0c6 3 11 2 14 0" fill="none" stroke="#ff8a3c" stroke-width="2" stroke-linecap="round">${scintille(0, .7)}</path></g>
+        ${eclair(-18, 30, -15, 0)}${eclair(118, 22, 20, .45)}${eclair(-12, 100, 25, .8)}${eclair(116, 96, -20, .25)}${eclair(50, 124, 90, .6)}`);
+    },
+    // 2e de la ligue : une grande couronne d'argent sertie de pierres
+    argent: () => svg(`${anneau("cd-ar", ["#ffffff", "#c9d2de", "#7d8794", "#eef2f8"], 6)}
+      <g>${tourne(16)}${etoile(-12, 50, 4, "#fff", 0)}${etoile(112, 50, 4, "#fff", .7)}${etoile(50, 116, 4, "#e6ebf2", .3)}</g>
+      <defs><linearGradient id="cd-arc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset=".55" stop-color="#c9d2de"/><stop offset="1" stop-color="#7d8794"/></linearGradient></defs>
+      <path d="M20 4 14 -26 31 -10 40 -34 50 -16 60 -34 69 -10 86 -26 80 4Z" fill="url(#cd-arc)" stroke="#4b525c" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M19 0h62v8H19z" fill="#aab4c2" stroke="#4b525c" stroke-width="1.5"/>
+      <circle cx="14" cy="-27" r="3.5" fill="#fff" stroke="#4b525c"/><circle cx="40" cy="-35" r="3.5" fill="#fff" stroke="#4b525c"/><circle cx="60" cy="-35" r="3.5" fill="#fff" stroke="#4b525c"/><circle cx="86" cy="-27" r="3.5" fill="#fff" stroke="#4b525c"/>
+      <circle cx="50" cy="-6" r="4.5" fill="#3b82f6" stroke="#4b525c"/><circle cx="32" cy="-2" r="3" fill="#22d3ee"/><circle cx="68" cy="-2" r="3" fill="#22d3ee"/>
+      <circle cx="30" cy="4" r="1.6" fill="#fff"/><circle cx="50" cy="4" r="1.6" fill="#fff"/><circle cx="70" cy="4" r="1.6" fill="#fff"/>${etoile(50, -44, 4, "#fff", .4)}`),
+    // 3e de la ligue : une couronne de bronze
+    bronze: () => svg(`${anneau("cd-br", ["#ffd0a6", "#e39a5b", "#7a4a22", "#f0b07a"], 6)}
       <g>${tourne(18)}${etoile(-12, 50, 4, "#ffd0a6", .3)}${etoile(112, 50, 4, "#ffd0a6", 1)}</g>
-      ${etoile(50, -12, 10, "#e39a5b")}${ruban("3e", "#e39a5b", "#7a4a22", "#3d2410")}`),
+      <defs><linearGradient id="cd-brc" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffd0a6"/><stop offset=".55" stop-color="#d4864a"/><stop offset="1" stop-color="#7a4a22"/></linearGradient></defs>
+      <path d="M24 4 20 -22 36 -8 50 -30 64 -8 80 -22 76 4Z" fill="url(#cd-brc)" stroke="#4a2a10" stroke-width="2" stroke-linejoin="round"/>
+      <path d="M23 0h54v8H23z" fill="#b8692c" stroke="#4a2a10" stroke-width="1.5"/>
+      <circle cx="20" cy="-23" r="3.2" fill="#ffd0a6" stroke="#4a2a10"/><circle cx="50" cy="-31" r="3.6" fill="#ffd0a6" stroke="#4a2a10"/><circle cx="80" cy="-23" r="3.2" fill="#ffd0a6" stroke="#4a2a10"/>
+      <circle cx="50" cy="-6" r="4" fill="#16a34a" stroke="#4a2a10"/><circle cx="36" cy="4" r="1.6" fill="#ffe2c8"/><circle cx="64" cy="4" r="1.6" fill="#ffe2c8"/>`),
     // Top 10 : anneau néon violet, orbite en pointillés, éclairs et bannière
     top10: () => svg(`<circle cx="50" cy="50" r="64" fill="none" stroke="#8b5cf6" stroke-width="2" stroke-dasharray="6 6" opacity=".9">${anime ? `<animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="10s" repeatCount="indefinite"/>` : ""}</circle>
       ${anneau("cd-t10", ["#c4b5fd", "#8b5cf6", "#ff4fa3", "#8b5cf6"], 6)}${orbite(64, ["#22d3ee", "#ffd23f", "#ff4fa3"], 6, -1)}
@@ -84,6 +109,62 @@
         <g>${anime ? `<animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0" dur="2.4s" repeatCount="indefinite"/>` : ""}<ellipse cx="50" cy="-16" rx="26" ry="6.5" fill="none" stroke="#ffd23f" stroke-width="4"/><ellipse cx="50" cy="-16" rx="26" ry="6.5" fill="none" stroke="#fff6c2" stroke-width="1.2"/></g>
         ${orbite(70, ["#fff", "#ffd23f", "#fff", "#ff4fa3"], 9, -1)}${etoile(-20, 96, 5, "#fff", .3)}${etoile(120, 96, 5, "#ffd23f", 1)}`);
     },
+    // ---------- Cadres des autres jeux du site ----------
+    // Golf with TEC3H : gazon, drapeau qui flotte et balle qui fait le tour
+    golf: () => svg(`${anneau("cd-gf", ["#86efac", "#22c55e", "#15803d", "#4ade80"], 7)}
+      ${Array.from({ length: 36 }, (_, i) => { const [x1, y1] = pt(i * 10, 56), [x2, y2] = pt(i * 10 + 3, 62 + (i % 3) * 2); return `<line x1="${f(x1)}" y1="${f(y1)}" x2="${f(x2)}" y2="${f(y2)}" stroke="${i % 2 ? "#16a34a" : "#4ade80"}" stroke-width="2" stroke-linecap="round"/>`; }).join("")}
+      <ellipse cx="88" cy="104" rx="11" ry="4" fill="#0b3d1c"/><line x1="88" y1="104" x2="88" y2="56" stroke="#f5f5f5" stroke-width="2.5"/>
+      <path d="M88 56 112 63 88 71Z" fill="#ef4444" stroke="#991b1b" stroke-width="1">${anime ? `<animate attributeName="d" values="M88 56 112 63 88 71Z;M88 56 110 66 88 71Z;M88 56 112 63 88 71Z" dur="1.4s" repeatCount="indefinite"/>` : ""}</path>
+      <g>${tourne(7)}<circle cx="50" cy="-16" r="6" fill="#fff" stroke="#9ca3af"/><circle cx="48" cy="-18" r=".9" fill="#cbd5e1"/><circle cx="52" cy="-16" r=".9" fill="#cbd5e1"/><circle cx="49" cy="-13" r=".9" fill="#cbd5e1"/></g>`),
+    // BRELAN : des cartes à jouer qui volent autour, et des jetons
+    brelan: () => {
+      const carte = (a, c, coul) => { const [x, y] = pt(a, 66); return `<g transform="translate(${f(x)} ${f(y)}) rotate(${a + 15})"><rect x="-10" y="-14" width="20" height="28" rx="3" fill="#fff" stroke="#111" stroke-width="1"/><text y="6" text-anchor="middle" font-size="16" fill="${coul}" font-family="Arial, sans-serif">${c}</text></g>`; };
+      return svg(`${anneau("cd-bl", ["#fde68a", "#16a34a", "#065f46", "#22c55e"], 6)}
+        <g>${tourne(12)}${carte(0, "♠", "#111")}${carte(90, "♥", "#dc2626")}${carte(180, "♣", "#111")}${carte(270, "♦", "#dc2626")}</g>
+        <g transform="translate(-14 96)">${[0, 5, 10].map((d, i) => `<ellipse cx="0" cy="${-d}" rx="11" ry="4.5" fill="${["#dc2626", "#2563eb", "#111"][i]}" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 3"/>`).join("")}</g>
+        <g transform="translate(114 96)">${[0, 5].map((d, i) => `<ellipse cx="0" cy="${-d}" rx="11" ry="4.5" fill="${["#16a34a", "#f59e0b"][i]}" stroke="#fff" stroke-width="1.5" stroke-dasharray="3 3"/>`).join("")}</g>
+        <g transform="translate(50 -20)"><rect x="-22" y="-8" width="44" height="14" rx="4" fill="#065f46" stroke="#fde68a" stroke-width="1.5"/><text y="3" text-anchor="middle" font-size="9" font-weight="900" fill="#fde68a" font-family="Arial Black, Arial, sans-serif">BRELAN</text></g>`);
+    },
+    // Loup-Garou de Brumeval : pleine lune, loup qui hurle, étoiles et griffures
+    loup: () => svg(`<circle cx="6" cy="2" r="24" fill="#fef3c7" opacity=".95"/><circle cx="0" cy="-4" r="4" fill="#fde68a"/><circle cx="12" cy="10" r="3" fill="#fde68a"/>
+      ${anneau("cd-lg", ["#6366f1", "#1e1b4b", "#312e81", "#818cf8"], 7)}
+      <g transform="translate(96 -4) rotate(-20)"><path d="M-22 26C-24 14-20 4-12 -2L-14 -16-6 -6C-2 -8 2 -8 6 -6L10 -18 12 -4C16 -2 20 0 24 -4 30 -8 34 -12 38 -12 36 -6 30 2 22 6 18 8 14 12 12 18L6 30Z" fill="#1f2937" stroke="#a5b4fc" stroke-width="1.4" stroke-linejoin="round"/><circle cx="8" cy="0" r="1.8" fill="#fde047">${scintille(.2, 2.2)}</circle><path d="M30 -10 36 -16M33 -6 40 -9" stroke="#c7d2fe" stroke-width="1.4" stroke-linecap="round">${scintille(0, 1)}</path></g>
+      ${etoile(30, -18, 3, "#fff", 0)}${etoile(118, -12, 3, "#fff", .5)}${etoile(-20, 40, 3, "#c7d2fe", 1)}
+      <path d="M86 92 100 112M93 89 107 109M100 86 114 106" stroke="#ef4444" stroke-width="3" stroke-linecap="round"/>
+      <g opacity=".55">${anime ? `<animateTransform attributeName="transform" type="translate" values="-4 0;4 0;-4 0" dur="6s" repeatCount="indefinite"/>` : ""}<ellipse cx="20" cy="112" rx="34" ry="6" fill="#c7d2fe"/><ellipse cx="72" cy="118" rx="28" ry="5" fill="#a5b4fc"/></g>`),
+    // Bal Masqué : un masque vénitien à plumes et des confettis
+    bal: () => svg(`${anneau("cd-bm", ["#f0abfc", "#a21caf", "#ffd23f", "#7e22ce"], 6)}
+      <g>${tourne(14)}${["#ff4fa3", "#ffd23f", "#22d3ee", "#a3e635", "#f97316", "#a78bfa"].map((c, i) => { const [x, y] = pt(i * 60 + 20, 64); return `<rect x="${f(x - 2.5)}" y="${f(y - 4)}" width="5" height="8" rx="1" fill="${c}" transform="rotate(${i * 37} ${f(x)} ${f(y)})"/>`; }).join("")}</g>
+      <path d="M62 -4C70 -28 78 -38 92 -44 86 -32 84 -20 80 -8Z" fill="#a855f7" stroke="#581c87" stroke-width="1"/><path d="M70 -6C82 -24 94 -30 108 -30 98 -22 92 -12 84 -4Z" fill="#ffd23f" stroke="#a16207" stroke-width="1"/>
+      <path d="M18 4C18 -10 30 -16 50 -10 70 -16 82 -10 82 4 82 14 72 18 62 14 56 12 52 8 50 8 48 8 44 12 38 14 28 18 18 14 18 4Z" fill="#7e22ce" stroke="#ffd23f" stroke-width="2"/>
+      <ellipse cx="36" cy="3" rx="8" ry="4.5" fill="#1e0a2e"/><ellipse cx="64" cy="3" rx="8" ry="4.5" fill="#1e0a2e"/>
+      <path d="M22 -2C28 -8 34 -8 38 -6M78 -2C72 -8 66 -8 62 -6" stroke="#ffd23f" stroke-width="1.5" fill="none"/>
+      <circle cx="50" cy="-8" r="3" fill="#ff4fa3" stroke="#ffd23f"/><line x1="18" y1="4" x2="2" y2="30" stroke="#ffd23f" stroke-width="2"/>`),
+    // La Bousculade : une ligne d'arrivée en damier et des drapeaux à damier croisés
+    bousc: () => {
+      const drapeau = (sens) => `<g transform="translate(50 -6) scale(${sens} 1) rotate(-30)"><line x1="0" y1="10" x2="0" y2="-40" stroke="#d4d4d8" stroke-width="3"/><g transform="translate(0 -40)">${anime ? `<animateTransform attributeName="transform" type="translate" values="0 -40;0 -38;0 -40" dur="1s" repeatCount="indefinite" additive="replace"/>` : ""}${[0, 1, 2, 3, 4].map((x) => [0, 1, 2, 3].map((y) => `<rect x="${x * 6}" y="${y * 6}" width="6" height="6" fill="${(x + y) % 2 ? "#111" : "#fff"}"/>`).join("")).join("")}<rect width="30" height="24" fill="none" stroke="#111" stroke-width="1"/></g></g>`;
+      return svg(`<circle cx="50" cy="50" r="57" fill="none" stroke="#fff" stroke-width="10"/>        <circle cx="50" cy="50" r="54.5" fill="none" stroke="#111" stroke-width="5" stroke-dasharray="6 6"/><circle cx="50" cy="50" r="59.5" fill="none" stroke="#111" stroke-width="5" stroke-dasharray="6 6" stroke-dashoffset="6"/>
+        ${drapeau(1)}${drapeau(-1)}
+        <g>${anime ? `<animateTransform attributeName="transform" type="translate" values="0 0;-6 0;0 0" dur=".8s" repeatCount="indefinite"/>` : ""}<path d="M-26 70h18M-30 80h22M-24 90h14" stroke="#facc15" stroke-width="3" stroke-linecap="round"/></g>
+        <g>${anime ? `<animateTransform attributeName="transform" type="translate" values="0 0;6 0;0 0" dur=".8s" repeatCount="indefinite"/>` : ""}<path d="M108 70h18M108 80h22M110 90h14" stroke="#facc15" stroke-width="3" stroke-linecap="round"/></g>`);
+    },
+    // Zone 777 : des pièces d'or qui tournent et un bandeau 777
+    z777: () => {
+      const piece = (a, r) => { const [x, y] = pt(a, r); return `<g transform="translate(${f(x)} ${f(y)})"><circle r="8" fill="#facc15" stroke="#a16207" stroke-width="1.5"/><circle r="5.5" fill="none" stroke="#fde68a" stroke-width="1"/><text y="3.5" text-anchor="middle" font-size="9" font-weight="900" fill="#a16207" font-family="Arial Black, Arial, sans-serif">$</text></g>`; };
+      return svg(`${anneau("cd-z7", ["#fde68a", "#facc15", "#a16207", "#fef08a"], 7)}
+        <g>${tourne(9)}${[0, 60, 120, 180, 240, 300].map((a) => piece(a, 66)).join("")}</g>
+        <g>${tourne(14, -1)}${etoile(-20, 50, 4, "#fff", 0)}${etoile(120, 50, 4, "#fde68a", .6)}</g>
+        <g transform="translate(50 112)"><rect x="-30" y="-10" width="60" height="20" rx="5" fill="#7f1d1d" stroke="#facc15" stroke-width="2"/>${[-18, 0, 18].map((x, i) => `<rect x="${x - 7.5}" y="-7" width="15" height="14" rx="2" fill="#fff"/><text x="${x}" y="5" text-anchor="middle" font-size="12" font-weight="900" fill="#dc2626" font-family="Arial Black, Arial, sans-serif">7${scintille(i * .3, 1.2)}</text>`).join("")}</g>`);
+    },
+    // Cul Sec ! : deux chopes qui trinquent, de la mousse et des bulles qui montent
+    culsec: () => {
+      const chope = (x, r) => `<g transform="translate(${x} -6) rotate(${r})"><rect x="-10" y="-12" width="20" height="26" rx="3" fill="#f59e0b" stroke="#78350f" stroke-width="1.5"/><path d="M10 -6h5a5 5 0 0 1 0 12h-5" fill="none" stroke="#78350f" stroke-width="3"/><path d="M-12 -12c0-6 6-8 9-5 2-4 8-4 10 0 3-3 9-1 7 5Z" fill="#fff" stroke="#e5e7eb"/><path d="M-5 -6v16M0 -6v16M5 -6v16" stroke="#fbbf24" stroke-width="1.5" opacity=".6"/></g>`;
+      const bulle = (x, d) => `<circle cx="${x}" cy="110" r="2.5" fill="none" stroke="#fde68a" stroke-width="1.2">${anime ? `<animate attributeName="cy" values="118;-10" dur="3s" begin="${d}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="3s" begin="${d}s" repeatCount="indefinite"/>` : ""}</circle>`;
+      return svg(`${anneau("cd-cs", ["#fde68a", "#f59e0b", "#b45309", "#fbbf24"], 7)}
+        ${bulle(-14, 0)}${bulle(-8, 1.1)}${bulle(110, .5)}${bulle(116, 1.8)}${bulle(-18, 2.2)}${bulle(112, 2.6)}
+        <g>${anime ? `<animateTransform attributeName="transform" type="rotate" values="0 50 0;-4 50 0;0 50 0" dur="1.2s" repeatCount="indefinite"/>` : ""}${chope(36, 14)}${chope(64, -14).replace("translate(64", "translate(64").replace('rotate(-14)', 'rotate(-14) scale(-1 1)')}</g>
+        ${etoile(50, -30, 5, "#fff", .2)}`);
+    },
   };
   const CACHE = {};
   const dessin = (c) => (CACHE[c] ||= DESSINS[c] ? DESSINS[c]() : "");
@@ -92,8 +173,10 @@
   css.textContent = `
 .cadre-deco { position: relative; display: inline-block; vertical-align: middle; flex: none; line-height: 0; border-radius: 50%; }
 .cadre-deco > img { width: 100% !important; height: 100% !important; max-width: none !important; border-radius: 50% !important; object-fit: cover; display: block; margin: 0 !important; box-shadow: none !important; }
-.cadre-deco > .cadre-svg { position: absolute; left: -30%; top: -30%; width: 160%; height: 160%; pointer-events: none; overflow: visible; z-index: 2; }
-.cadre-deco.c-or > .cadre-svg { filter: drop-shadow(0 0 3px rgba(255, 210, 63, .7)); }
+.cadre-deco > .cadre-svg { position: absolute; left: -30%; top: -30%; width: 160%; height: 160%; pointer-events: none; overflow: visible; z-index: 2; fill: none; stroke: none; stroke-width: 1; stroke-linecap: butt; stroke-linejoin: miter; }
+.cadre-deco.c-or > .cadre-svg { filter: drop-shadow(0 0 4px rgba(255, 43, 43, .75)); }
+.cadre-deco.c-z777 > .cadre-svg { filter: drop-shadow(0 0 3px rgba(250, 204, 21, .7)); }
+.cadre-deco.c-loup > .cadre-svg { filter: drop-shadow(0 0 3px rgba(165, 180, 252, .6)); }
 .cadre-deco.c-supreme > .cadre-svg { filter: drop-shadow(0 0 4px rgba(255, 79, 163, .8)); }
 .cadre-deco.c-god > .cadre-svg { filter: drop-shadow(0 0 4px rgba(255, 255, 255, .6)); }
 .cadre-deco.c-top10 > .cadre-svg { filter: drop-shadow(0 0 3px rgba(139, 92, 246, .8)); }
@@ -137,19 +220,29 @@
   tout(document);
 
   // Catalogue des cadres à gagner sur le site, jeu par jeu
+  const ligue = (id, nom, comment) => ({ id, nom, comment });
+  const JEUX = [
+    { jeu: "CARDS CENTER", id: "jmwdr0y57", cadres: [
+      ligue("or", "Dragon rouge", "Finir 1er de la ligue CARDS CENTER de la semaine."),
+      ligue("argent", "Couronne d'argent", "Finir 2e de la ligue CARDS CENTER de la semaine."),
+      ligue("bronze", "Couronne de bronze", "Finir 3e de la ligue CARDS CENTER de la semaine."),
+      ligue("top10", "Top 10 de la ligue", "Finir entre la 4e et la 10e place de la ligue."),
+      ligue("assidu", "Assidu", "Réussir 15 objectifs du jour de CARDS CENTER dans la même semaine."),
+      ligue("supreme", "Suprême", "Tirer une carte Suprême dans un booster."),
+      ligue("god", "Béni des dieux", "Ouvrir un god pack."),
+    ] },
+    { jeu: "BRELAN", id: "jmvgplix8", cadres: [ligue("brelan", "Cartes volantes", "Réussir tous les objectifs du jour de BRELAN 3 jours différents.")] },
+    { jeu: "Zone 777", id: "jmw0lc154", cadres: [ligue("z777", "Pluie de pièces", "Réussir tous les objectifs du jour de Zone 777 3 jours différents.")] },
+    { jeu: "La Bousculade", id: "jmvz9p0v8", cadres: [ligue("bousc", "Ligne d'arrivée", "Réussir tous les objectifs du jour de La Bousculade 3 jours différents.")] },
+    { jeu: "Golf with TEC3H", id: "jmvgdsi5v", cadres: [ligue("golf", "Trou en un", "Réussir tous les objectifs du jour de Golf with TEC3H 3 jours différents.")] },
+    { jeu: "Loup-Garou de Brumeval", id: "jmvhuwavm", cadres: [ligue("loup", "Nuit de pleine lune", "Réussir tous les objectifs du jour du Loup-Garou 3 jours différents.")] },
+    { jeu: "Bal Masqué", id: "jmvp0a0wh", cadres: [ligue("bal", "Masque vénitien", "Réussir tous les objectifs du jour du Bal Masqué 3 jours différents.")] },
+    { jeu: "Cul Sec !", id: "jmw0rvbcc", cadres: [ligue("culsec", "Santé !", "Réussir tous les objectifs du jour de Cul Sec ! 3 jours différents.")] },
+  ];
+  // Catalogue des cadres à gagner sur le site, jeu par jeu
   window.BS_CADRES = {
     dessin,
-    jeux: [{
-      jeu: "CARDS CENTER", lien: "#/jeu/jmwdr0y57",
-      cadres: [
-        { id: "or", nom: "Champion de la ligue", comment: "Finir 1er de la ligue de la semaine." },
-        { id: "argent", nom: "2e de la ligue", comment: "Finir 2e de la ligue de la semaine." },
-        { id: "bronze", nom: "3e de la ligue", comment: "Finir 3e de la ligue de la semaine." },
-        { id: "top10", nom: "Top 10 de la ligue", comment: "Finir entre la 4e et la 10e place de la ligue." },
-        { id: "assidu", nom: "Assidu", comment: "Réussir 15 objectifs du jour dans la même semaine." },
-        { id: "supreme", nom: "Suprême", comment: "Tirer une carte Suprême dans un booster." },
-        { id: "god", nom: "Béni des dieux", comment: "Ouvrir un god pack." },
-      ],
-    }],
+    jeux: JEUX,
+    trouver: (id) => { for (const g of JEUX) for (const c of g.cadres) if (c.id === id) return Object.assign({ jeu: g.jeu }, c); return null; },
   };
 })();
