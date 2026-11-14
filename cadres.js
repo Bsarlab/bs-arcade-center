@@ -101,6 +101,10 @@
 :has(> .cadre-deco) { overflow: visible !important; }`;
   document.head.appendChild(css);
 
+  // Photo pas encore affichée (chargement, menu fermé…) : on attend qu'elle ait une taille
+  const enAttente = new WeakSet();
+  const taille = "ResizeObserver" in window ? new ResizeObserver((es) => es.forEach((e) => { if (e.contentRect.width) { taille.unobserve(e.target); enAttente.delete(e.target); decorer(e.target); } })) : null;
+  const attendre = (img) => { if (enAttente.has(img)) return; enAttente.add(img); if (taille) taille.observe(img); else img.addEventListener("load", () => { enAttente.delete(img); decorer(img); }, { once: true }); };
   const cadreDe = (img) => ((img.getAttribute("src") || "").match(/#c=([a-z0-9]+)$/) || [])[1] || "";
   function decorer(img) {
     if (!img.isConnected) return;
@@ -114,7 +118,7 @@
     }
     if (!c || !DESSINS[c]) return;
     const w = img.offsetWidth, h = img.offsetHeight;
-    if (!w || !h) { if (!img.complete) img.addEventListener("load", () => decorer(img), { once: true }); return; }
+    if (!w || !h) { attendre(img); return; }
     const cs = getComputedStyle(img), s = document.createElement("span");
     s.className = "cadre-deco c-" + c; s.dataset.cadre = c;
     s.style.width = w + "px"; s.style.height = h + "px"; s.style.margin = cs.margin;
