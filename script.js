@@ -1309,7 +1309,8 @@ function ouvrirJeu(id) {
     try { f.contentWindow.postMessage({ type: "bs-profil", profil: window.BS_PROFIL || null }, "*"); } catch {}
   });
   // Joueur connecté : sa sauvegarde est remise en place avant que le jeu démarre (3,5 s maximum)
-  const charger = () => { if (jeuActuel !== j || f.isConnected) return; f.src = lien(j.fichier); $("scene").appendChild(f); };
+  // « ?v= » force le navigateur à prendre la dernière version du jeu après une mise à jour
+  const charger = () => { if (jeuActuel !== j || f.isConnected) return; const src = lien(j.fichier); f.src = src === j.fichier && j.version ? src + "?v=" + encodeURIComponent(j.version) : src; $("scene").appendChild(f); };
   const avant = window.BS_PLATEFORME?.avantJeu?.(j.id);
   if (avant) Promise.race([avant, new Promise((ok) => setTimeout(ok, 3500))]).catch(() => {}).then(charger);
   else charger();
