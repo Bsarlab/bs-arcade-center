@@ -820,6 +820,15 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
 .c-rang { font-style: normal; margin-left: .3em; color: #ffd23f; letter-spacing: 0; text-shadow: 0 0 6px rgba(255,210,63,.8); }
 .hierarchie-s { margin: 10px 0 0; font-size: 13px; color: var(--pale); line-height: 1.6; }
 .hierarchie-s b { color: #ffd23f; }
+.c-et { font-style: normal; margin-left: .35em; letter-spacing: -.05em; display: inline-block; }
+.c-et.p1 { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,.9); }
+.c-et.p2 { color: #ffd23f; text-shadow: 0 0 6px rgba(255,210,63,.9); }
+.c-et.p3 { background: linear-gradient(120deg, #e0fbff 0%, #7dd3fc 30%, #ffffff 50%, #a5f3fc 70%, #e0fbff 100%) 0 0 / 200% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 4px rgba(125,211,252,.95)); animation: et-diamant 2.4s linear infinite; }
+.c-et.p4 { color: #ff9f1c; text-shadow: 0 0 6px #ff7a00, 0 0 12px rgba(255,122,0,.6); }
+.c-et.p5 { color: #0a0a0a; -webkit-text-stroke: .6px #c084fc; padding: 0 .3em; border-radius: 6px; background: radial-gradient(ellipse at 50% 110%, #ff3df5 0%, #9333ea 35%, #3b0764 70%, transparent 100%); box-shadow: 0 0 10px #a855f7, 0 -3px 12px rgba(236,72,153,.7); animation: et-feu .9s ease-in-out infinite alternate; }
+@keyframes et-diamant { to { background-position: -200% 0; } }
+@keyframes et-feu { from { box-shadow: 0 0 8px #a855f7, 0 -2px 10px rgba(236,72,153,.6); filter: brightness(1); } to { box-shadow: 0 0 14px #c084fc, 0 -6px 16px rgba(236,72,153,.9); filter: brightness(1.25); } }
+@media (prefers-reduced-motion: reduce) { .c-et { animation: none !important; } }
 </style>
 </head>
 <body>
@@ -6432,6 +6441,14 @@ function ART_JEU(c) {
 }
 
 const PHOTO = (c) => c.se === 3 ? (c.img ? IMG(c, 960) : "") : (window.PHOTOS_INTEGREES && PHOTOS_INTEGREES[c.id]) || `../images/voitures/${c.id}.jpg`;
+const ETOILES_MAX = 25;
+// Nombre d'étoiles d'une Suprême dans MA collection (exemplaires normaux + holos, moins un)
+function etoilesDe(c) { if (!c || c.r !== "S") return 0; return Math.max(0, Math.min(ETOILES_MAX, (collection[c.id] || 0) + (collection[c.id + "*"] || 0) - 1)); }
+function etoilesHTML(n) {
+  if (!n) return "";
+  const palier = Math.ceil(n / 5), nb = n - (palier - 1) * 5, noms = ["", "blanches", "dorées", "diamant", "ambre", "noires"];
+  return `<em class="c-et p${palier}" title="${n} étoile${n > 1 ? "s" : ""} (${noms[palier]}) : +${n * 2} % de puissance en duel">${"★".repeat(nb)}</em>`;
+}
 function carteHTML(cle, o = {}) {
   const holo = cle.endsWith("*"), c = PAR_ID[cle.replace("*", "")];
   if (!c) return "";
@@ -6443,7 +6460,7 @@ function carteHTML(cle, o = {}) {
       <div class="c-corps"><div class="c-nom"><b>${esc(c.n)}</b></div>
       <div class="c-texte">${c.txt}<i>${S2 ? esc(c.cite) : `« ${esc(c.cite)} »`}</i></div></div>
       <div class="c-pied"><span class="c-stat men" title="${ST[0]}">${ICONES.menace}${c.men}</span>
-        <span class="c-rar"><b>${RARETES[c.r]}${c.rang ? `<em class="c-rang" title="${RANGS_S[c.rang]} : rang ${c.rang} sur 4 des Suprêmes">${"★".repeat(c.rang)}</em>` : ""}</b>${POINTS[c.r]} pts · ${String(c.i + 1).padStart(2, "0")}/${TOTAL_SERIE(c.se)}</span>
+        <span class="c-rar"><b>${RARETES[c.r]}${etoilesHTML(o.etoiles ?? etoilesDe(c))}</b>${c.rang ? RANGS_S[c.rang] + " · " : ""}${POINTS[c.r]} pts · ${String(c.i + 1).padStart(2, "0")}/${TOTAL_SERIE(c.se)}</span>
         <span class="c-stat conf" title="${ST[1]}">${ICONES.conf}${c.conf}</span></div>
     </div>
     ${holo ? `<span class="c-holo">HOLO</span>` : ""}
@@ -6980,7 +6997,7 @@ function afficherClasseur() {
   $("grille").innerHTML = liste.length ? liste.map((c) => {
     const nb = possede(c.id), holo = (collection[c.id + "*"] || 0) > 0;
     if (!nb) return `<div class="case"><div class="manquante"><b>${String(c.i + 1).padStart(2, "0")}</b><span>${RARETES[c.r]}</span><span>???</span></div></div>`;
-    return `<div class="case">${nb > 1 ? `<span class="compte">×${nb}</span><button class="recycler" type="button" data-recycler="${c.id}" title="Recycler un doublon">♻ +${POUSSIERE[c.r] * ((collection[c.id] || 0) > 0 ? 1 : 2)}</button>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
+    return `<div class="case">${nb > 1 && c.r === "S" ? `<span class="compte" title="Chaque doublon d’une Suprême lui donne une étoile">×${nb}</span>` : nb > 1 ? `<span class="compte">×${nb}</span><button class="recycler" type="button" data-recycler="${c.id}" title="Recycler un doublon">♻ +${POUSSIERE[c.r] * ((collection[c.id] || 0) > 0 ? 1 : 2)}</button>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
   }).join("") : `<p class="vide-classeur">Aucune carte ici pour l'instant.</p>`;
 }
 
@@ -7127,7 +7144,7 @@ const BOTS = {
   3: { nom: "Le boss", av: "👑", txt: "Épiques et Mythiques · victoire = 2 boosters", rar: ["E", "L"], prix: 2 },
   4: { nom: "Le Roi des Suprêmes", av: "🐉", txt: "Mythiques et Suprêmes · victoire = 3 boosters", rar: ["L", "S"], prix: 3 },
 };
-const puissance = (cle) => { const c = PAR_ID[cle.replace("*", "")]; return c ? Math.round(c.pw * (cle.endsWith("*") ? 1.1 : 1)) : 0; };
+const puissance = (cle, et) => { const c = PAR_ID[cle.replace("*", "")]; return c ? Math.round(c.pw * (cle.endsWith("*") ? 1.1 : 1) * (1 + .02 * (et ?? etoilesDe(c)))) : 0; };
 let adversaire = { type: "bot", bot: 1 }, deck = [], joueursDuel = null, dernierDuel = null;
 
 Local.combat = async function (main, bot) {
@@ -7135,7 +7152,7 @@ Local.combat = async function (main, bot) {
   if (main.some((k) => !(d.cartes || {})[k])) return { erreur: "carte non possédée" };
   const B = BOTS[bot] || BOTS[1];
   const pool = CARTES.filter((c) => B.rar.includes(c.r)).map((c) => c.id).sort(() => Math.random() - .5).slice(0, 5);
-  const manches = main.map((a, i) => ({ a, b: pool[i], pa: Math.round(puissance(a) * (.85 + Math.random() * .3)), pb: Math.round(puissance(pool[i]) * (.85 + Math.random() * .3)) }));
+  const manches = main.map((a, i) => ({ a, b: pool[i], pa: Math.round(puissance(a) * (.85 + Math.random() * .3)), pb: Math.round(puissance(pool[i], 0) * (.85 + Math.random() * .3)) }));
   const ga = manches.filter((m) => m.pa >= m.pb).length, victoire = ga >= 3;
   const gain = victoire ? B.prix : 0;
   d.bonus = (d.bonus || 0) + gain;
@@ -7162,7 +7179,7 @@ async function afficherDuel() {
       <div class="adversaires">${Object.entries(BOTS).map(([n, b]) => `<button class="adv" type="button" data-bot="${n}" aria-pressed="${adversaire.type === "bot" && adversaire.bot === Number(n)}"><span class="av">${b.av}</span><b>${b.nom}</b><small>${b.txt}</small></button>`).join("")}
       ${(joueursDuel || []).map((j) => `<button class="adv" type="button" data-adv="${esc(j.id)}" data-pseudo="${esc(j.pseudo)}" aria-pressed="${adversaire.id === j.id}"><span class="av">${j.avatar ? `<img src="${esc(j.avatar)}" alt="">` : "🃏"}</span><b>${esc(j.pseudo)}</b><small>${j.ami ? "Ami · " : ""}ses 5 meilleures cartes · victoire = 1 booster</small></button>`).join("")}</div>
       ${enLigne ? "" : `<p style="margin-top:10px">Connecte-toi sur le site pour défier tes amis et les autres joueurs.</p>`}
-      <p class="hierarchie-s">Hiérarchie des Suprêmes en duel : <b>★</b> Élite · <b>★★</b> Héros · <b>★★★</b> Titan · <b>★★★★</b> Divin. Plus il y a d'étoiles, plus la carte frappe fort.</p>
+      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Chaque doublon d'une Suprême lui donne une étoile (+2 % de puissance, 25 au maximum) : ★ blanches, puis <b>★ dorées</b>, <span class="c-et p3">★ diamant</span>, <span class="c-et p4">★ ambre</span> et <span class="c-et p5">★ noires</span>.</p>
     </div>
     <div class="duel-bloc"><h3>2. Compose ta main</h3>
       <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Chaque victoire rapporte ses boosters, sans limite.</p>
@@ -7234,8 +7251,8 @@ async function animerDuel(r, serie = null) {
     const moi = $("cMoi"), lui = $("cLui");
     moi.className = "combattant entre-moi"; lui.className = "combattant entre-lui";
     moi.innerHTML = carteHTML(m.a) + `<span class="valeur">0</span>`;
-    lui.innerHTML = carteHTML(m.b) + `<span class="valeur">0</span>`;
-    rangMoi[i].classList.add("joue"); rangLui[i].innerHTML = carteHTML(m.b); rangLui[i].classList.add("joue");
+    lui.innerHTML = carteHTML(m.b, { etoiles: 0 }) + `<span class="valeur">0</span>`;
+    rangMoi[i].classList.add("joue"); rangLui[i].innerHTML = carteHTML(m.b, { etoiles: 0 }); rangLui[i].classList.add("joue");
     Son.retourne(); await t(650);
     // Les compteurs montent en même temps
     const vm = moi.querySelector(".valeur"), vl = lui.querySelector(".valeur"), duree = accelere ? 250 : 1100, t0 = performance.now();
@@ -7371,6 +7388,7 @@ const POUSSIERE = { C: 1, R: 2, E: 3, L: 10, S: 25 };
 function doublons() {
   let cartes = 0, gain = 0;
   CARTES.forEach((c) => {
+    if (c.r === "S") return;
     const n = collection[c.id] || 0, h = collection[c.id + "*"] || 0, t = n + h;
     if (t > 1) { const rn = Math.min(n, t - 1); cartes += t - 1; gain += (rn + 2 * (t - 1 - rn)) * POUSSIERE[c.r]; }
   });
@@ -7381,7 +7399,7 @@ Local.recycler = async function (id) {
   let cartes = 0, gain = 0;
   CARTES.filter((c) => !id || c.id === id.replace("*", "")).forEach((c) => {
     const n = d.cartes[c.id] || 0, h = d.cartes[c.id + "*"] || 0, total = n + h;
-    if (total <= 1) return;
+    if (total <= 1 || c.r === "S") return;
     const extra = id ? 1 : total - 1, rn = Math.min(n, extra), rh = extra - rn;
     if (n - rn > 0) d.cartes[c.id] = n - rn; else delete d.cartes[c.id];
     if (h - rh > 0) d.cartes[c.id + "*"] = h - rh; else delete d.cartes[c.id + "*"];

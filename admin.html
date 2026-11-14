@@ -832,6 +832,11 @@ create index if not exists tcg_combats_joueur on public.tcg_combats (joueur, qua
 alter table public.tcg_combats enable row level security;
 drop policy if exists "mes combats" on public.tcg_combats;
 create policy "mes combats" on public.tcg_combats for select using (auth.uid() = joueur);
+-- Étoiles d'une Suprême : chaque doublon (normal ou holo) en donne une, 25 au maximum ; +2 % de puissance par étoile
+create or replace function public.tcg_etoiles(p_joueur uuid, p_carte text) returns int language sql stable security definer set search_path = public as $$
+  select case when (select rarete from tcg_valeurs where carte = replace(p_carte, '*', '')) = 'S'
+    then least(25, greatest(0, coalesce((select sum(nombre) from tcg_cartes where joueur = p_joueur and replace(carte, '*', '') = replace(p_carte, '*', '')), 0)::int - 1)) else 0 end $$;
+revoke all on function public.tcg_etoiles(uuid, text) from public, anon, authenticated;
 create or replace function public.tcg_combat(p_deck text[], p_adv uuid default null, p_bot int default 1) returns json language plpgsql security definer set search_path = public as $$
 declare lui text[]; m json[] := '{}'; i int; pa float; pb float; ga int := 0; gb int := 0; deja int; g int := 0; vic boolean; nom text; prix int;
 begin
@@ -860,8 +865,8 @@ begin
     prix := p_bot - 1;
   end if;
   for i in 1..5 loop
-    pa := (select puissance from tcg_valeurs where carte = replace(p_deck[i], '*', '')) * (case when p_deck[i] like '%*' then 1.1 else 1 end) * (0.85 + random() * 0.3);
-    pb := (select puissance from tcg_valeurs where carte = replace(lui[i], '*', '')) * (case when lui[i] like '%*' then 1.1 else 1 end) * (0.85 + random() * 0.3);
+    pa := (select puissance from tcg_valeurs where carte = replace(p_deck[i], '*', '')) * (case when p_deck[i] like '%*' then 1.1 else 1 end) * (1 + 0.02 * tcg_etoiles(auth.uid(), p_deck[i])) * (0.85 + random() * 0.3);
+    pb := (select puissance from tcg_valeurs where carte = replace(lui[i], '*', '')) * (case when lui[i] like '%*' then 1.1 else 1 end) * (case when p_adv is null then 1 else 1 + 0.02 * tcg_etoiles(p_adv, lui[i]) end) * (0.85 + random() * 0.3);
     if pa >= pb then ga := ga + 1; else gb := gb + 1; end if;
     m := m || json_build_object('a', p_deck[i], 'b', lui[i], 'pa', round(pa::numeric), 'pb', round(pb::numeric));
   end loop;
@@ -1223,7 +1228,7 @@ begin
   perform pg_advisory_xact_lock(hashtext('tcgr' || auth.uid()::text));
   for r in select replace(c.carte, '*', '') as base, v.rarete, sum(c.nombre)::int as total
            from tcg_cartes c join tcg_valeurs v on v.carte = replace(c.carte, '*', '')
-           where c.joueur = auth.uid() and c.nombre > 0 and (p_carte is null or replace(c.carte, '*', '') = replace(p_carte, '*', ''))
+           where c.joueur = auth.uid() and c.nombre > 0 and v.rarete <> 'S' and (p_carte is null or replace(c.carte, '*', '') = replace(p_carte, '*', ''))
            group by 1, 2 having sum(c.nombre) > 1 loop
     extra := case when p_carte is null then r.total - 1 else 1 end;
     select coalesce(sum(nombre) filter (where carte = r.base), 0), coalesce(sum(nombre) filter (where carte = r.base || '*'), 0)

@@ -248,6 +248,21 @@ body.seated #bar .use,body.seated #bar .sac{grid-column:1/-1;width:100%;margin:0
 #wait{position:fixed;z-index:6;left:50%;top:14%;transform:translateX(-50%);padding:.5em 1.1em;background:var(--plate);border:1px solid transparent;border-image:var(--rim) 1;text-align:center;max-width:90vw}
 #h-team{display:grid;gap:2px;margin-top:6px;min-width:180px;font-size:.9em}#h-team div{display:flex;justify-content:space-between;gap:12px}#h-team span{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100px}#h-team b{font:400 1em var(--f-mono);color:#ffe3a4}#h-team .me span{color:var(--mint)}
 #bag .gift{display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-top:1px solid rgba(217,164,65,.2)}#bag h3{margin:10px 0 2px;color:var(--mint);font:700 .9em var(--f-body);letter-spacing:.08em;text-transform:uppercase}
+#missions{background:rgba(3,10,13,.86);align-content:center;justify-items:center;overflow:auto}
+.sheet.ms{width:min(820px,100%);text-align:left}
+.ms-grille{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-top:12px}
+.ms-bloc{border:1px solid var(--hair);background:rgba(4,14,18,.7);padding:14px 16px}
+.ms-bloc.or{border-color:#d9a441;background:rgba(217,164,65,.08)}
+.ms-bloc h3{margin:0 0 2px;color:#ffe3a4;font-size:1.1em}.ms-bloc .meta{opacity:.7;font-size:.85em;margin:0 0 10px}
+.ms-bloc ul{list-style:none;margin:0;padding:0;display:grid;gap:10px}
+.ms-bloc li{display:grid;grid-template-columns:22px 1fr auto;gap:8px;align-items:center}
+.ms-bloc li .c{display:grid;place-items:center;width:20px;height:20px;border:1px solid rgba(255,255,255,.35);border-radius:50%;font-size:.75em}
+.ms-bloc li.ok .c{background:#3ee07a;border-color:#3ee07a;color:#05140a}.ms-bloc li.ok b{text-decoration:line-through;opacity:.7}
+.ms-bloc li i{grid-column:2/4;height:5px;background:linear-gradient(90deg,#d9a441 var(--p),rgba(255,255,255,.15) var(--p))}
+.ms-bloc li small{opacity:.75;font-variant-numeric:tabular-nums}
+.ms-prix{margin-top:12px;padding-top:10px;border-top:1px solid var(--hair);font-size:.9em}.ms-prix b{color:#ffe3a4}
+.ms-vide{margin-top:12px;padding:16px;border:1px solid var(--hair);background:rgba(4,14,18,.7);line-height:1.5}
+@media (max-width:700px){.ms-grille{grid-template-columns:1fr}}
 #wardrobe{background:rgba(3,10,13,.86);align-content:center;justify-items:center;overflow:auto}
 .sheet.wr{width:min(900px,100%);text-align:left}
 .wr-tete{display:flex;justify-content:space-between;align-items:center;gap:12px}.wr-tete h2{margin:0}.wr-tete .mi{flex:none;padding:.45em 1em}
@@ -310,7 +325,7 @@ body.seated #bar .use,body.seated #bar .sac{grid-column:1/-1;width:100%;margin:0
       <button class="mode" id="t-go" data-m="n"><b>Les Six Nuits</b><small>Tiens le quota ou les aliens t’embarquent</small></button>
       <button class="mode" id="t-free" data-m="f"><b>Soirée libre</b><small>1 000 €, aucun quota, et ta femme au téléphone</small></button>
       <button class="mode" id="t-net" data-m="o"><b>Entre amis</b><small>Budgets séparés, un seul quota, en ligne avec un code</small></button>
-      <div class="m-row"><button class="mi" id="t-skin">Garde-robe</button><button class="mi" id="t-opt">Réglages</button><button class="mi" id="t-how">Commandes</button></div>
+      <div class="m-row"><button class="mi" id="t-mis">Missions</button><button class="mi" id="t-skin">Garde-robe</button><button class="mi" id="t-opt">Réglages</button><button class="mi" id="t-how">Commandes</button></div>
     </nav>
   </div>
   <aside class="m-r" id="m-card"></aside>
@@ -320,6 +335,10 @@ body.seated #bar .use,body.seated #bar .sac{grid-column:1/-1;width:100%;margin:0
   <p class="wr-sub">Choisis ton look. Tes amis le voient dans les parties « Entre amis ».</p>
   <div class="wr-corps"><div class="wr-vue"><canvas id="wr-c" width="260" height="330"></canvas><b id="wr-nom"></b><button class="big" id="wr-porter">Porter ce skin</button></div>
   <div class="wr-droite"><div id="wr-hebdo"></div><div class="wr-grille" id="wr-g"></div></div></div>
+</div></div>
+<div id="missions" class="screen" hidden><div class="sheet ms">
+  <div class="wr-tete"><h2>Missions</h2><button class="mi" id="ms-x">Retour</button></div>
+  <div id="ms-c"></div>
 </div></div>
 <div id="lobby" class="screen" hidden><div class="sheet">
   <h2>Entre amis</h2>
@@ -628,13 +647,10 @@ function zwDessiner() {
   if (!zwVu) zwVu = actuel;
   var hb = R("wr-hebdo");
   if (h && ZS[h.skin]) {
-    var jours = Math.max(1, Math.ceil((new Date(h.fin + "T00:00:00") - Date.now()) / 864e5)), eu = gagnes.includes(h.skin);
-    hb.innerHTML = "<b>Skin de la semaine : " + fi(ZS[h.skin].nom) + "</b> · encore " + jours + " jour" + (jours > 1 ? "s" : "") +
-      (eu ? "<p>Gagné ! Il est à toi pour toujours. Un nouveau skin arrive lundi.</p>" :
-      "<ul>" + h.missions.map(function (o) { return '<li class="' + (o.fait ? "ok" : "") + '"><span>' + (o.fait ? "✓" : "○") + "</span><span>" + fi(o.nom) + "</span><small>" + zwTemps(o) + '</small><i style="--p:' + Math.round(o.val / o.but * 100) + '%"></i></li>'; }).join("") + "</ul><p>Réussis les 3 missions avant lundi pour gagner ce skin. Elles changent chaque semaine, avec un nouveau skin à gagner.</p>");
-  } else {
-    hb.innerHTML = "<b>Un skin à gagner chaque semaine</b><p>Ouvre Zone 777 depuis le site BS arcade center, connecté à ton compte, pour voir les missions de la semaine et gagner leur skin.</p>";
-  }
+    var eu = gagnes.includes(h.skin);
+    hb.innerHTML = "<b>Skin de la semaine : " + fi(ZS[h.skin].nom) + "</b><p>" + (eu ? "Gagné ! Il est à toi pour toujours." : "À gagner avec les missions de la semaine.") + '</p><button class="mi" id="wr-mis">Voir les missions</button>';
+    R("wr-mis").onclick = msOuvrir;
+  } else hb.innerHTML = '<b>Un skin à gagner chaque semaine</b><p>Les missions sont dans l’onglet « Missions » du menu.</p>';
   R("wr-g").innerHTML = Object.keys(ZS).map(function (k) {
     var z = ZS[k], a = zsPossede(k), sem = h && h.skin === k && !a;
     return '<button class="wr-s' + (a ? "" : " verrou") + (sem ? " semaine" : "") + (k === zwVu ? " vu" : "") + (k === actuel ? " porte" : "") + '" data-sk="' + k + '">' +
@@ -658,5 +674,26 @@ R("t-skin").onclick = zwOuvrir;
 R("wr-x").onclick = function () { R("wardrobe").hidden = !0; R("title").hidden = !1; };
 R("wr-g").onclick = function (ev) { var b = ev.target.closest("[data-sk]"); if (!b) return; zwVu = b.dataset.sk; zwDessiner(); zwVue(zwVu); };
 R("wr-porter").onclick = function () { if (!zsPossede(zwVu)) return; try { localStorage.setItem("z777skin", zwVu); } catch (e) {} zwDessiner(); };
+
+// ---------- Missions : objectifs du jour (cadre « Pluie de pièces ») et missions de la semaine (skin) ----------
+function msListe(l) { return "<ul>" + l.map(function (o) { return '<li class="' + (o.fait ? "ok" : "") + '"><span class="c">' + (o.fait ? "✓" : "") + "</span><b>" + fi(o.nom) + "</b><small>" + zwTemps(o) + '</small><i style="--p:' + Math.round(o.val / o.but * 100) + '%"></i></li>'; }).join("") + "</ul>"; }
+async function msOuvrir() {
+  try { le.init(); } catch (e) {}
+  R("title").hidden = !0; R("wardrobe").hidden = !0; R("missions").hidden = !1;
+  var c = R("ms-c"); c.innerHTML = '<p class="ms-vide">Chargement des missions…</p>';
+  var h = null;
+  try { h = window.BS && BS.recompenses ? await BS.recompenses() : null; } catch (e) { console.warn(e); }
+  if (!h) { c.innerHTML = '<div class="ms-vide"><b>Connecte-toi pour jouer les missions</b><br>Ouvre Zone 777 depuis le site BS arcade center, connecté à ton compte : tu auras 3 objectifs chaque jour (pour gagner le cadre « Pluie de pièces ») et 3 missions chaque semaine (pour gagner le skin de la semaine).</div>'; return; }
+  zwH = h; try { localStorage.setItem("z777skins", JSON.stringify(h.obtenus || [])); } catch (e) {}
+  var j = h.jour, fin = Math.max(1, Math.ceil((new Date(h.fin + "T00:00:00") - Date.now()) / 864e5)), eu = (h.obtenus || []).includes(h.skin), sk = ZS[h.skin];
+  c.innerHTML = '<div class="ms-grille">' +
+    (j ? '<div class="ms-bloc"><h3>Objectifs du jour</h3><p class="meta">Ils reviennent chaque jour à minuit. Le temps compte quand le jeu est ouvert à l’écran.</p>' + msListe(j.objectifs) +
+      '<p class="ms-prix">' + (j.debloque ? "Cadre <b>Pluie de pièces</b> débloqué ! Mets-le depuis ton profil sur le site." : "Récompense : le cadre de profil <b>Pluie de pièces</b>. Réussis les 3 objectifs " + j.jours_but + " jours différents (" + j.jours + " / " + j.jours_but + ").") + "</p></div>" : "") +
+    '<div class="ms-bloc or"><h3>Missions de la semaine</h3><p class="meta">Encore ' + fin + " jour" + (fin > 1 ? "s" : "") + ". Chaque lundi : 3 nouvelles missions et un nouveau skin.</p>" + msListe(h.missions) +
+      '<p class="ms-prix">' + (eu ? "Skin <b>" + fi(sk ? sk.nom : h.skin_nom) + "</b> gagné ! Il est dans ta garde-robe." : "Récompense : le skin <b>" + fi(sk ? sk.nom : h.skin_nom) + "</b>, à toi pour toujours.") + ' <button class="mi" id="ms-gr">Voir dans la garde-robe</button></p></div></div>';
+  R("ms-gr").onclick = function () { R("missions").hidden = !0; zwOuvrir().then(function () { if (sk) { zwVu = h.skin; zwDessiner(); zwVue(zwVu); } }); };
+}
+R("t-mis").onclick = msOuvrir;
+R("ms-x").onclick = function () { R("missions").hidden = !0; R("title").hidden = !1; };
 export{os as FACES};
 </script>

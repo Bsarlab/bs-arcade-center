@@ -510,9 +510,10 @@
     async recompenses() {
       const id = (typeof jeuActuel !== "undefined" && jeuActuel?.id) || partie?.id;
       if (!id || !connecte()) return null;
-      const { data, error } = await sb.rpc("jeu_hebdo", { p_jeu: id });
-      if (error) { console.warn(error); return null; }
-      return data;
+      const [h, j] = await Promise.all([sb.rpc("jeu_hebdo", { p_jeu: id }), sb.rpc("jeu_objectifs", { p_jeu: id })]);
+      if (h.error) { console.warn(h.error); return null; }
+      if (h.data && j.data) { h.data.jour = j.data; suivreObjectifs(id, j.data); }
+      return h.data;
     },
     // Action propre à un jeu pour ses objectifs du jour (ex. une nuit terminée dans Zone 777)
     async evenement(type) {
