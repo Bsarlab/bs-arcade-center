@@ -277,6 +277,8 @@ begin
   begin perform public.jeu_noter(left(p_jeu, 40), case when p_ordre = 'cumul' then 'victoire' else 'action' end, 1); exception when undefined_function or undefined_table then null; end;
   -- Carte Grise : les points sont calculés par le serveur, pas envoyés par le navigateur
   if left(p_jeu, 40) = 'jmwdr0y57' then return null; end if;
+  -- Zone 777 : seul le classement « temps + argent max » compte (les anciens formats de score sont refusés)
+  if left(p_jeu, 40) = 'jmw0lc154' and (p_ordre <> 'bas' or p_libelle is distinct from 'chrono+max') then return null; end if;
   insert into profils (id, pseudo) select auth.uid(), 'Joueur' where not exists (select 1 from profils where id = auth.uid());
   select score, ordre, libelle into ancien, ancien_ordre, ancien_libelle from scores where joueur = auth.uid() and jeu = left(p_jeu, 40);
   -- Le jeu a changé sa façon de compter (ex. nuits tenues -> temps) : l'ancien score est remplacé
@@ -294,6 +296,8 @@ begin
   end if;
   return ancien;
 end $$;
+-- Zone 777 : on efface les scores enregistrés avant le classement « temps + argent max »
+delete from public.scores where jeu = 'jmw0lc154' and (ordre <> 'bas' or libelle is distinct from 'chrono+max');
 revoke all on function public.envoyer_score(text, numeric, text, text) from public, anon;
 grant execute on function public.envoyer_score(text, numeric, text, text) to authenticated;
 `;
