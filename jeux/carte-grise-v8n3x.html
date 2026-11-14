@@ -798,17 +798,20 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
 .choix-cadre { display: grid; justify-items: center; gap: 8px; width: 116px; padding: 14px 8px 10px; border-radius: 16px; border: 2px solid transparent; background: var(--surface, rgba(127,127,127,.12)); color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
 .choix-cadre img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
 .choix-cadre[aria-pressed="true"] { border-color: currentColor; }
-/* Annonce du god pack, après l'ouverture du booster */
-.god-annonce { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; justify-items: center; gap: 14px; pointer-events: none; animation: god-arrive .5s cubic-bezier(.2, 1.6, .4, 1) both; }
-.god-annonce.part { animation: god-part .45s ease-in both; }
-.god-eclat { position: absolute; left: 50%; top: 50%; width: 140vmax; height: 140vmax; margin: -70vmax 0 0 -70vmax; background: repeating-conic-gradient(from 0deg, rgba(255,210,63,.55) 0 6deg, transparent 6deg 14deg, rgba(255,79,163,.4) 14deg 20deg, transparent 20deg 28deg); -webkit-mask-image: radial-gradient(circle, #000 5%, transparent 50%); mask-image: radial-gradient(circle, #000 5%, transparent 50%); animation: rayons 5s linear infinite; }
-.god-titre { position: relative; font-family: var(--f-tampon, var(--f-titre)); font-size: clamp(46px, 11vw, 120px); line-height: 1; letter-spacing: .04em; white-space: nowrap; }
-.god-titre span { display: inline-block; background: linear-gradient(90deg, #ffd23f, #ff4fa3, #22d3ee, #ffd23f) 0 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 18px rgba(255,210,63,.7)); animation: god-lettre .6s cubic-bezier(.2, 1.8, .4, 1) calc(var(--i) * 70ms) both, god-texte 2s linear infinite; }
-.god-sous { position: relative; font-family: var(--f-titre); font-weight: 700; letter-spacing: .12em; text-transform: uppercase; color: #fff4c2; text-shadow: 0 0 10px #ff4fa3; font-size: clamp(12px, 2.2vw, 18px); text-align: center; padding: 0 16px; animation: god-arrive .5s .7s both; }
-@keyframes god-arrive { from { opacity: 0; transform: scale(.3) rotate(-8deg); } }
-@keyframes god-part { to { opacity: 0; transform: scale(1.6); } }
-@keyframes god-lettre { from { opacity: 0; transform: translateY(-120px) scale(2.4) rotate(-25deg); } }
+/* Annonce du god pack, après l'ouverture du booster : simple, lisible et fluide */
+.god-annonce { position: absolute; inset: 0; z-index: 5; display: grid; place-content: center; justify-items: center; gap: 12px; pointer-events: none; background: radial-gradient(circle, rgba(10,6,24,.82) 0 38%, rgba(10,6,24,.55) 70%); animation: god-fondu .4s ease-out both; }
+.god-annonce.part { animation: god-sortie .4s ease-in both; }
+.god-eclat { position: absolute; left: 50%; top: 50%; width: 900px; height: 900px; margin: -450px 0 0 -450px; border-radius: 50%; background: repeating-conic-gradient(rgba(255,210,63,.18) 0 8deg, transparent 8deg 22deg); will-change: transform; animation: god-tourne 14s linear infinite; }
+.god-titre { position: relative; font-family: var(--f-tampon, var(--f-titre)); font-size: clamp(40px, 10vw, 104px); line-height: 1; letter-spacing: .05em; white-space: nowrap; color: #ffd23f; text-shadow: 0 0 2px #000, 0 4px 0 #b4570f, 0 0 26px rgba(255,210,63,.6); }
+.god-titre span { display: inline-block; will-change: transform, opacity; animation: god-lettre .45s ease-out calc(var(--i) * 55ms) both; }
+.god-sous { position: relative; font-family: var(--f-titre); font-weight: 700; letter-spacing: .08em; color: #fff; text-shadow: 0 2px 6px #000; font-size: clamp(14px, 2.4vw, 19px); text-align: center; padding: 6px 16px; animation: god-fondu .4s .6s ease-out both; }
+@keyframes god-fondu { from { opacity: 0; } }
+@keyframes god-sortie { to { opacity: 0; transform: scale(1.08); } }
+@keyframes god-lettre { from { opacity: 0; transform: translateY(18px) scale(.85); } }
+@keyframes god-tourne { to { transform: rotate(360deg); } }
 @media (prefers-reduced-motion: reduce) { .god-annonce, .god-titre span, .god-sous, .god-eclat { animation: none; } }
+/* Fond doré discret pendant qu'on retourne les cartes d'un god pack */
+.ouverture.god .ouverture-centre::before { background: repeating-conic-gradient(rgba(255,210,63,.14) 0 6deg, transparent 6deg 18deg); animation-duration: 24s; }
 
 </style>
 </head>
@@ -6528,8 +6531,8 @@ function tirerBooster(se = 1, god = false) {
   for (let i = 1; i <= 5; i++) {
     const x = Math.random();
     let r;
-    // God pack : au plus une Épique, le reste en Mythique, avec 5 % de chance de Suprême par carte
-    if (god) r = i === 1 && x < .5 ? "E" : x > .95 ? "S" : "L";
+    // God pack : 1 ou 2 Épiques, le reste en Mythique, et au plus une Suprême (15 % de chance, en dernière carte)
+    if (god) r = i === 1 ? "E" : i === 2 ? (x < .4 ? "E" : "L") : i === 5 && x < .15 ? "S" : "L";
     else if (i <= 3) r = x < .08 ? "R" : "C";
     else if (i === 4) r = x < .12 ? "E" : "R";
     else r = x < .001 ? "S" : x < .031 ? "L" : x < .22 ? "E" : "R";
@@ -6537,9 +6540,12 @@ function tirerBooster(se = 1, god = false) {
   }
   if (god && !res.some((k) => !possede(k.replace("*", "")))) {
     const neuves = (rs) => CARTES.filter((c) => c.se === se && rs.includes(c.r) && !possede(c.id));
-    let n = neuves(["L", "S"]), place = 1 + Math.floor(Math.random() * 4);
-    if (!n.length) { n = neuves(["E"]); place = 0; }
-    if (n.length) res[place] = n[Math.floor(Math.random() * n.length)].id + (Math.random() < .25 ? "*" : "");
+    let n = neuves(["L", "S"]);
+    if (!n.length) n = neuves(["E"]);
+    if (n.length) {
+      const c = n[Math.floor(Math.random() * n.length)];
+      res[c.r === "S" ? 4 : c.r === "E" ? 0 : 2 + Math.floor(Math.random() * 2)] = c.id + (Math.random() < .25 ? "*" : "");
+    }
   }
   return res;
 }
@@ -6663,10 +6669,10 @@ async function annonceGod(o) {
   $("ouvTitre").textContent = "✨ GOD PACK ✨ · " + $("ouvTitre").textContent;
   const a = document.createElement("div");
   a.className = "god-annonce";
-  a.innerHTML = `<div class="god-eclat"></div><div class="god-titre">${lettres("GOD PACK")}</div><div class="god-sous">Que des Mythiques et des Suprêmes… ou presque !</div>`;
+  a.innerHTML = `<div class="god-eclat"></div><div class="god-titre">${lettres("GOD PACK")}</div><div class="god-sous">Des Mythiques, des Épiques et peut-être une Suprême…</div>`;
   $("tirage").before(a);
-  flash(); Son.corne(); await pause(350); flash(); Son.rare("S");
-  await pause(2600);
+  Son.corne();
+  await pause(2400);
   a.classList.add("part"); await pause(450); a.remove();
 }
 function distribuer(ordre, avant) {
@@ -6688,7 +6694,9 @@ async function retourner(slot) {
   if (cinemaEnCours) return;
   const r = slot.dataset.r;
   // Dans un god pack, les Épiques se retournent sans cinématique (sinon c'est trop long)
-  if (["E", "L", "S"].includes(r) && !reduit && !(godPack && r === "E")) await cinema(slot.dataset.cle, r);
+  // Dans un god pack, seule la Suprême a sa grande cinématique : les autres se retournent simplement (sinon c'est illisible)
+  if (["E", "L", "S"].includes(r) && !reduit && !(godPack && r !== "S")) await cinema(slot.dataset.cle, r);
+  if (godPack && r === "L") setTimeout(() => Son.rare("E"), 200);
   slot.classList.add("vue"); Son.retourne();
   if (r === "R") setTimeout(() => Son.rare(r), 250);
   if (![...$("tirage").querySelectorAll(".slot")].some((s) => !s.classList.contains("vue"))) finOuverture();

@@ -182,13 +182,19 @@
     const { data, error } = await sb.rpc("tcg_cadres_lire");
     if (error || !data || !$("cadresProfil")) return;
     const base = (imageSure(data.avatar) || "").replace(/#c=[a-z0-9]+$/, ""), actuel = ((data.avatar || "").match(/#c=([a-z0-9]+)$/) || [])[1] || "";
-    const liste = data.cadres || [];
-    z.innerHTML = `<p class="sous-titre">Mon cadre de profil</p>
-      ${!liste.length ? `<p class="meta">Gagne des cadres dans CARDS CENTER (ligue de la semaine, objectifs, god pack, carte Suprême) : ils s'afficheront autour de ta photo sur tout le site.</p>` : !base ? `<p class="meta">Enregistre d'abord un avatar pour pouvoir y mettre un cadre.</p>` : `
+    const liste = data.cadres || [], apercu = base || AVATARS[0];
+    const catalogue = (window.BS_CADRES && BS_CADRES.jeux) || [];
+    z.innerHTML = `<p class="sous-titre">Mes cadres de profil</p>
+      <p class="meta">Ton cadre s'affiche autour de ta photo partout sur le site. Les cadres verrouillés montrent ce que tu peux gagner.</p>
+      ${!base && liste.length ? `<p class="meta">Enregistre d'abord un avatar pour pouvoir y mettre un cadre.</p>` : ""}
+      ${catalogue.map((g) => `<div class="cadres-jeu"><p class="cadres-jeu-titre">${esc(g.jeu)} <span>${g.cadres.filter((c) => liste.includes(c.id)).length} / ${g.cadres.length}</span></p>
       <div class="grille-cadres">
-        <button type="button" class="choix-cadre" data-cadre-profil="" aria-pressed="${!actuel}"><img src="${esc(base)}" alt=""><span>Sans cadre</span></button>
-        ${liste.map((c) => `<button type="button" class="choix-cadre" data-cadre-profil="${esc(c)}" aria-pressed="${actuel === c}"><img src="${esc(base + "#c=" + c)}" alt=""><span>${esc(NOMS_CADRES[c] || c)}</span></button>`).join("")}
-      </div>`}`;
+        ${g === catalogue[0] ? `<button type="button" class="choix-cadre" data-cadre-profil="" aria-pressed="${!actuel}" ${base ? "" : "disabled"}><span class="choix-cadre-img"><img src="${esc(apercu)}" alt=""></span><b>Sans cadre</b></button>` : ""}
+        ${g.cadres.map((c) => { const a = liste.includes(c.id);
+          return `<button type="button" class="choix-cadre${a ? "" : " verrou"}" ${a && base ? `data-cadre-profil="${esc(c.id)}"` : "disabled"} aria-pressed="${actuel === c.id}" title="${esc(c.comment)}">
+            <span class="choix-cadre-img"><img src="${esc(apercu + "#c=" + c.id)}" alt=""></span><b>${esc(c.nom)}</b>
+            <small>${a ? (actuel === c.id ? "Affiché" : "Débloqué · clique pour l'afficher") : "🔒 " + esc(c.comment)}</small></button>`; }).join("")}
+      </div></div>`).join("")}`;
   }
   document.addEventListener("click", async (e) => {
     const b = e.target.closest("[data-cadre-profil]"); if (!b || !sb) return;

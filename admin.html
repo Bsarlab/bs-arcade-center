@@ -449,15 +449,15 @@ begin
     src := 'bonus';
   end if;
   -- God pack : 1 booster sur 100 garanti (le 100e, le 200e…), sinon 1 chance sur 1000.
-  -- Dedans : au plus une Épique, tout le reste en Mythique ou Suprême (5 % de Suprême par carte).
+  -- Dedans : 1 ou 2 Épiques, des Mythiques, au plus une Suprême, et au moins une carte pas encore obtenue.
   select count(*) into tot from tcg_ouvertures where joueur = auth.uid();
   god := (tot + 1) % 100 = 0 or random() < 0.001;
   -- God pack : au moins une carte que le joueur n'a pas encore (Mythique ou Suprême, sinon Épique)
   if god then
-    select v.carte into neuve from tcg_valeurs v where v.serie = p_serie and v.rarete in ('L', 'S')
+    select v.carte, case when v.rarete = 'S' then 5 else 3 + floor(random() * 2)::int end into neuve, place
+      from tcg_valeurs v where v.serie = p_serie and v.rarete in ('L', 'S')
       and not exists (select 1 from tcg_cartes t where t.joueur = auth.uid() and replace(t.carte, '*', '') = v.carte and t.nombre > 0)
       order by random() limit 1;
-    place := 2 + floor(random() * 4)::int;
     if neuve is null then
       select v.carte into neuve from tcg_valeurs v where v.serie = p_serie and v.rarete = 'E'
         and not exists (select 1 from tcg_cartes t where t.joueur = auth.uid() and replace(t.carte, '*', '') = v.carte and t.nombre > 0)
@@ -468,7 +468,8 @@ begin
   for i in 1..5 loop
     r := random();
     -- Suprême : 1 booster sur 1000. Mythique : environ 3 %. Épique : environ 30 %.
-    if god then pool := case when i = 1 and r < 0.5 then epiques when r > 0.95 then supremes else legendaires end;
+    -- God pack : 1 ou 2 Épiques, le reste en Mythique, au plus une Suprême (15 %, en dernière carte)
+    if god then pool := case when i = 1 then epiques when i = 2 and r < 0.4 then epiques when i = 5 and r < 0.15 then supremes else legendaires end;
     elsif i <= 3 then pool := case when r < 0.08 then rares else communes end;
     elsif i = 4 then pool := case when r < 0.12 then epiques else rares end;
     else pool := case when r < 0.001 then supremes when r < 0.031 then legendaires when r < 0.22 then epiques else rares end;

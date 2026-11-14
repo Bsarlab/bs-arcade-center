@@ -1249,20 +1249,18 @@ form.carte-amis > .btn { justify-self: start; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .direct-point, .squelette { animation: none; }
 }
-/* ---------- Cadres de profil gagnés dans CARDS CENTER (« #c=… » à la fin de l'avatar) : affichés partout où apparaît la photo ---------- */
-img[src$="#c=or"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=or"]) { box-shadow: 0 0 0 3px #ffd23f, 0 0 0 5px #8a6400, 0 0 16px 4px rgba(255,210,63,.8) !important; animation: cadre-pulse 2.4s ease-in-out infinite; }
-img[src$="#c=argent"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=argent"]) { box-shadow: 0 0 0 3px #eef2f8, 0 0 0 5px #7d8794, 0 0 14px 3px rgba(220,230,245,.7) !important; }
-img[src$="#c=bronze"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=bronze"]) { box-shadow: 0 0 0 3px #e39a5b, 0 0 0 5px #7a4a22, 0 0 14px 3px rgba(227,154,91,.65) !important; }
-img[src$="#c=top10"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=top10"]) { box-shadow: 0 0 0 3px #8b5cf6, 0 0 0 5px #2a1a52, 0 0 14px 3px rgba(139,92,246,.8) !important; }
-img[src$="#c=assidu"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=assidu"]) { box-shadow: 0 0 0 3px #22d3ee, 0 0 0 5px #0b3a44, 0 0 14px 3px rgba(34,211,238,.8) !important; }
-img[src$="#c=supreme"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=supreme"]) { box-shadow: 0 0 0 3px #ff4fa3, 0 0 0 5px #fff, 0 0 18px 4px rgba(255,79,163,.85) !important; animation: cadre-pulse 1.6s ease-in-out infinite; }
-img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=god"]) { animation: cadre-arcenciel 2.2s linear infinite !important; }
-@keyframes cadre-pulse { 50% { filter: brightness(1.15) saturate(1.2); } }
-@keyframes cadre-arcenciel { 0%, 100% { box-shadow: 0 0 0 3px #ffd23f, 0 0 18px 5px rgba(255,210,63,.85); } 25% { box-shadow: 0 0 0 3px #ff4fa3, 0 0 18px 5px rgba(255,79,163,.85); } 50% { box-shadow: 0 0 0 3px #22d3ee, 0 0 18px 5px rgba(34,211,238,.85); } 75% { box-shadow: 0 0 0 3px #3ee07a, 0 0 18px 5px rgba(62,224,122,.85); } }
-:is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src*="#c="]) { overflow: visible; }
-:is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar) > img[src*="#c="] { border-radius: 50%; }
-@media (prefers-reduced-motion: reduce) { img[src*="#c="], :has(> img[src*="#c="]) { animation: none !important; } }
-.grille-cadres { display: flex; flex-wrap: wrap; gap: 12px; margin: 8px 0 18px; }
-.choix-cadre { display: grid; justify-items: center; gap: 8px; width: 116px; padding: 14px 8px 10px; border-radius: 16px; border: 2px solid transparent; background: var(--surface, rgba(127,127,127,.12)); color: inherit; font: inherit; font-size: 13px; cursor: pointer; }
-.choix-cadre img { width: 60px; height: 60px; border-radius: 50%; object-fit: cover; }
+/* ---------- Cadres de profil gagnés dans les jeux (« #c=… » à la fin de l'avatar) : dessinés par cadres.js ---------- */
+.cadres-jeu { margin: 10px 0 20px; }
+.cadres-jeu-titre { font-weight: 800; margin: 0 0 10px; }
+.cadres-jeu-titre span { font-weight: 600; opacity: .65; margin-left: 6px; }
+.grille-cadres { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 14px; margin: 8px 0 18px; }
+.choix-cadre { display: grid; justify-items: center; align-content: start; gap: 6px; padding: 30px 10px 14px; border-radius: 18px; border: 2px solid transparent; background: var(--surface, rgba(127,127,127,.12)); color: inherit; font: inherit; font-size: 13px; text-align: center; cursor: pointer; overflow: visible; transition: transform .15s, border-color .15s; }
+.choix-cadre:hover:not(:disabled) { transform: translateY(-3px); }
+.choix-cadre-img { display: grid; place-items: center; width: 92px; height: 92px; margin-bottom: 16px; }
+.choix-cadre-img img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; }
+.choix-cadre b { font-size: 14px; }
+.choix-cadre small { font-size: 12px; opacity: .75; line-height: 1.35; }
+.choix-cadre.verrou { cursor: default; }
+.choix-cadre.verrou .choix-cadre-img { filter: saturate(.55) brightness(.85); }
+.choix-cadre:disabled:not(.verrou) { cursor: default; opacity: .6; }
 .choix-cadre[aria-pressed="true"] { border-color: currentColor; }
