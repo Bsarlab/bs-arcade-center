@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>CARDS CENTER · le jeu de cartes à collectionner</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Bungee&family=Barlow:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,500;0,600;0,700;0,800;0,900;1,700;1,800;1,900&family=Bungee&family=Press+Start+2P&family=Barlow:wght@400;500;600;700&display=swap">
 <style>
 /* =========================================================
    CARTE GRISE · design « Nuit de tuning »
@@ -624,10 +624,167 @@ body[data-theme="2"] .scene-paquet::after { background: radial-gradient(closest-
 .ouverture.god .ouverture-tete span:first-child { color: #ffd23f; text-shadow: 0 0 12px #ffd23f; }
 .serie-duel { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin-top: 4px; color: var(--doux); font-size: 14px; }
 .arene .serie-progres { position: absolute; top: 18px; left: 22px; z-index: 6; padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,.08); font-family: var(--f-titre); font-weight: 800; letter-spacing: .06em; }
+
+/* =========================================================
+   Série 3 « Manettes & Cassettes » : salle d'arcade, pixels et écran cathodique
+   ========================================================= */
+body[data-theme="3"] {
+  --nuit: #0b0716; --nuit2: #151028; --nuit3: #221a40;
+  --violet: #ff2bd6; --cyan: #00f0ff; --rose: #ffe600; --jaune: #ffe600; --vert: #39ff14;
+  --doux: #c9bfe8; --pale: #8c80b4;
+  --rC: #b8b8c8; --rR: #00c2ff; --rE: #ff2bd6; --rL: #ffe600; --rS: #39ff14;
+  --chrome: linear-gradient(180deg, #ffffff 0%, #a8fbff 40%, #00b7d4 52%, #ffffff 64%, #6fe9ff 100%);
+}
+body[data-theme="3"] .accueil h1, body[data-theme="3"] .titre-ecran h2, body[data-theme="3"] .arene-fin h3 { font-family: "Press Start 2P", var(--f-tampon); font-weight: 400; letter-spacing: 0; }
+body[data-theme="3"] .accueil h1 { font-size: clamp(34px, 6.2vw, 76px); line-height: 1.15; filter: drop-shadow(4px 4px 0 #ff2bd6) drop-shadow(0 0 22px rgba(0,240,255,.5)); }
+body[data-theme="3"] .titre-ecran h2 { font-size: clamp(22px, 3.6vw, 36px); line-height: 1.3; }
+body[data-theme="3"] .salle { background: radial-gradient(60% 50% at 20% 0%, rgba(255,43,214,.25), transparent 70%), radial-gradient(60% 50% at 85% 10%, rgba(0,240,255,.2), transparent 70%), linear-gradient(180deg, #120a24, #0b0716 60%, #08050f); }
+body[data-theme="3"] .salle::before { display: none; }
+body[data-theme="3"] .d3 { opacity: 1; }
+body[data-theme="3"] .defile { background: linear-gradient(90deg, #ff2bd6, #ffe600 50%, #00f0ff); }
+.d3 .sol { position: absolute; left: -50%; right: -50%; bottom: -10vh; height: 52vh; transform: perspective(380px) rotateX(62deg); transform-origin: 50% 100%;
+  background: linear-gradient(90deg, rgba(255,43,214,.7) 2px, transparent 2px) 0 0 / 48px 48px, linear-gradient(180deg, rgba(0,240,255,.6) 2px, transparent 2px) 0 0 / 48px 48px;
+  -webkit-mask-image: linear-gradient(transparent, #000 40%); mask-image: linear-gradient(transparent, #000 40%); animation: sol-pixel .8s steps(6) infinite; }
+@keyframes sol-pixel { to { background-position: 0 0, 0 48px; } }
+.d3 .pixels { position: absolute; inset: 0; background-image: radial-gradient(#fff 1.5px, transparent 1.5px), radial-gradient(#00f0ff 1.5px, transparent 1.5px), radial-gradient(#ffe600 1.5px, transparent 1.5px); background-size: 140px 120px, 210px 170px, 90px 130px; background-position: 0 0, 60px 40px, 30px 80px; animation: etoiles 2.4s steps(2) infinite; opacity: .6; }
+@keyframes etoiles { 50% { opacity: .2; } }
+.d3 .bloc { position: absolute; top: -60px; width: 34px; height: 34px; background: var(--c, #ff2bd6); box-shadow: inset -6px -6px 0 rgba(0,0,0,.3), inset 6px 6px 0 rgba(255,255,255,.35), 34px 0 0 var(--c, #ff2bd6), 0 34px 0 var(--c, #ff2bd6); opacity: .5; animation: tombe linear infinite; }
+.d3 .bloc:nth-of-type(1) { left: 8%; --c: #ff2bd6; animation-duration: 9s; }
+.d3 .bloc:nth-of-type(2) { left: 26%; --c: #00f0ff; animation-duration: 12s; animation-delay: -5s; }
+.d3 .bloc:nth-of-type(3) { left: 47%; --c: #ffe600; animation-duration: 10s; animation-delay: -2s; }
+.d3 .bloc:nth-of-type(4) { left: 66%; --c: #39ff14; animation-duration: 14s; animation-delay: -8s; }
+.d3 .bloc:nth-of-type(5) { left: 82%; --c: #ff7a00; animation-duration: 11s; animation-delay: -3s; }
+.d3 .bloc:nth-of-type(6) { left: 93%; --c: #8b5cf6; animation-duration: 13s; animation-delay: -10s; }
+@keyframes tombe { from { transform: translateY(0) rotate(0); } to { transform: translateY(120vh) rotate(180deg); } }
+.d3 .crt { position: absolute; inset: 0; background: repeating-linear-gradient(180deg, rgba(0,0,0,.25) 0 2px, transparent 2px 4px); animation: crt 6s linear infinite; }
+@keyframes crt { 0%, 100% { opacity: .55; } 50% { opacity: .35; } }
+.choix-serie { grid-template-columns: repeat(3, 1fr); max-width: 660px; }
+@media (max-width: 560px) { .choix-serie { grid-template-columns: 1fr; } }
+.serie-btn[data-serie="3"] i { background: linear-gradient(180deg, #8c8c99 0 18%, #ff2bd6 18% 60%, #00f0ff 60% 82%, #8c8c99 82%); }
+
+/* ---------- Booster série 3 : une cartouche de jeu ---------- */
+.paquet.s3 { aspect-ratio: 5 / 6.6; }
+.paquet.s3 .paquet-haut, .paquet.s3 .paquet-corps { -webkit-mask: none; mask: none; animation: none; }
+.paquet.s3 .paquet-haut { height: 12%; border-radius: 12px 12px 0 0; background: repeating-linear-gradient(180deg, #a3a3b0 0 4px, #7d7d8a 4px 7px); box-shadow: inset 0 2px 0 rgba(255,255,255,.4); }
+.paquet.s3 .paquet-haut::after { display: none; }
+.paquet.s3 .paquet-ligne { top: 12%; border-top: 3px solid #4a4a56; }
+.paquet.s3 .paquet-corps { top: 12%; border-radius: 0 0 10px 10px; padding: 14px 14px 46px; background: linear-gradient(180deg, #9a9aa7, #7d7d8a); box-shadow: inset 0 0 0 3px #5b5b66, inset 4px 0 0 rgba(255,255,255,.25);
+  -webkit-clip-path: polygon(0 0, 100% 0, 100% 86%, 88% 86%, 88% 100%, 12% 100%, 12% 86%, 0 86%); clip-path: polygon(0 0, 100% 0, 100% 86%, 88% 86%, 88% 100%, 12% 100%, 12% 86%, 0 86%); }
+.paquet.s3 .paquet-corps::before { inset: 5% 7% 18%; border-radius: 6px; background: linear-gradient(115deg, transparent 30%, rgba(255,255,255,.3) 42%, transparent 54%) 0 0 / 250% 100%, linear-gradient(160deg, #ff2bd6, #6a1bff 55%, #00c2ff); box-shadow: inset 0 0 0 3px #222, 0 0 0 2px #fff; animation: reflet-paquet 3.5s linear infinite; }
+.paquet.s3 .paquet-corps::after { content: ""; position: absolute; left: 14%; right: 14%; bottom: 0; height: 13%; background: repeating-linear-gradient(90deg, #c9a640 0 6px, #6b5a20 6px 9px); }
+.paquet.s3 .paquet-titre { font-family: "Press Start 2P", var(--f-tampon); font-size: calc(var(--pw) * .068); line-height: 1.35; background: none; color: #ffe600; -webkit-text-fill-color: #ffe600; filter: drop-shadow(3px 3px 0 #000); }
+.paquet.s3 .paquet-sous { color: #fff; }
+.paquet.s3 .paquet-etiquette { background: #000; color: #00f0ff; box-shadow: 0 0 0 2px #00f0ff; transform: none; }
+.paquet.s3 .paquet-etiquette i { background: #ff2bd6; }
+.paquet.s3 .paquet-scelle { background: #39ff14; color: #000; font-family: "Press Start 2P", var(--f-tampon); font-size: calc(var(--pw) * .045); border-radius: 0; box-shadow: 4px 4px 0 #000; top: 15%; right: -10px; transform: rotate(8deg); }
+.paquet.s3 .paquet-vitrine { height: calc(var(--pw) * .5); }
+.paquet.s3 .paquet-vitrine::after { display: none; }
+.paquet.s3 .paquet-code { bottom: 15%; color: rgba(0,0,0,.45); }
+.paquet.s3.ouvert .paquet-haut { transform: translateY(-120px) rotate(10deg); }
+body[data-theme="3"] .scene-paquet::after { background: radial-gradient(closest-side, rgba(255,43,214,.8), rgba(0,240,255,.3) 60%, transparent); }
+
+/* ---------- Carte série 3 : écran à balayage et étiquette de cartouche ---------- */
+.carte.s3 .c-cadre { background: linear-gradient(180deg, #2a2735, #17151f); }
+.carte.s3 .c-photo { background: #0b0716; }
+.carte.s3 .c-img { object-fit: contain; background: radial-gradient(circle at 50% 50%, #3a3456, #0b0716 75%); }
+.carte.s3 .c-photo::before { content: ""; position: absolute; inset: 0; z-index: 1; pointer-events: none; background: repeating-linear-gradient(180deg, rgba(0,0,0,.18) 0 2px, transparent 2px 4px); }
+.c-etiq { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; gap: .4em; height: 1.6em; margin: -.9em .7em 0; padding: 0 .55em; background: #ffe600; color: #111; box-shadow: .18em .18em 0 #000; font-family: "Press Start 2P", var(--f-titre); font-size: .58em; }
+.c-etiq b { font-weight: 400; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.carte.s3 .c-nom { font-family: "Press Start 2P", var(--f-tampon); font-size: .78em; line-height: 1.35; text-transform: none; }
+
+/* ---------- En-tête : badge de la messagerie ---------- */
+.boite-btn { position: relative; }
+.boite-btn b { position: absolute; top: -7px; right: -7px; min-width: 20px; height: 20px; padding: 0 6px; border-radius: 999px; background: #ff3b5c; color: #fff; font-size: 12px; line-height: 20px; text-align: center; box-shadow: 0 0 0 2px var(--nuit), 0 0 12px rgba(255,59,92,.8); animation: pulse 1.2s ease-in-out infinite; }
+.boite-btn b[hidden] { display: none; }
+@media (max-width: 760px) { .menu-ecrans { gap: 4px; } .menu-ecrans .onglet { padding: 7px 9px; } }
+
+/* ---------- Objectifs ---------- */
+.carte-info { padding: 16px 18px; border-radius: 18px; background: rgba(255,255,255,.05); border: 1px solid var(--trait); color: var(--doux); }
+.carte-info h3 { margin: 0 0 8px; font-family: var(--f-titre); font-weight: 800; font-size: 19px; letter-spacing: .05em; text-transform: uppercase; color: var(--texte); }
+.carte-info p { margin: 0 0 6px; }
+.obj-bloc { margin-bottom: 30px; }
+.obj-bloc h3 { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 14px; margin: 0 0 12px; font-family: var(--f-titre); font-weight: 800; font-size: 24px; letter-spacing: .05em; text-transform: uppercase; }
+.obj-bloc h3 small { font-family: var(--f-corps); font-weight: 600; font-size: 14px; letter-spacing: 0; text-transform: none; color: var(--pale); }
+.obj-liste { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; }
+.obj { display: flex; align-items: center; gap: 14px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.05); border: 1px solid var(--trait); }
+.obj.fait { border-color: var(--vert); background: color-mix(in srgb, var(--vert) 10%, transparent); }
+.obj-texte { flex: 1; min-width: 0; }
+.obj-texte b { display: block; font-size: 16px; }
+.obj-texte small { color: var(--pale); font-weight: 700; }
+.obj-barre { height: 10px; margin: 8px 0 4px; border-radius: 999px; background: rgba(255,255,255,.1); overflow: hidden; }
+.obj-barre i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, var(--cyan), var(--violet), var(--rose)); box-shadow: 0 0 10px var(--violet); transition: width 1s var(--ease); }
+.obj.fait .obj-barre i { background: var(--vert); box-shadow: 0 0 10px var(--vert); }
+.obj-gain { flex: none; max-width: 46%; text-align: right; font-family: var(--f-titre); font-weight: 800; font-size: 15px; color: var(--jaune); }
+.obj.fait .obj-gain { color: var(--vert); }
+
+/* ---------- Ligue ---------- */
+.ligue-haut { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.ligue-moi { display: grid; gap: 4px; align-content: start; }
+.ligue-moi small { font-weight: 700; text-transform: uppercase; letter-spacing: .08em; }
+.ligue-moi b { font-family: var(--f-tampon); font-weight: 400; font-size: 52px; line-height: 1; color: var(--jaune); text-shadow: 0 0 18px color-mix(in srgb, var(--jaune) 60%, transparent); }
+.ligue-fin { color: var(--pale); font-size: 14px; }
+.ligue-prix { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ligue-prix li { display: flex; align-items: center; gap: 10px; }
+.ligue-prix li b { min-width: 74px; color: var(--texte); }
+.ligue-prix li span { flex: 1; }
+.cadre-mini { width: 18px; height: 18px; border-radius: 50%; background: var(--nuit3); }
+.cadre-mini.c-or { box-shadow: 0 0 0 3px #ffd23f, 0 0 10px #ffd23f; } .cadre-mini.c-argent { box-shadow: 0 0 0 3px #eef2f8; } .cadre-mini.c-bronze { box-shadow: 0 0 0 3px #e39a5b; } .cadre-mini.c-top10 { box-shadow: 0 0 0 3px #8b5cf6, 0 0 10px #8b5cf6; }
+.ligue-liste { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; }
+.ligue-liste li { display: grid; grid-template-columns: 40px 40px 1fr auto; align-items: center; gap: 12px; padding: 8px 14px; border-radius: 14px; background: rgba(255,255,255,.04); font-family: var(--f-titre); font-weight: 700; font-size: 18px; }
+.ligue-liste li.vide { display: block; color: var(--doux); font-family: var(--f-corps); font-weight: 500; }
+.ligue-liste li.moi { background: color-mix(in srgb, var(--cyan) 14%, transparent); box-shadow: inset 0 0 0 1px var(--cyan); }
+.ligue-liste .rang { font-family: var(--f-tampon); font-weight: 400; font-size: 20px; text-align: center; color: var(--pale); }
+.ligue-liste li:nth-child(1) .rang { color: #ffd23f; } .ligue-liste li:nth-child(2) .rang { color: #eef2f8; } .ligue-liste li:nth-child(3) .rang { color: #e39a5b; }
+.ligue-liste img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; background: var(--nuit3); }
+.ligue-liste b { color: var(--jaune); }
+
+/* ---------- Messagerie ---------- */
+.boite-tout { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; padding: 14px 18px; border-radius: 16px; background: color-mix(in srgb, var(--rose) 12%, transparent); border: 1px solid color-mix(in srgb, var(--rose) 45%, transparent); font-family: var(--f-titre); font-weight: 800; font-size: 18px; }
+.msg-liste { display: grid; gap: 8px; margin-bottom: 30px; }
+.msg { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 16px; padding: 14px 16px; border-radius: 16px; background: rgba(255,255,255,.06); border: 1px solid var(--trait); animation: fx-pop .35s ease-out both; }
+.msg.lu { opacity: .55; background: rgba(255,255,255,.02); }
+.msg-ico { font-size: 30px; }
+.msg-texte { flex: 1; min-width: 200px; }
+.msg-texte b { font-size: 17px; }
+.msg-texte p { margin: 2px 0; color: var(--doux); font-size: 14px; }
+.msg-texte small { color: var(--pale); font-size: 12px; }
+.msg-gain { display: grid; justify-items: end; font-family: var(--f-titre); font-weight: 800; font-size: 18px; color: var(--jaune); }
+.msg-gain span { font-size: 14px; color: var(--cyan); }
+.msg-ok { color: var(--vert); font-weight: 700; }
+.cadres-grille { display: flex; flex-wrap: wrap; gap: 14px; }
+.cadre-choix { display: grid; justify-items: center; gap: 10px; width: 132px; padding: 16px 10px 12px; border-radius: 16px; border: 1px solid var(--trait); background: rgba(255,255,255,.05); font-size: 13px; }
+.cadre-choix img { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; background: var(--nuit3); }
+.cadre-choix[aria-pressed="true"] { border-color: var(--rose); box-shadow: 0 0 0 1px var(--rose); }
+body[data-theme="3"] .d1 { opacity: 0; }
+@media (max-width: 560px) {
+  .barre { gap: 6px; padding-left: 10px; padding-right: 10px; }
+  .logo span { display: none; }
+  .menu-ecrans { gap: 3px; }
+  .menu-ecrans .onglet { padding: 7px 8px; }
+  .menu-ecrans .onglet .court, .menu-ecrans .onglet[aria-current] .court { display: none; }
+  .rond { width: 36px; height: 36px; }
+}
+
+/* ---------- Cadres de profil gagnés dans CARDS CENTER (« #c=… » à la fin de l'avatar) ---------- */
+img[src$="#c=or"] { box-shadow: 0 0 0 3px #ffd23f, 0 0 0 5px #8a6400, 0 0 16px 4px rgba(255,210,63,.8) !important; animation: cadre-pulse 2.4s ease-in-out infinite; }
+img[src$="#c=argent"] { box-shadow: 0 0 0 3px #eef2f8, 0 0 0 5px #7d8794, 0 0 14px 3px rgba(220,230,245,.7) !important; }
+img[src$="#c=bronze"] { box-shadow: 0 0 0 3px #e39a5b, 0 0 0 5px #7a4a22, 0 0 14px 3px rgba(227,154,91,.65) !important; }
+img[src$="#c=top10"] { box-shadow: 0 0 0 3px #8b5cf6, 0 0 0 5px #2a1a52, 0 0 14px 3px rgba(139,92,246,.8) !important; }
+img[src$="#c=assidu"] { box-shadow: 0 0 0 3px #22d3ee, 0 0 0 5px #0b3a44, 0 0 14px 3px rgba(34,211,238,.8) !important; }
+img[src$="#c=supreme"] { box-shadow: 0 0 0 3px #ff4fa3, 0 0 0 5px #fff, 0 0 18px 4px rgba(255,79,163,.85) !important; animation: cadre-pulse 1.6s ease-in-out infinite; }
+img[src$="#c=god"] { animation: cadre-arcenciel 2.2s linear infinite !important; }
+@keyframes cadre-pulse { 50% { filter: brightness(1.15) saturate(1.2); } }
+@keyframes cadre-arcenciel {
+  0%, 100% { box-shadow: 0 0 0 3px #ffd23f, 0 0 18px 5px rgba(255,210,63,.85); }
+  25% { box-shadow: 0 0 0 3px #ff4fa3, 0 0 18px 5px rgba(255,79,163,.85); }
+  50% { box-shadow: 0 0 0 3px #22d3ee, 0 0 18px 5px rgba(34,211,238,.85); }
+  75% { box-shadow: 0 0 0 3px #3ee07a, 0 0 18px 5px rgba(62,224,122,.85); }
+}
+@media (prefers-reduced-motion: reduce) { img[src*="#c="] { animation: none !important; } }
 </style>
 </head>
 <body>
-<div class="salle" aria-hidden="true"></div><div class="neon" aria-hidden="true"></div><div class="decor d1" aria-hidden="true"><div class="soleil"></div><div class="route"></div><i class="phare"></i><i class="phare"></i><i class="phare"></i><i class="phare"></i></div><div class="decor d2" aria-hidden="true"><div class="pelouse"></div><i class="projo"></i><i class="projo"></i><i class="projo"></i><div class="flashs"></div></div><div class="aurores" aria-hidden="true"><i></i><i></i><i></i></div><div class="flottants" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="grain" aria-hidden="true"></div>
+<div class="salle" aria-hidden="true"></div><div class="neon" aria-hidden="true"></div><div class="decor d1" aria-hidden="true"><div class="soleil"></div><div class="route"></div><i class="phare"></i><i class="phare"></i><i class="phare"></i><i class="phare"></i></div><div class="decor d2" aria-hidden="true"><div class="pelouse"></div><i class="projo"></i><i class="projo"></i><i class="projo"></i><div class="flashs"></div></div><div class="decor d3" aria-hidden="true"><div class="pixels"></div><div class="sol"></div><i class="bloc"></i><i class="bloc"></i><i class="bloc"></i><i class="bloc"></i><i class="bloc"></i><i class="bloc"></i><div class="crt"></div></div><div class="aurores" aria-hidden="true"><i></i><i></i><i></i></div><div class="flottants" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="grain" aria-hidden="true"></div>
 
 <header class="barre">
   <button class="logo" type="button" data-aller="accueil" aria-label="Retour à l'accueil">
@@ -637,10 +794,13 @@ body[data-theme="2"] .scene-paquet::after { background: radial-gradient(closest-
   <nav class="menu-ecrans">
     <button class="onglet" type="button" data-aller="classeur"><span class="long">Collection </span><span id="compteurBarre">0</span></button>
     <button class="onglet" type="button" data-aller="duel">⚔<span class="court"> Duel</span></button>
+    <button class="onglet" type="button" data-aller="objectifs" title="Objectifs">🎯<span class="court"> Objectifs</span></button>
+    <button class="onglet" type="button" data-aller="ligue" title="Ligue">🏆<span class="court"> Ligue</span></button>
+    <button class="onglet boite-btn" type="button" data-aller="boite" title="Messagerie">✉️<span class="court"> Messagerie</span><b id="badgeBoite" hidden>0</b></button>
   </nav>
   <button class="rond" type="button" id="btnSon" aria-label="Couper le son" title="Son"></button>
 </header>
-<div class="defile" aria-hidden="true"><div><span>★ NOUVEAU : SÉRIE 2 « MÉDAILLES ET BATAILLES »</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 1 SEULE CARTE SUPRÊME PAR SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
+<div class="defile" aria-hidden="true"><div><span>🎮 NOUVEAU : SÉRIE 3 « MANETTES &amp; CASSETTES »</span><span>🎯 OBJECTIFS DU JOUR ET DE LA SEMAINE</span><span>🏆 LIGUE : LES MEILLEURS GAGNENT DES BOOSTERS ET UN CADRE CHAQUE SEMAINE</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 3 CARTES SUPRÊMES PAR SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
 
 
 <main>
@@ -651,10 +811,11 @@ body[data-theme="2"] .scene-paquet::after { background: radial-gradient(closest-
     <div class="accueil">
       <div>
         <h1>Cards<br>Center<span>Ouvre · collectionne · combats</span></h1>
-        <p class="intro">Choisis ta série, déchire le booster : 5 cartes t'attendent. Range-les dans ta collection, échange-les avec tes amis, puis envoie tes 5 meilleures en duel. Chaque série cache une seule carte Suprême.</p>
+        <p class="intro">Choisis ta série, déchire le booster : 5 cartes t'attendent. Range-les dans ta collection, échange-les avec tes amis, puis envoie tes 5 meilleures en duel. Chaque série cache trois cartes Suprêmes.</p>
         <div class="choix-serie" role="group" aria-label="Choisir la série du booster">
           <button class="serie-btn" type="button" data-serie="1"><i></i><span><b>Châssis en folie</b><small>Série 1 · véhicules cultes</small></span></button>
           <button class="serie-btn" type="button" data-serie="2"><i></i><span><b>Médailles et Batailles</b><small>Série 2 · stars du sport</small></span></button>
+          <button class="serie-btn" type="button" data-serie="3"><i></i><span><b>Manettes &amp; Cassettes</b><small>Série 3 · consoles cultes</small></span></button>
         </div>
         <div class="etat" aria-live="polite">
           <div class="etat-ligne"><span>Boosters disponibles</span><span class="voyants" id="voyants"></span></div>
@@ -684,11 +845,30 @@ body[data-theme="2"] .scene-paquet::after { background: radial-gradient(closest-
     <div class="series-onglets" role="group" aria-label="Série">
       <button class="serie-onglet" type="button" data-vue="1">Châssis en folie</button>
       <button class="serie-onglet" type="button" data-vue="2">Médailles et Batailles</button>
+      <button class="serie-onglet" type="button" data-vue="3">Manettes &amp; Cassettes</button>
     </div>
     <div class="classeur-page">
       <div class="filtres" id="filtres" role="group" aria-label="Filtrer"></div>
       <div class="grille-classeur" id="grille"></div>
     </div>
+  </section>
+
+  <!-- Objectifs -->
+  <section class="ecran" id="e-objectifs" hidden>
+    <div class="titre-ecran"><div><h2>Objectifs</h2><p>Dès qu'un objectif est atteint, sa récompense part dans ta messagerie.</p></div></div>
+    <div id="zoneObjectifs"></div>
+  </section>
+
+  <!-- Ligue -->
+  <section class="ecran" id="e-ligue" hidden>
+    <div class="titre-ecran"><div><h2>Ligue de la semaine</h2><p>Gagne des duels pour marquer des points. Chaque lundi, les meilleurs reçoivent des boosters et un cadre de profil.</p></div></div>
+    <div id="zoneLigue"></div>
+  </section>
+
+  <!-- Messagerie -->
+  <section class="ecran" id="e-boite" hidden>
+    <div class="titre-ecran"><div><h2>Messagerie</h2><p>Toutes tes récompenses arrivent ici. Les boosters gagnés en duel vont directement dans ton stock.</p></div></div>
+    <div id="zoneBoite"></div>
   </section>
 
   <!-- Duel -->
@@ -768,6 +948,44 @@ const CARTES = [
 "sil": "route",
 "se": 1,
 "pw": 168
+},
+{
+"id": "p206beauf",
+"marque": "PEUGEOT",
+"n": "206 Team Beauf",
+"an": "2003",
+"cl": "Citadine tunée",
+"r": "S",
+"cout": 10,
+"men": 9,
+"conf": 14,
+"txt": "<b>La vie est belle.</b> Tant qu'elle est en jeu, tes cartes gagnent +2 Fiabilité : les dés en peluche portent bonheur.",
+"cite": "Flamant rose gonflable, deux enceintes sur le toit et néons bleus sous le bas de caisse.",
+"local": true,
+"auteur": "Créateur de BS arcade center",
+"lic": "Tous droits réservés",
+"sil": "route",
+"se": 1,
+"pw": 166
+},
+{
+"id": "p206keke",
+"marque": "PEUGEOT",
+"n": "206 Team Kéké",
+"an": "2001",
+"cl": "Citadine tunée",
+"r": "S",
+"cout": 10,
+"men": 12,
+"conf": 11,
+"txt": "<b>100 % beaufitude.</b> Quand elle arrive, l'adversaire est ébloui par la chaîne en or et perd 2 Vitesse.",
+"cite": "Aileron, jantes blanches, flamant rose en peluche sur le toit et « LOL » qui défile sur les lunettes.",
+"local": true,
+"auteur": "Créateur de BS arcade center",
+"lic": "Tous droits réservés",
+"sil": "route",
+"se": 1,
+"pw": 166
 },
 {
 "id": "concorde",
@@ -2217,15 +2435,33 @@ const CARTES = [
 "an": "ARG",
 "cl": "Football · Attaquant",
 "sport": "Football",
-"r": "L",
-"cout": 8,
+"r": "S",
+"cout": 10,
 "men": 14,
 "conf": 10,
 "txt": "<b>8 Ballons d'Or.</b> Champion du monde 2022 avec l'Argentine.",
 "cite": "Finaliste de la Coupe du monde 2026.",
 "q": "Lionel Messi",
 "sil": "foot",
-"pw": 128
+"pw": 168
+},
+{
+"id": "zidane",
+"se": 2,
+"marque": "Zinédine Zidane",
+"n": "Zinédine Zidane",
+"an": "FRA",
+"cl": "Football · Milieu",
+"sport": "Football",
+"r": "S",
+"cout": 10,
+"men": 14,
+"conf": 12,
+"txt": "<b>Champion du monde 1998</b> et Ballon d'Or 1998.",
+"cite": "Triple vainqueur de la Ligue des champions comme entraîneur du Real Madrid.",
+"q": "Zinédine Zidane",
+"sil": "foot",
+"pw": 172
 },
 {
 "id": "ronaldo",
@@ -2478,24 +2714,6 @@ const CARTES = [
 "q": "Tiger Woods",
 "sil": "golf",
 "pw": 130
-},
-{
-"id": "zidane",
-"se": 2,
-"marque": "Zinédine Zidane",
-"n": "Zinédine Zidane",
-"an": "FRA",
-"cl": "Football · Milieu",
-"sport": "Football",
-"r": "L",
-"cout": 8,
-"men": 14,
-"conf": 12,
-"txt": "<b>Champion du monde 1998</b> et Ballon d'Or 1998.",
-"cite": "Triple vainqueur de la Ligue des champions comme entraîneur du Real Madrid.",
-"q": "Zinédine Zidane",
-"sil": "foot",
-"pw": 132
 },
 {
 "id": "pele",
@@ -4620,6 +4838,975 @@ const CARTES = [
 "q": "Marcus Thuram",
 "sil": "foot",
 "pw": 48
+},
+{
+"id": "gameboy",
+"n": "Game Boy",
+"marque": "Nintendo",
+"an": "1989",
+"cl": "Console portable",
+"r": "S",
+"men": 9,
+"conf": 15,
+"txt": "<b>Indestructible.</b> Un Game Boy brûlé pendant la guerre du Golfe s'allume encore, exposé à New York.",
+"cite": "4 piles AA, un écran vert et des heures de jeu dans la poche.",
+"q": "Game Boy",
+"sil": "jeu",
+"se": 3,
+"cout": 10,
+"pw": 168
+},
+{
+"id": "ps2",
+"n": "PlayStation 2",
+"marque": "Sony",
+"an": "2000",
+"cl": "Console de salon",
+"r": "S",
+"men": 14,
+"conf": 15,
+"txt": "<b>Un monstre de ventes.</b> Plus de 150 millions d'exemplaires vendus dans le monde.",
+"cite": "Elle lisait aussi les DVD : la moitié des salons l'ont achetée pour ça.",
+"q": "PlayStation 2",
+"sil": "jeu",
+"se": 3,
+"cout": 10,
+"pw": 178
+},
+{
+"id": "nes",
+"n": "NES",
+"marque": "Nintendo",
+"an": "1985",
+"cl": "Console de salon",
+"r": "S",
+"men": 10,
+"conf": 15,
+"txt": "<b>Elle a sauvé le jeu vidéo</b> après le krach de 1983.",
+"cite": "Souffler dans la cartouche n'a jamais servi à rien… mais tout le monde l'a fait.",
+"q": "Nintendo Entertainment System",
+"sil": "jeu",
+"se": 3,
+"cout": 10,
+"pw": 170
+},
+{
+"id": "virtualboy",
+"n": "Virtual Boy",
+"marque": "Nintendo",
+"an": "1995",
+"cl": "Casque 3D",
+"r": "L",
+"men": 6,
+"conf": 14,
+"txt": "<b>Tout en rouge et noir.</b> Arrêtée au bout d'un an à peine : mal de tête garanti.",
+"cite": "La 3D du futur… à condition d'aimer le rouge.",
+"q": "Virtual Boy",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 120
+},
+{
+"id": "ngage",
+"n": "N-Gage",
+"marque": "Nokia",
+"an": "2003",
+"cl": "Téléphone-console",
+"r": "L",
+"men": 7,
+"conf": 13,
+"txt": "<b>Le téléphone-taco.</b> Pour appeler, il fallait le tenir sur la tranche contre son oreille.",
+"cite": "Pour changer de jeu, on enlevait la batterie.",
+"q": "N-Gage",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 120
+},
+{
+"id": "powerglove",
+"n": "Power Glove",
+"marque": "Mattel",
+"an": "1989",
+"cl": "Accessoire",
+"r": "L",
+"men": 8,
+"conf": 13,
+"txt": "<b>Le gant du futur.</b> Il avait l'air incroyable… et ne marchait presque jamais.",
+"cite": "Devenu culte grâce à un film de 1989.",
+"q": "Power Glove",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 122
+},
+{
+"id": "wiiu",
+"n": "Wii U",
+"marque": "Nintendo",
+"an": "2012",
+"cl": "Console de salon",
+"r": "L",
+"men": 10,
+"conf": 12,
+"txt": "<b>Personne n'a compris</b> que c'était une nouvelle console et pas un accessoire de la Wii.",
+"cite": "Sa manette était une tablette géante avec un écran.",
+"q": "Wii U",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 124
+},
+{
+"id": "jaguar",
+"n": "Jaguar",
+"marque": "Atari",
+"an": "1993",
+"cl": "Console de salon",
+"r": "L",
+"men": 11,
+"conf": 11,
+"txt": "<b>« Do the Math ».</b> Vendue comme la première console 64 bits.",
+"cite": "Sa manette avait un pavé numérique comme un téléphone.",
+"q": "Jaguar (console)",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 124
+},
+{
+"id": "cdi",
+"n": "CD-i",
+"marque": "Philips",
+"an": "1991",
+"cl": "Lecteur multimédia",
+"r": "L",
+"men": 7,
+"conf": 13,
+"txt": "<b>Mi-lecteur, mi-console.</b> Ses jeux sont devenus des légendes d'Internet… pour de mauvaises raisons.",
+"cite": "Vendue comme un appareil pour toute la famille.",
+"q": "CD-i",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 120
+},
+{
+"id": "tamagotchi",
+"n": "Tamagotchi",
+"marque": "Bandai",
+"an": "1996",
+"cl": "Animal virtuel",
+"r": "L",
+"men": 5,
+"conf": 15,
+"txt": "<b>Interdit dans les écoles.</b> Il fallait le nourrir pendant les cours, sinon il mourait.",
+"cite": "Un œuf en plastique qui a rendu fous des millions d'élèves.",
+"q": "Tamagotchi",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 120
+},
+{
+"id": "rob",
+"n": "R.O.B.",
+"marque": "Nintendo",
+"an": "1985",
+"cl": "Robot",
+"r": "L",
+"men": 6,
+"conf": 13,
+"txt": "<b>Cheval de Troie.</b> Un robot pour faire passer la NES pour un jouet après le krach.",
+"cite": "Il ne marchait qu'avec deux jeux.",
+"q": "R.O.B.",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 118
+},
+{
+"id": "xbox360",
+"n": "Xbox 360",
+"marque": "Microsoft",
+"an": "2005",
+"cl": "Console de salon",
+"r": "L",
+"men": 13,
+"conf": 9,
+"txt": "<b>Les trois voyants rouges.</b> Une panne si célèbre qu'elle a son propre surnom.",
+"cite": "Microsoft a dû prolonger la garantie de millions de consoles.",
+"q": "Xbox 360",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 124
+},
+{
+"id": "ps1",
+"n": "PlayStation",
+"marque": "Sony",
+"an": "1994",
+"cl": "Console de salon",
+"r": "L",
+"men": 12,
+"conf": 13,
+"txt": "<b>Née d'une dispute.</b> Au départ, c'était un lecteur CD prévu avec Nintendo.",
+"cite": "La première console à passer les 100 millions d'exemplaires.",
+"q": "PlayStation (console)",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 130
+},
+{
+"id": "dreamcast",
+"n": "Dreamcast",
+"marque": "Sega",
+"an": "1998",
+"cl": "Console de salon",
+"r": "L",
+"men": 12,
+"conf": 12,
+"txt": "<b>Trop en avance.</b> Modem intégré pour jouer en ligne… dès 1998.",
+"cite": "La dernière console de salon de Sega.",
+"q": "Dreamcast",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 128
+},
+{
+"id": "gbcamera",
+"n": "Game Boy Camera",
+"marque": "Nintendo",
+"an": "1998",
+"cl": "Accessoire",
+"r": "L",
+"men": 5,
+"conf": 14,
+"txt": "<b>Record du monde.</b> Le plus petit appareil photo numérique pour le Livre Guinness.",
+"cite": "Des photos en 4 nuances de gris, imprimables sur ticket.",
+"q": "Game Boy Camera",
+"sil": "jeu",
+"se": 3,
+"cout": 8,
+"pw": 118
+},
+{
+"id": "n64",
+"n": "Nintendo 64",
+"marque": "Nintendo",
+"an": "1996",
+"cl": "Console de salon",
+"r": "E",
+"men": 12,
+"conf": 12,
+"txt": "<b>La manette à trois poignées.</b> Et quatre ports manette pour jouer à quatre.",
+"cite": "Le premier stick analogique de Nintendo.",
+"q": "Nintendo 64",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 103
+},
+{
+"id": "snes",
+"n": "Super Nintendo",
+"marque": "Nintendo",
+"an": "1990",
+"cl": "Console de salon",
+"r": "E",
+"men": 11,
+"conf": 13,
+"txt": "<b>16 bits.</b> La reine de la guerre des consoles des années 90.",
+"cite": "Des boutons de couleur devenus mythiques.",
+"q": "Super Nintendo",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 103
+},
+{
+"id": "megadrive",
+"n": "Mega Drive",
+"marque": "Sega",
+"an": "1988",
+"cl": "Console de salon",
+"r": "E",
+"men": 11,
+"conf": 12,
+"txt": "<b>« Blast processing ».</b> Sega promettait qu'elle allait plus vite que la concurrence.",
+"cite": "La rivale de toujours de la Super Nintendo.",
+"q": "Mega Drive",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 101
+},
+{
+"id": "gamecube",
+"n": "GameCube",
+"marque": "Nintendo",
+"an": "2001",
+"cl": "Console de salon",
+"r": "E",
+"men": 11,
+"conf": 11,
+"txt": "<b>Avec une poignée</b> pour l'emporter chez les copains.",
+"cite": "Ses jeux tenaient sur des mini-DVD.",
+"q": "Nintendo GameCube",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 99
+},
+{
+"id": "wii",
+"n": "Wii",
+"marque": "Nintendo",
+"an": "2006",
+"cl": "Console de salon",
+"r": "E",
+"men": 9,
+"conf": 13,
+"txt": "<b>Mets la dragonne !</b> Des télés ont été cassées par des manettes lancées trop fort.",
+"cite": "Elle a fait jouer les grands-parents.",
+"q": "Wii",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 99
+},
+{
+"id": "nintendods",
+"n": "Nintendo DS",
+"marque": "Nintendo",
+"an": "2004",
+"cl": "Console portable",
+"r": "E",
+"men": 9,
+"conf": 12,
+"txt": "<b>Deux écrans</b>, dont un tactile avec un stylet.",
+"cite": "Une des consoles portables les plus vendues de l'histoire.",
+"q": "Nintendo DS",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 97
+},
+{
+"id": "switch",
+"n": "Nintendo Switch",
+"marque": "Nintendo",
+"an": "2017",
+"cl": "Console hybride",
+"r": "E",
+"men": 11,
+"conf": 12,
+"txt": "<b>Salon ou voyage.</b> On la sort de son socle et on continue la partie.",
+"cite": "Des manettes qui se détachent.",
+"q": "Nintendo Switch",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 101
+},
+{
+"id": "atari2600",
+"n": "Atari 2600",
+"marque": "Atari",
+"an": "1977",
+"cl": "Console de salon",
+"r": "E",
+"men": 7,
+"conf": 14,
+"txt": "<b>La pionnière.</b> Elle a mis les jeux vidéo dans les salons du monde entier.",
+"cite": "Un joystick et un seul bouton.",
+"q": "Atari 2600",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 97
+},
+{
+"id": "gameandwatch",
+"n": "Game & Watch",
+"marque": "Nintendo",
+"an": "1980",
+"cl": "Jeu électronique",
+"r": "E",
+"men": 6,
+"conf": 13,
+"txt": "<b>Une montre et un jeu.</b> La croix directionnelle a été inventée pour lui.",
+"cite": "Pensé pour s'occuper dans le train.",
+"q": "Game and Watch",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 93
+},
+{
+"id": "borne",
+"n": "Borne d'arcade",
+"marque": "Divers",
+"an": "1971",
+"cl": "Borne",
+"r": "E",
+"men": 10,
+"conf": 13,
+"txt": "<b>Une pièce, une vie.</b> Les salles d'arcade faisaient la queue pour un record.",
+"cite": "On y écrivait ses initiales en trois lettres.",
+"q": "Borne d'arcade",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 101
+},
+{
+"id": "ps5",
+"n": "PlayStation 5",
+"marque": "Sony",
+"an": "2020",
+"cl": "Console de salon",
+"r": "E",
+"men": 15,
+"conf": 9,
+"txt": "<b>Introuvable à sa sortie</b> : les stocks partaient en quelques minutes.",
+"cite": "Une manette qui vibre partout.",
+"q": "PlayStation 5",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 103
+},
+{
+"id": "steamdeck",
+"n": "Steam Deck",
+"marque": "Valve",
+"an": "2022",
+"cl": "PC portable",
+"r": "E",
+"men": 13,
+"conf": 9,
+"txt": "<b>Un PC dans les mains.</b> Toute sa bibliothèque de jeux en voyage.",
+"cite": "Une console qu'on peut ouvrir et réparer.",
+"q": "Steam Deck",
+"sil": "jeu",
+"se": 3,
+"cout": 6,
+"pw": 99
+},
+{
+"id": "gba",
+"n": "Game Boy Advance",
+"marque": "Nintendo",
+"an": "2001",
+"cl": "Console portable",
+"r": "R",
+"men": 9,
+"conf": 11,
+"txt": "<b>Écran non éclairé.</b> Il fallait jouer face à une lampe.",
+"cite": "Format à l'horizontale.",
+"q": "Game Boy Advance",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 75
+},
+{
+"id": "gbcolor",
+"n": "Game Boy Color",
+"marque": "Nintendo",
+"an": "1998",
+"cl": "Console portable",
+"r": "R",
+"men": 8,
+"conf": 11,
+"txt": "<b>Enfin la couleur</b> dans la poche.",
+"cite": "Disponible en violet transparent.",
+"q": "Game Boy Color",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 73
+},
+{
+"id": "psp",
+"n": "PSP",
+"marque": "Sony",
+"an": "2004",
+"cl": "Console portable",
+"r": "R",
+"men": 11,
+"conf": 9,
+"txt": "<b>Des films sur UMD</b>, un petit disque que personne n'a racheté.",
+"cite": "Un grand écran pour l'époque.",
+"q": "PlayStation Portable",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 75
+},
+{
+"id": "ds3d",
+"n": "Nintendo 3DS",
+"marque": "Nintendo",
+"an": "2011",
+"cl": "Console portable",
+"r": "R",
+"men": 9,
+"conf": 10,
+"txt": "<b>La 3D sans lunettes.</b> À condition de ne pas bouger la tête.",
+"cite": "Un curseur pour régler la 3D.",
+"q": "Nintendo 3DS",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 73
+},
+{
+"id": "ps3",
+"n": "PlayStation 3",
+"marque": "Sony",
+"an": "2006",
+"cl": "Console de salon",
+"r": "R",
+"men": 12,
+"conf": 8,
+"txt": "<b>Un supercalculateur</b> a été construit avec des centaines de PS3.",
+"cite": "Avec un lecteur Blu-ray.",
+"q": "PlayStation 3",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 75
+},
+{
+"id": "ps4",
+"n": "PlayStation 4",
+"marque": "Sony",
+"an": "2013",
+"cl": "Console de salon",
+"r": "R",
+"men": 12,
+"conf": 9,
+"txt": "<b>Bouton Share</b> pour partager ses parties.",
+"cite": "Une barre lumineuse sur la manette.",
+"q": "PlayStation 4",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 77
+},
+{
+"id": "xbox",
+"n": "Xbox",
+"marque": "Microsoft",
+"an": "2001",
+"cl": "Console de salon",
+"r": "R",
+"men": 12,
+"conf": 8,
+"txt": "<b>Énorme manette.</b> Le premier modèle était si gros qu'on l'a surnommé « The Duke ».",
+"cite": "La première console de Microsoft.",
+"q": "Xbox (console)",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 75
+},
+{
+"id": "mastersystem",
+"n": "Master System",
+"marque": "Sega",
+"an": "1985",
+"cl": "Console de salon",
+"r": "R",
+"men": 8,
+"conf": 11,
+"txt": "<b>Star en Europe</b> et au Brésil, où elle s'est vendue pendant des décennies.",
+"cite": "Des jeux intégrés dans certains modèles.",
+"q": "Master System",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 73
+},
+{
+"id": "neogeo",
+"n": "Neo-Geo AES",
+"marque": "SNK",
+"an": "1990",
+"cl": "Console de salon",
+"r": "R",
+"men": 11,
+"conf": 10,
+"txt": "<b>La console de luxe.</b> Des cartouches géantes et très chères.",
+"cite": "La salle d'arcade à la maison.",
+"q": "Neo-Geo AES",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 77
+},
+{
+"id": "saturn",
+"n": "Saturn",
+"marque": "Sega",
+"an": "1994",
+"cl": "Console de salon",
+"r": "R",
+"men": 10,
+"conf": 9,
+"txt": "<b>Sortie surprise</b> aux États-Unis, avant la date annoncée.",
+"cite": "Deux processeurs, très difficiles à programmer.",
+"q": "Saturn (console)",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 73
+},
+{
+"id": "gamegear",
+"n": "Game Gear",
+"marque": "Sega",
+"an": "1990",
+"cl": "Console portable",
+"r": "R",
+"men": 9,
+"conf": 8,
+"txt": "<b>En couleur, mais gourmande</b> : 6 piles pour quelques heures.",
+"cite": "La rivale du Game Boy.",
+"q": "Game Gear",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 69
+},
+{
+"id": "lynx",
+"n": "Lynx",
+"marque": "Atari",
+"an": "1989",
+"cl": "Console portable",
+"r": "R",
+"men": 9,
+"conf": 8,
+"txt": "<b>Pour les gauchers aussi</b> : on pouvait retourner l'écran.",
+"cite": "Première portable en couleur.",
+"q": "Atari Lynx",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 69
+},
+{
+"id": "kinect",
+"n": "Kinect",
+"marque": "Microsoft",
+"an": "2010",
+"cl": "Caméra",
+"r": "R",
+"men": 7,
+"conf": 10,
+"txt": "<b>Tu es la manette.</b> Elle suivait les mouvements du corps.",
+"cite": "Vendue très vite, oubliée aussi vite.",
+"q": "Kinect",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 69
+},
+{
+"id": "vectrex",
+"n": "Vectrex",
+"marque": "GCE",
+"an": "1982",
+"cl": "Console avec écran",
+"r": "R",
+"men": 7,
+"conf": 11,
+"txt": "<b>Son propre écran</b> à dessins lumineux, avec des calques de couleur.",
+"cite": "Une console qu'on ne branchait pas à la télé.",
+"q": "Vectrex",
+"sil": "jeu",
+"se": 3,
+"cout": 4,
+"pw": 71
+},
+{
+"id": "zapper",
+"n": "Zapper",
+"marque": "Nintendo",
+"an": "1985",
+"cl": "Accessoire",
+"r": "C",
+"men": 6,
+"conf": 8,
+"txt": "<b>Le pistolet de la NES.</b>",
+"cite": "Il fallait viser l'écran de la télé.",
+"q": "Zapper",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 48
+},
+{
+"id": "dualshock",
+"n": "DualShock",
+"marque": "Sony",
+"an": "1997",
+"cl": "Manette",
+"r": "C",
+"men": 6,
+"conf": 9,
+"txt": "<b>La manette qui vibre.</b>",
+"cite": "Deux sticks et des boutons de formes.",
+"q": "DualShock",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 50
+},
+{
+"id": "wiimote",
+"n": "Wiimote",
+"marque": "Nintendo",
+"an": "2006",
+"cl": "Manette",
+"r": "C",
+"men": 6,
+"conf": 8,
+"txt": "<b>Une télécommande</b> pour jouer en bougeant.",
+"cite": "Avec un haut-parleur intégré.",
+"q": "Wiimote",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 48
+},
+{
+"id": "memorycard",
+"n": "Memory Card",
+"marque": "Sony",
+"an": "1995",
+"cl": "Accessoire",
+"r": "C",
+"men": 3,
+"conf": 9,
+"txt": "<b>15 blocs de sauvegarde.</b>",
+"cite": "Toujours pleine au mauvais moment.",
+"q": "Carte mémoire",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 44
+},
+{
+"id": "rumblepak",
+"n": "Rumble Pak",
+"marque": "Nintendo",
+"an": "1997",
+"cl": "Accessoire",
+"r": "C",
+"men": 4,
+"conf": 8,
+"txt": "<b>Les vibrations</b>, à piles, sous la manette.",
+"cite": "Il se branchait à la place de la carte mémoire.",
+"q": "Rumble Pak",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 44
+},
+{
+"id": "balanceboard",
+"n": "Wii Balance Board",
+"marque": "Nintendo",
+"an": "2008",
+"cl": "Accessoire",
+"r": "C",
+"men": 4,
+"conf": 8,
+"txt": "<b>La balance</b> qui te pèse devant toute la famille.",
+"cite": "Pour faire du sport devant la télé.",
+"q": "Wii Balance Board",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 44
+},
+{
+"id": "eyetoy",
+"n": "EyeToy",
+"marque": "Sony",
+"an": "2003",
+"cl": "Caméra",
+"r": "C",
+"men": 5,
+"conf": 7,
+"txt": "<b>La webcam de la PS2.</b>",
+"cite": "On jouait avec ses bras.",
+"q": "EyeToy",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 44
+},
+{
+"id": "gameboypocket",
+"n": "Game Boy Pocket",
+"marque": "Nintendo",
+"an": "1996",
+"cl": "Console portable",
+"r": "C",
+"men": 7,
+"conf": 9,
+"txt": "<b>Plus fin</b>, plus léger, 2 piles seulement.",
+"cite": "Enfin un écran noir et blanc.",
+"q": "Game Boy Pocket",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 52
+},
+{
+"id": "xboxone",
+"n": "Xbox One",
+"marque": "Microsoft",
+"an": "2013",
+"cl": "Console de salon",
+"r": "C",
+"men": 10,
+"conf": 6,
+"txt": "<b>Tout-en-un</b> : jeux, télé et films.",
+"cite": "Annoncée avec Kinect obligatoire.",
+"q": "Xbox One",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 52
+},
+{
+"id": "xboxseries",
+"n": "Xbox Series X",
+"marque": "Microsoft",
+"an": "2020",
+"cl": "Console de salon",
+"r": "C",
+"men": 11,
+"conf": 5,
+"txt": "<b>Le frigo.</b> Sa forme en tour lui a valu des blagues.",
+"cite": "Très silencieuse.",
+"q": "Xbox Series",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 52
+},
+{
+"id": "ouya",
+"n": "Ouya",
+"marque": "Ouya",
+"an": "2013",
+"cl": "Console de salon",
+"r": "C",
+"men": 5,
+"conf": 7,
+"txt": "<b>Financée par les fans</b> sur Internet.",
+"cite": "Une petite console cube sous Android.",
+"q": "Ouya",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 44
+},
+{
+"id": "pocketstation",
+"n": "PocketStation",
+"marque": "Sony",
+"an": "1999",
+"cl": "Mini-console",
+"r": "C",
+"men": 3,
+"conf": 9,
+"txt": "<b>Une carte mémoire</b> avec un écran.",
+"cite": "Sortie seulement au Japon.",
+"q": "PocketStation",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 44
+},
+{
+"id": "supergameboy",
+"n": "Super Game Boy",
+"marque": "Nintendo",
+"an": "1994",
+"cl": "Accessoire",
+"r": "C",
+"men": 5,
+"conf": 8,
+"txt": "<b>Le Game Boy sur la télé</b>, via la Super Nintendo.",
+"cite": "Avec des bordures en couleur.",
+"q": "Super Game Boy",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 46
+},
+{
+"id": "megacd",
+"n": "Mega-CD",
+"marque": "Sega",
+"an": "1991",
+"cl": "Extension",
+"r": "C",
+"men": 6,
+"conf": 6,
+"txt": "<b>Un lecteur CD</b> à brancher sous la Mega Drive.",
+"cite": "Des jeux avec des vidéos.",
+"q": "Mega-CD",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 44
+},
+{
+"id": "sega32x",
+"n": "32X",
+"marque": "Sega",
+"an": "1994",
+"cl": "Extension",
+"r": "C",
+"men": 6,
+"conf": 5,
+"txt": "<b>Le champignon.</b> À planter sur la Mega Drive.",
+"cite": "Elle avait besoin de sa propre prise.",
+"q": "32X",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 42
+},
+{
+"id": "joystick",
+"n": "Joystick d'arcade",
+"marque": "Divers",
+"an": "1980",
+"cl": "Manette",
+"r": "C",
+"men": 6,
+"conf": 7,
+"txt": "<b>Le stick à boule</b> et ses gros boutons.",
+"cite": "Pour les jeux de combat.",
+"q": "Joystick",
+"sil": "jeu",
+"se": 3,
+"cout": 2,
+"pw": 46
 }
 ];
 const RARETES = { C: "Commune", R: "Rare", E: "Épique", L: "Mythique", S: "Suprême" };
@@ -4635,11 +5822,11 @@ const $ = (id) => document.getElementById(id);
 const reduit = matchMedia("(prefers-reduced-motion: reduce)").matches;
 const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 const PAR_HEURE = 5;
-const SERIES = { 1: { nom: "Châssis en folie", sous: "véhicules cultes", unite: "véhicules", stats: ["Vitesse", "Fiabilité"] }, 2: { nom: "Médailles et Batailles", sous: "stars du sport", unite: "sportifs", stats: ["Attaque", "Défense"] } };
+const SERIES = { 1: { nom: "Châssis en folie", sous: "véhicules cultes", unite: "véhicules", stats: ["Vitesse", "Fiabilité"] }, 2: { nom: "Médailles et Batailles", sous: "stars du sport", unite: "sportifs", stats: ["Attaque", "Défense"] }, 3: { nom: "Manettes & Cassettes", sous: "consoles cultes", unite: "machines", stats: ["Puissance", "Culte"] } };
 const DE_SERIE = (se) => CARTES.filter((c) => c.se === se);
 const TOTAL_SERIE = (se) => DE_SERIE(se).length;
 let serieActive = 1, serieVue = 1;
-try { serieActive = Number(localStorage.getItem("cc-serie")) === 2 ? 2 : 1; } catch {}
+try { serieActive = [1, 2, 3].includes(Number(localStorage.getItem("cc-serie"))) ? Number(localStorage.getItem("cc-serie")) : 1; } catch {}
 const pause = (ms) => new Promise((ok) => setTimeout(ok, reduit ? Math.min(ms, 60) : ms));
 
 // ---------- Icônes ----------
@@ -4655,6 +5842,7 @@ const EMBLEME_ANCIEN = '<svg viewBox="0 0 40 40" aria-hidden="true"><circle cx="
 const EMBLEME = '<svg viewBox="0 0 40 40" aria-hidden="true"><rect x="6" y="9" width="16" height="23" rx="3" fill="#0b0a14" stroke="#22d3ee" stroke-width="2" transform="rotate(-14 14 21)"/><rect x="17" y="7" width="16" height="23" rx="3" fill="#0b0a14" stroke="#ff4fa3" stroke-width="2" transform="rotate(10 25 19)"/><path d="M25 13l-3 7h4l-3 7" fill="none" stroke="#ffd23f" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" transform="rotate(10 25 19)"/></svg>';
 // Silhouette affichée si la photo ne charge pas
 const SILHOUETTES = {
+  jeu: '<svg viewBox="0 0 300 225" aria-hidden="true"><rect x="70" y="80" width="160" height="80" rx="40" fill="#2c2a3a"/><rect x="100" y="105" width="12" height="34" fill="#00f0ff"/><rect x="89" y="116" width="34" height="12" fill="#00f0ff"/><circle cx="190" cy="112" r="8" fill="#ff2bd6"/><circle cx="208" cy="128" r="8" fill="#ffe600"/></svg>',
   foot: '<svg viewBox="0 0 300 225" aria-hidden="true"><circle cx="150" cy="95" r="34" fill="#4a3a2a"/><path d="M80 225q0-80 70-80t70 80z" fill="#4a3a2a"/><text x="238" y="200" font-size="54" text-anchor="middle">⚽</text></svg>',
   basket: '<svg viewBox="0 0 300 225" aria-hidden="true"><circle cx="150" cy="95" r="34" fill="#4a3a2a"/><path d="M80 225q0-80 70-80t70 80z" fill="#4a3a2a"/><text x="238" y="200" font-size="54" text-anchor="middle">🏀</text></svg>',
   rugby: '<svg viewBox="0 0 300 225" aria-hidden="true"><circle cx="150" cy="95" r="34" fill="#4a3a2a"/><path d="M80 225q0-80 70-80t70 80z" fill="#4a3a2a"/><text x="238" y="200" font-size="54" text-anchor="middle">🏉</text></svg>',
@@ -4675,6 +5863,49 @@ const SILHOUETTES = {
 };
 
 // ---------- Rendu d'une carte ----------
+// Photos des cartes qui n'ont pas encore leur fichier sur le site : le navigateur du joueur les cherche sur Wikipédia
+// (les images de Wikipédia en français viennent toutes de Wikimedia Commons, sous licence libre). Le résultat est gardé en mémoire.
+const CACHE_PHOTOS = (() => { try { return JSON.parse(localStorage.getItem("cc-photos")) || {}; } catch { return {}; } })();
+const CREDITS_WEB = {};
+const recherches = new Map();
+function trouverPhoto(id, q) {
+  if (CACHE_PHOTOS[id] !== undefined) return Promise.resolve(CACHE_PHOTOS[id]);
+  if (!recherches.has(id)) recherches.set(id, fetch("https://fr.wikipedia.org/w/api.php?action=query&format=json&origin=*&generator=search&gsrlimit=1&prop=pageimages&piprop=thumbnail|name&pithumbsize=640&gsrsearch=" + encodeURIComponent(q))
+    .then((r) => r.json())
+    .then((j) => {
+      const p = Object.values((j.query && j.query.pages) || {})[0];
+      const v = p && p.thumbnail ? { u: p.thumbnail.source, f: p.pageimage } : null;
+      CACHE_PHOTOS[id] = v; try { localStorage.setItem("cc-photos", JSON.stringify(CACHE_PHOTOS)); } catch {}
+      return v;
+    })
+    .catch(() => null));
+  return recherches.get(id);
+}
+function chercherPhoto(img) {
+  const q = img.dataset.q, id = img.dataset.id; img.dataset.q = "";
+  trouverPhoto(id, q).then((v) => { if (v && v.u) img.src = v.u; else img.remove(); });
+}
+// Crédits (auteur + licence) des photos trouvées ainsi, demandés à Wikimedia Commons par lots
+async function completerCredits() {
+  const manque = CARTES.filter((c) => !c.auteur && !CREDITS[c.id] && !CREDITS_WEB[c.id] && CACHE_PHOTOS[c.id] && CACHE_PHOTOS[c.id].f);
+  let n = 0;
+  for (let i = 0; i < manque.length; i += 40) {
+    const lot = manque.slice(i, i + 40);
+    try {
+      const j = await (await fetch("https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*&prop=imageinfo&iiprop=extmetadata|url&titles=" + encodeURIComponent(lot.map((c) => "File:" + CACHE_PHOTOS[c.id].f).join("|")))).json();
+      Object.values((j.query && j.query.pages) || {}).forEach((p) => {
+        const ii = p.imageinfo && p.imageinfo[0]; if (!ii) return;
+        const md = ii.extmetadata || {};
+        const auteur = String((md.Artist && md.Artist.value) || "Auteur inconnu").replace(/<[^>]+>/g, "").replace(/\s+/g, " ").trim().slice(0, 80);
+        lot.filter((c) => ("File:" + CACHE_PHOTOS[c.id].f).replace(/_/g, " ") === p.title).forEach((c) => {
+          CREDITS_WEB[c.id] = { auteur, lic: (md.LicenseShortName && md.LicenseShortName.value) || "licence libre", page: ii.descriptionurl }; n++;
+        });
+      });
+    } catch {}
+  }
+  return n;
+}
+
 const PHOTO = (c) => (window.PHOTOS_INTEGREES && PHOTOS_INTEGREES[c.id]) || `../images/voitures/${c.id}.jpg`;
 function carteHTML(cle, o = {}) {
   const holo = cle.endsWith("*"), c = PAR_ID[cle.replace("*", "")];
@@ -4682,8 +5913,8 @@ function carteHTML(cle, o = {}) {
   const S2 = c.se === 2, ST = SERIES[c.se].stats;
   return `<div class="carte r-${c.r} s${c.se} ${holo ? "holo" : ""}" data-cle="${esc(cle)}" ${o.w ? `style="--w:${o.w}"` : ""}>
     <div class="c-cadre">
-      <div class="c-photo">${SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" src="${PHOTO(c)}" alt="${esc(S2 ? c.n : c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else this.remove()"><span class="c-cout" title="Puissance de combat">⚔ ${c.pw}</span><span class="c-categorie">${esc(S2 ? c.sport : c.cl)}</span></div>
-      ${S2 ? `<div class="c-ruban"><b>${esc(c.an)}</b><span>${esc(c.cl.split(" · ")[1] || c.sport)}</span></div>` : `<div class="c-plaque"><i>F</i><span>${esc(c.marque)}</span><em>${esc(c.an)}</em></div>`}
+      <div class="c-photo">${SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" src="${PHOTO(c)}" alt="${esc(S2 ? c.n : c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" data-q="${!c.local && c.q ? esc(c.q) : ""}" data-id="${c.id}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else if(this.dataset.q){chercherPhoto(this)}else this.remove()"><span class="c-cout" title="Puissance de combat">⚔ ${c.pw}</span><span class="c-categorie">${esc(S2 ? c.sport : c.cl)}</span></div>
+      ${S2 ? `<div class="c-ruban"><b>${esc(c.an)}</b><span>${esc(c.cl.split(" · ")[1] || c.sport)}</span></div>` : c.se === 3 ? `<div class="c-etiq"><b>${esc(c.marque)}</b><span>${esc(c.an)}</span></div>` : `<div class="c-plaque"><i>F</i><span>${esc(c.marque)}</span><em>${esc(c.an)}</em></div>`}
       <div class="c-corps"><div class="c-nom"><b>${esc(c.n)}</b></div>
       <div class="c-texte">${c.txt}<i>${S2 ? esc(c.cite) : `« ${esc(c.cite)} »`}</i></div></div>
       <div class="c-pied"><span class="c-stat men" title="${ST[0]}">${ICONES.menace}${c.men}</span>
@@ -4695,14 +5926,14 @@ function carteHTML(cle, o = {}) {
   </div>`;
 }
 const dosHTML = () => `<div class="dos-carte"><div>${EMBLEME}<span>CARDS<br>CENTER</span></div></div>`;
-const VITRINE = { 1: ["multipla", "kangoo", "punto"], 2: ["zidane", "mbappe", "wemby"] };
+const VITRINE = { 1: ["multipla", "kangoo", "punto"], 2: ["zidane", "mbappe", "wemby"], 3: ["n64", "virtualboy", "ps1"] };
 const paquetHTML = (w = "220px", se = serieActive) => `<div class="paquet s${se}" style="--pw:${w}">
   <div class="paquet-haut"></div><div class="paquet-ligne"></div>
   <div class="paquet-corps">${EMBLEME.replace("<svg", '<svg class="paquet-embleme"')}
     <div class="paquet-vitrine">${VITRINE[se].map((id) => carteHTML(id)).join("")}</div>
-    <div class="paquet-titre">${se === 2 ? "Médailles<br>&amp; Batailles" : "Châssis<br>en folie"}</div><div class="paquet-sous">${se === 2 ? "Stars du sport" : "Véhicules cultes"} · 5 cartes</div>
+    <div class="paquet-titre">${se === 3 ? "Manettes<br>&amp; Cassettes" : se === 2 ? "Médailles<br>&amp; Batailles" : "Châssis<br>en folie"}</div><div class="paquet-sous">${se === 3 ? "Consoles cultes" : se === 2 ? "Stars du sport" : "Véhicules cultes"} · 5 cartes</div>
     <div class="paquet-etiquette"><i>${se}</i><span>CARDS CENTER</span></div></div>
-  <div class="paquet-scelle">${se === 2 ? "NEW !" : "NEUF !"}</div>
+  <div class="paquet-scelle">${se === 3 ? "1UP!" : se === 2 ? "NEW !" : "NEUF !"}</div>
   <div class="paquet-code">${Array.from({ length: 10 }, () => Math.floor(Math.random() * 10)).join("")}</div>
 </div>`;
 
@@ -4890,7 +6121,7 @@ async function ouvrirBooster() {
   // Les plus rares à la fin, pour le suspense
   const ordre = cartes.map((k, i) => ({ k, i, r: PAR_ID[k.replace("*", "")]?.r || "C" })).sort((a, b) => ORDRE_RARETE[b.r] - ORDRE_RARETE[a.r]);
   montrerOuverture(ordre, avant);
-  majEtat();
+  majEtat(); setTimeout(majBoite, 1500);
 }
 function montrerOuverture(ordre, avant) {
   const o = $("ouverture");
@@ -4956,6 +6187,16 @@ const THEMES = {
     passants: ["🚗", "🏎️"], passantsS: ["🚐", "🦩", "🚐"], cri: "POUET POUET", crisS: ["POUET POUET", "BEAUF MODE", "VROUM", ""],
     analyse: "> Niveau de beauf : 12 %… 48 %… 87 %… 99 %…\n", programme: "CHASSIS_EN_FOLIE.EXE", cause: "TROP DE BEAUFITUDE", jauge: "Chargement du beauf",
     chapeau: "🕶️", legendeL: "DEAL WITH IT", legendeS: "LE ROI DU PARKING",
+  },
+  3: {
+    emojis: { L: ["🎮", "🕹️", "👾", "💾", "⭐", "💯", "🎮"], S: ["🎮", "🕹️", "👾", "⭐", "💾", "✨", "🏆", "🎮", "👾", "🕹️"] },
+    tampons: {
+      L: ["HIGH SCORE", "1UP", "+250 PTS", "COMBO x10", "PERFECT", "CULTE", "RÉTRO", "NEW RECORD", "INSERT COIN", "NON ?!"],
+      S: ["GAME OVER ? NON !", "HIGH SCORE", "1 SUR 1000", "PRESS START", "+2000 PTS", "ABUSÉ", "LÉGENDAIRE", "100 % RÉTRO", "NEW RECORD", "FATALITY… DE CHANCE", "K.O. !", "BONUS STAGE", "LEVEL UP", "ULTRA RARE"],
+    },
+    passants: ["🎮", "🕹️"], passantsS: ["👾", "🎮", "🕹️"], cri: "1UP !", crisS: ["1UP !", "PRESS START", "COMBO !", ""],
+    analyse: "> Lecture de la cartouche : 12 %… 48 %… 87 %… 99 %…\n", programme: "MANETTES_ET_CASSETTES.EXE", cause: "TROP DE NOSTALGIE", jauge: "Chargement des pixels",
+    chapeau: "🕶️", legendeL: "DEAL WITH IT", legendeS: "HIGH SCORE",
   },
   2: {
     emojis: { L: ["🏆", "⚽", "🏀", "🔥", "🥇", "💯", "🏉"], S: ["🏆", "⚽", "🥇", "✨", "🎉", "🏆", "⭐", "🎊", "⚽", "🥇"] },
@@ -5218,7 +6459,7 @@ async function afficherClassement() {
 // Crédits des photos récupérées à l'envoi (fichier écrit par l'outil d'envoi)
 let CREDITS = {};
 fetch("../images/voitures/credits.json").then((r) => (r.ok ? r.json() : {})).then((j) => (CREDITS = j || {})).catch(() => {});
-const credit = (c) => c.auteur ? { auteur: c.auteur, lic: c.lic, page: c.local || !c.img ? "" : PAGE_IMG(c) } : CREDITS[c.id] || null;
+const credit = (c) => c.auteur ? { auteur: c.auteur, lic: c.lic, page: c.local || !c.img ? "" : PAGE_IMG(c) } : CREDITS[c.id] || CREDITS_WEB[c.id] || null;
 function zoomer(cle) {
   const c = PAR_ID[cle.replace("*", "")]; if (!c) return;
   $("zoomCarte").innerHTML = carteHTML(cle, { w: "min(380px, 82vw, calc((100vh - 120px) * .716))" });
@@ -5310,6 +6551,7 @@ const ORDRE_CARTE = (k) => { const c = PAR_ID[k.replace("*", "")]; return c.se *
 
 // ---------- Crédits ----------
 function afficherCredits() {
+  completerCredits().then((n) => { if (n && !$("e-credits").hidden) afficherCredits(); });
   const ligne = (c) => { const nom = c.se === 2 ? c.n : c.marque + " " + c.n, cr = credit(c); return cr ? `<li>${esc(nom)} : photo de ${esc(cr.auteur)}, ${esc(cr.lic)}.${cr.page ? ` <a href="${esc(cr.page)}" target="_blank" rel="noopener">Voir sur Wikimedia Commons</a>` : ""}</li>` : `<li>${esc(nom)} : illustration provisoire (pas encore de photo).</li>`; };
   $("credits").innerHTML = `
     <p><b>CARDS CENTER</b> est un jeu de fan gratuit et non officiel, fait pour BS arcade center.</p>
@@ -5318,6 +6560,8 @@ function afficherCredits() {
     <p>Les photos viennent de <a href="https://commons.wikimedia.org/" target="_blank" rel="noopener">Wikimedia Commons</a>, sous licence libre. Elles sont redimensionnées et recadrées ; leurs licences restent celles indiquées ci-dessous.</p>
     <h3>Série 1 · Châssis en folie</h3><ul>${DE_SERIE(1).map(ligne).join("")}</ul>
     <h3>Série 2 · Médailles et Batailles</h3><ul>${DE_SERIE(2).map(ligne).join("")}</ul>
+    <h3>Série 3 · Manettes &amp; Cassettes</h3><ul>${DE_SERIE(3).map(ligne).join("")}</ul>
+    <p>Série 3 : les noms des consoles et des accessoires appartiennent à leurs fabricants. Aucun personnage de jeu vidéo n'est utilisé.</p>
     <h3>Textes</h3><p>Série 1 : capacités et petites phrases écrites pour le jeu. Série 2 : palmarès réels, arrêtés en novembre 2026.</p>`;
 }
 
@@ -5470,19 +6714,115 @@ async function animerDuel(r, serie = null) {
   $("btnFinDuel").onclick = fermerArene;
   $("btnRevanche").onclick = async () => { const d = dernierDuel; fermerArene(); await pause(100); deck = [...d.deck]; adversaire = { ...d.adversaire }; d.serie ? lancerSerie() : lancerDuel(); };
 }
-function fermerArene() { $("arene").hidden = true; document.body.style.overflow = ""; afficherDuel(); }
+function fermerArene() { majBoite(); $("arene").hidden = true; document.body.style.overflow = ""; afficherDuel(); }
 
+
+// ---------- Objectifs, ligue, messagerie et cadres de profil ----------
+const CADRES = { or: "Champion de la ligue", argent: "2e de la ligue", bronze: "3e de la ligue", top10: "Top 10 de la ligue", assidu: "Assidu", supreme: "Suprême", god: "Béni des dieux" };
+const RECOMPENSES_LIGUE = [["1er", "15 boosters + cadre Or", "or"], ["2e", "10 boosters + cadre Argent", "argent"], ["3e", "7 boosters + cadre Bronze", "bronze"], ["4e à 10e", "4 boosters + cadre Top 10", "top10"], ["11e à 50e", "2 boosters", ""]];
+const dans = (iso) => {
+  const ms = Date.parse(iso) - (Date.now() + decalage);
+  if (!(ms > 0)) return "quelques instants";
+  const j = Math.floor(ms / 864e5), h = Math.floor(ms / 36e5) % 24, m = Math.floor(ms / 6e4) % 60;
+  return j ? `${j} j ${h} h` : h ? `${h} h ${m} min` : `${m} min`;
+};
+const besoinCompte = (z, quoi) => { z.innerHTML = `<div class="carte-info"><p>Connecte-toi sur le site pour ${quoi}.</p><p>En mode invité, tes boosters et tes duels marchent quand même, mais sans récompenses ni classement.</p></div>`; };
+const echecSql = (z, r) => { z.innerHTML = `<div class="carte-info"><p>Impossible de charger cette page : ${esc((r && r.erreur) || "réessaie")}.</p><p>Si le jeu vient d'être mis à jour, l'administrateur doit relancer le code SQL dans Supabase.</p></div>`; };
+const avatarCadre = (src, cadre) => (src || "").replace(/#c=[a-z0-9]+$/, "") + (cadre ? "#c=" + cadre : "");
+
+let derniereBoite = 0;
+async function majBoite(force) {
+  if (!enLigne || (!force && Date.now() - derniereBoite < 8000)) return;
+  derniereBoite = Date.now();
+  const r = await Serveur.appel("boite");
+  if (!Array.isArray(r)) return;
+  const n = r.filter((m) => !m.recupere).length, b = $("badgeBoite");
+  b.hidden = !n; b.textContent = n;
+  return r;
+}
+
+async function afficherObjectifs() {
+  const z = $("zoneObjectifs");
+  if (!enLigne) return besoinCompte(z, "débloquer les objectifs du jour et de la semaine");
+  z.innerHTML = `<p class="vide-ech">Chargement…</p>`;
+  const r = await Serveur.appel("objectifs");
+  if (!r || r.erreur || !r.objectifs) return echecSql(z, r);
+  if (r.maintenant) decalage = Date.parse(r.maintenant) - Date.now();
+  const bloc = (type, titre, fin) => `<div class="obj-bloc"><h3>${titre}<small>Nouveaux objectifs dans ${dans(fin)}</small></h3><div class="obj-liste">${r.objectifs.filter((o) => o.type === type).map((o) => `
+    <div class="obj ${o.gagne ? "fait" : ""}">
+      <div class="obj-texte"><b>${esc(o.titre)}</b><div class="obj-barre"><i style="width:${Math.min(100, Math.round((o.fait / o.cible) * 100))}%"></i></div><small>${o.fait} / ${o.cible}</small></div>
+      <span class="obj-gain">${o.gagne ? "✓ Dans ta messagerie" : `🎁 ${o.boosters} booster${o.boosters > 1 ? "s" : ""}${o.cadre ? ` + cadre « ${CADRES[o.cadre]} »` : ""}`}</span>
+    </div>`).join("")}</div></div>`;
+  z.innerHTML = bloc("jour", "Aujourd'hui", r.fin_jour) + bloc("semaine", "Cette semaine", r.fin_semaine);
+  majBoite(true);
+}
+
+async function afficherLigue() {
+  const z = $("zoneLigue");
+  if (!enLigne) return besoinCompte(z, "entrer dans la ligue");
+  z.innerHTML = `<p class="vide-ech">Chargement…</p>`;
+  const r = await Serveur.appel("ligue");
+  if (!r || r.erreur || !r.joueurs) return echecSql(z, r);
+  if (r.maintenant) decalage = Date.parse(r.maintenant) - Date.now();
+  const rang = r.joueurs.findIndex((j) => j.id === r.moi);
+  z.innerHTML = `<div class="ligue-haut">
+      <div class="carte-info ligue-moi"><small>Tes points cette semaine</small><b>${r.mes_points}</b><span>${rang >= 0 ? `Tu es ${rang === 0 ? "1er" : rang + 1 + "e"} !` : "Gagne un duel pour entrer au classement."}</span><span class="ligue-fin">Fin de la semaine dans ${dans(r.fin)}</span></div>
+      <div class="carte-info"><h3>Comment marquer</h3><p>Duel gagné contre la collectionneuse : <b>1 point</b><br>contre le boss final : <b>2 points</b><br>contre un autre joueur : <b>3 points</b></p></div>
+      <div class="carte-info"><h3>Récompenses du lundi</h3><ul class="ligue-prix">${RECOMPENSES_LIGUE.map(([p, t, c]) => `<li><b>${p}</b><span>${t}</span>${c ? `<i class="cadre-mini c-${c}"></i>` : ""}</li>`).join("")}</ul></div>
+    </div>
+    <ol class="ligue-liste">${r.joueurs.map((j, i) => `<li class="${j.id === r.moi ? "moi" : ""}"><span class="rang">${i + 1}</span><img src="${esc(j.avatar || "")}" alt=""><span>${esc(j.pseudo)}</span><b>${j.pts} pts</b></li>`).join("") || `<li class="vide">Personne n'a encore marqué de points cette semaine : à toi de jouer !</li>`}</ol>`;
+}
+
+async function afficherBoite() {
+  const z = $("zoneBoite");
+  if (!enLigne) return besoinCompte(z, "recevoir tes récompenses");
+  z.innerHTML = `<p class="vide-ech">Chargement…</p>`;
+  const [r, c] = await Promise.all([majBoite(true), Serveur.appel("cadres")]);
+  if (!Array.isArray(r)) return echecSql(z, r);
+  const attente = r.filter((m) => !m.recupere), total = attente.reduce((s, m) => s + (m.boosters || 0), 0);
+  const ligne = (m) => `<div class="msg ${m.recupere ? "lu" : ""}">
+      <span class="msg-ico">${m.cadre ? "🖼️" : "📦"}</span>
+      <div class="msg-texte"><b>${esc(m.titre)}</b><p>${esc(m.texte)}</p><small>${new Date(m.cree).toLocaleDateString("fr-FR", { day: "numeric", month: "long", hour: "2-digit", minute: "2-digit" })}</small></div>
+      <span class="msg-gain">${m.boosters ? `+${m.boosters} booster${m.boosters > 1 ? "s" : ""}` : ""}${m.cadre ? `<span>Cadre « ${esc(CADRES[m.cadre] || m.cadre)} »</span>` : ""}</span>
+      ${m.recupere ? `<span class="msg-ok">Récupéré ✓</span>` : `<button class="btn alerte" type="button" data-recup="${m.id}">Récupérer</button>`}
+    </div>`;
+  const base = c && c.avatar ? c.avatar : "", mien = (base.match(/#c=([a-z0-9]+)$/) || [])[1] || "";
+  z.innerHTML = `${attente.length ? `<div class="boite-tout"><span>${attente.length} récompense${attente.length > 1 ? "s" : ""} en attente${total ? ` · ${total} booster${total > 1 ? "s" : ""}` : ""}</span><button class="btn alerte" type="button" data-recup="">Tout récupérer</button></div>` : `<p class="vide-ech">Rien en attente : réussis des objectifs ou grimpe dans la ligue !</p>`}
+    <div class="msg-liste">${r.map(ligne).join("")}</div>
+    <div class="duel-bloc cadres-bloc"><h3>Mes cadres de profil</h3>
+      <p>Un cadre s'affiche autour de ta photo de profil sur tout le site, pour que tout le monde voie ta récompense.</p>
+      ${!c || c.erreur ? "" : !base ? `<p>Choisis d'abord un avatar sur ton profil du site pour pouvoir y mettre un cadre.</p>` : `<div class="cadres-grille">
+        <button class="cadre-choix" type="button" data-equiper="" aria-pressed="${!mien}"><img src="${esc(avatarCadre(base, ""))}" alt=""><b>Sans cadre</b></button>
+        ${(c.cadres || []).map((k) => `<button class="cadre-choix" type="button" data-equiper="${esc(k)}" aria-pressed="${mien === k}"><img src="${esc(avatarCadre(base, k))}" alt=""><b>${esc(CADRES[k] || k)}</b></button>`).join("")}
+      </div>${(c.cadres || []).length ? "" : `<p>Tu n'as pas encore de cadre. Ils se gagnent dans la ligue, avec les objectifs de la semaine, un god pack ou une carte Suprême.</p>`}`}
+    </div>`;
+}
+async function recuperer(id) {
+  const r = await Serveur.appel("recuperer", id ? { id } : {});
+  if (!r || r.erreur) { toast("Impossible de récupérer : " + ((r && r.erreur) || "réessaie")); return; }
+  if (r.boosters) { Son.rare("L"); flash(); }
+  toast([r.boosters ? `+${r.boosters} booster${r.boosters > 1 ? "s" : ""} dans ton stock !` : "", ...(r.cadres || []).map((k) => `Nouveau cadre : « ${CADRES[k] || k} »`)].filter(Boolean).join(" · ") || "C'est récupéré.");
+  await majEtat(); afficherBoite();
+}
+async function equiper(cadre) {
+  const r = await Serveur.appel("equiper", cadre ? { cadre } : {});
+  if (!r || r.erreur) { toast("Impossible de changer de cadre : " + ((r && r.erreur) || "réessaie")); return; }
+  toast(cadre ? `Cadre « ${CADRES[cadre] || cadre} » affiché sur ton profil !` : "Cadre retiré."); afficherBoite();
+}
 
 // ---------- Navigation ----------
 function aller(ecran) {
-  ["accueil", "classeur", "credits", "course", "echanges", "duel"].forEach((e) => ($("e-" + e).hidden = e !== ecran));
+  ["accueil", "classeur", "credits", "course", "echanges", "duel", "objectifs", "ligue", "boite"].forEach((e) => ($("e-" + e).hidden = e !== ecran));
   document.querySelectorAll("[data-aller]").forEach((b) => b.classList.contains("onglet") && b.toggleAttribute("aria-current", b.dataset.aller === ecran));
   if (ecran === "classeur") afficherClasseur();
   if (ecran === "credits") afficherCredits();
   if (ecran === "course") afficherChoixCourse();
   if (ecran === "echanges") afficherEchanges();
   if (ecran === "duel") afficherDuel();
-  if (ecran === "accueil" || ecran === "duel" || ecran === "echanges") appliquerTheme(serieActive);
+  if (ecran === "objectifs") afficherObjectifs();
+  if (ecran === "ligue") afficherLigue();
+  if (ecran === "boite") afficherBoite();
+  if (["accueil", "duel", "echanges", "objectifs", "ligue", "boite"].includes(ecran)) appliquerTheme(serieActive);
   if (ecran === "classeur") appliquerTheme(serieVue);
   if (ecran === "course") appliquerTheme(1);
   scrollTo({ top: 0, behavior: "instant" });
@@ -5493,6 +6833,8 @@ document.addEventListener("click", (e) => {
   const vu = e.target.closest("[data-vue]"); if (vu) { serieVue = Number(vu.dataset.vue); filtre = "tous"; appliquerTheme(serieVue); afficherClasseur(); return; }
   const bo = e.target.closest("[data-bot]"); if (bo) { adversaire = { type: "bot", bot: Number(bo.dataset.bot) }; afficherDuel(); return; }
   const ad = e.target.closest("[data-adv]"); if (ad) { adversaire = { type: "joueur", id: ad.dataset.adv, pseudo: ad.dataset.pseudo }; afficherDuel(); return; }
+  const rc = e.target.closest("[data-recup]"); if (rc) { recuperer(rc.dataset.recup || null); return; }
+  const eq = e.target.closest("[data-equiper]"); if (eq) { equiper(eq.dataset.equiper || null); return; }
   const dk = e.target.closest("[data-deck]"); if (dk) { basculerCarteDuel(dk.dataset.deck); return; }
   const rt = e.target.closest("[data-retirer]"); if (rt) { deck.splice(Number(rt.dataset.retirer), 1); afficherDuel(); return; }
   const f = e.target.closest("[data-filtre]"); if (f) { filtre = f.dataset.filtre; afficherClasseur(); return; }
@@ -5540,9 +6882,10 @@ function toast(t) { const el = $("toast"); el.textContent = t; el.classList.add(
   $("voyants").innerHTML = Array.from({ length: PAR_HEURE }, () => `<span class="voyant"></span>`).join("");
   const e = await choisirStockage();
   await Promise.all([majEtat(e), chargerCollection()]);
+  majBoite();
 })();
 // Si le joueur se connecte pendant que le jeu est ouvert
-addEventListener("message", (e) => { if (e.data && e.data.type === "bs-profil" && e.data.profil && !enLigne) setTimeout(async () => { joueursDuel = null; const r = await choisirStockage(); await Promise.all([majEtat(r), chargerCollection()]); }, 800); });
+addEventListener("message", (e) => { if (e.data && e.data.type === "bs-profil" && e.data.profil && !enLigne) setTimeout(async () => { joueursDuel = null; const r = await choisirStockage(); await Promise.all([majEtat(r), chargerCollection()]); majBoite(); }, 800); });
 
 // =========================================================
 // CARTE GRISE : la course (pseudo-3D façon arcade) et les échanges

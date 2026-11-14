@@ -383,7 +383,7 @@ create policy "presence des amis" on public.presences for select using (
 create policy "ma presence" on public.presences for insert with check (auth.uid() = joueur);
 create policy "maj ma presence" on public.presences for update using (auth.uid() = joueur) with check (auth.uid() = joueur);
 
--- Jeu de cartes « CARDS CENTER » (série 1 : véhicules, série 2 : sportifs) : garages publics, 5 boosters par heure, boosters gagnés
+-- Jeu de cartes « CARDS CENTER » (série 1 : véhicules, série 2 : sportifs, série 3 : jeux vidéo) : garages publics, 5 boosters par heure, boosters gagnés
 create table if not exists public.tcg_cartes (
   joueur uuid not null references public.profils(id) on delete cascade,
   carte text not null check (char_length(carte) <= 20),
@@ -430,7 +430,7 @@ declare n int; src text; res text[] := '{}'; i int; r float; pool text[]; c text
   communes text[]; rares text[]; epiques text[]; legendaires text[]; supremes text[];
 begin
   if auth.uid() is null then raise exception 'connexion requise'; end if;
-  if p_serie is null or p_serie not in (1, 2) then raise exception 'série inconnue'; end if;
+  if p_serie is null or p_serie not in (1, 2, 3) then raise exception 'série inconnue'; end if;
   select array_agg(carte) into communes from tcg_valeurs where serie = p_serie and rarete = 'C';
   select array_agg(carte) into rares from tcg_valeurs where serie = p_serie and rarete = 'R';
   select array_agg(carte) into epiques from tcg_valeurs where serie = p_serie and rarete = 'E';
@@ -464,6 +464,13 @@ begin
       on conflict (joueur, carte) do update set nombre = tcg_cartes.nombre + 1;
   end loop;
   insert into tcg_ouvertures (joueur, source, cartes, god) values (auth.uid(), src, res, god);
+  -- Un god pack ou une Suprême débloque un cadre de profil (envoyé dans la messagerie)
+  if god then
+    insert into tcg_boite (joueur, titre, texte, cadre) values (auth.uid(), 'GOD PACK !', 'Tu as ouvert un god pack. Ton cadre « Béni des dieux » t''attend.', 'god');
+  end if;
+  if exists (select 1 from unnest(res) x join tcg_valeurs v on v.carte = replace(x, '*', '') where v.rarete = 'S') then
+    insert into tcg_boite (joueur, titre, texte, cadre) values (auth.uid(), 'Carte Suprême !', 'Tu as tiré une carte Suprême. Ton cadre « Suprême » t''attend.', 'supreme');
+  end if;
   return res;
 end $$;
 revoke all on function public.tcg_etat() from public, anon;
@@ -482,6 +489,8 @@ drop policy if exists "valeurs publiques" on public.tcg_valeurs;
 create policy "valeurs publiques" on public.tcg_valeurs for select using (true);
 insert into public.tcg_valeurs (carte, points, puissance, serie, rarete) values
   ('kangoopower', 2000, 168, 1, 'S'),
+  ('p206beauf', 2000, 166, 1, 'S'),
+  ('p206keke', 2000, 166, 1, 'S'),
   ('concorde', 250, 126, 1, 'L'),
   ('kangoo', 250, 102, 1, 'L'),
   ('multipla', 250, 102, 1, 'L'),
@@ -561,7 +570,8 @@ insert into public.tcg_valeurs (carte, points, puissance, serie, rarete) values
   ('bateaumouche', 10, 34, 1, 'C'),
   ('voilier', 10, 34, 1, 'C'),
   ('mbappe', 2000, 174, 2, 'S'),
-  ('messi', 250, 128, 2, 'L'),
+  ('messi', 2000, 168, 2, 'S'),
+  ('zidane', 2000, 172, 2, 'S'),
   ('ronaldo', 250, 126, 2, 'L'),
   ('kane', 250, 128, 2, 'L'),
   ('yamal', 250, 126, 2, 'L'),
@@ -576,7 +586,6 @@ insert into public.tcg_valeurs (carte, points, puissance, serie, rarete) values
   ('hamilton', 250, 132, 2, 'L'),
   ('riner', 250, 136, 2, 'L'),
   ('woods', 250, 130, 2, 'L'),
-  ('zidane', 250, 132, 2, 'L'),
   ('pele', 250, 128, 2, 'L'),
   ('maradona', 250, 126, 2, 'L'),
   ('henry', 250, 124, 2, 'L'),
@@ -694,7 +703,64 @@ insert into public.tcg_valeurs (carte, points, puissance, serie, rarete) values
   ('guler', 10, 46, 2, 'C'),
   ('tchouameni', 10, 50, 2, 'C'),
   ('theo', 10, 50, 2, 'C'),
-  ('thuram', 10, 48, 2, 'C')
+  ('thuram', 10, 48, 2, 'C'),
+  ('gameboy', 2000, 168, 3, 'S'),
+  ('ps2', 2000, 178, 3, 'S'),
+  ('nes', 2000, 170, 3, 'S'),
+  ('virtualboy', 250, 120, 3, 'L'),
+  ('ngage', 250, 120, 3, 'L'),
+  ('powerglove', 250, 122, 3, 'L'),
+  ('wiiu', 250, 124, 3, 'L'),
+  ('jaguar', 250, 124, 3, 'L'),
+  ('cdi', 250, 120, 3, 'L'),
+  ('tamagotchi', 250, 120, 3, 'L'),
+  ('rob', 250, 118, 3, 'L'),
+  ('xbox360', 250, 124, 3, 'L'),
+  ('ps1', 250, 130, 3, 'L'),
+  ('dreamcast', 250, 128, 3, 'L'),
+  ('gbcamera', 250, 118, 3, 'L'),
+  ('n64', 75, 103, 3, 'E'),
+  ('snes', 75, 103, 3, 'E'),
+  ('megadrive', 75, 101, 3, 'E'),
+  ('gamecube', 75, 99, 3, 'E'),
+  ('wii', 75, 99, 3, 'E'),
+  ('nintendods', 75, 97, 3, 'E'),
+  ('switch', 75, 101, 3, 'E'),
+  ('atari2600', 75, 97, 3, 'E'),
+  ('gameandwatch', 75, 93, 3, 'E'),
+  ('borne', 75, 101, 3, 'E'),
+  ('ps5', 75, 103, 3, 'E'),
+  ('steamdeck', 75, 99, 3, 'E'),
+  ('gba', 25, 75, 3, 'R'),
+  ('gbcolor', 25, 73, 3, 'R'),
+  ('psp', 25, 75, 3, 'R'),
+  ('ds3d', 25, 73, 3, 'R'),
+  ('ps3', 25, 75, 3, 'R'),
+  ('ps4', 25, 77, 3, 'R'),
+  ('xbox', 25, 75, 3, 'R'),
+  ('mastersystem', 25, 73, 3, 'R'),
+  ('neogeo', 25, 77, 3, 'R'),
+  ('saturn', 25, 73, 3, 'R'),
+  ('gamegear', 25, 69, 3, 'R'),
+  ('lynx', 25, 69, 3, 'R'),
+  ('kinect', 25, 69, 3, 'R'),
+  ('vectrex', 25, 71, 3, 'R'),
+  ('zapper', 10, 48, 3, 'C'),
+  ('dualshock', 10, 50, 3, 'C'),
+  ('wiimote', 10, 48, 3, 'C'),
+  ('memorycard', 10, 44, 3, 'C'),
+  ('rumblepak', 10, 44, 3, 'C'),
+  ('balanceboard', 10, 44, 3, 'C'),
+  ('eyetoy', 10, 44, 3, 'C'),
+  ('gameboypocket', 10, 52, 3, 'C'),
+  ('xboxone', 10, 52, 3, 'C'),
+  ('xboxseries', 10, 52, 3, 'C'),
+  ('ouya', 10, 44, 3, 'C'),
+  ('pocketstation', 10, 44, 3, 'C'),
+  ('supergameboy', 10, 46, 3, 'C'),
+  ('megacd', 10, 44, 3, 'C'),
+  ('sega32x', 10, 42, 3, 'C'),
+  ('joystick', 10, 46, 3, 'C')
 on conflict (carte) do update set points = excluded.points, puissance = excluded.puissance, serie = excluded.serie, rarete = excluded.rarete;
 create or replace function public.tcg_points_de(j uuid) returns int language sql stable security definer set search_path = public as $$
   select coalesce(sum(v.points), 0)::int from tcg_valeurs v
@@ -769,6 +835,197 @@ begin
 end $$;
 revoke all on function public.tcg_combat(text[], uuid, int) from public, anon;
 grant execute on function public.tcg_combat(text[], uuid, int) to authenticated;
+
+-- ===== CARDS CENTER : messagerie, objectifs, ligue de la semaine et cadres de profil =====
+-- Messagerie : toutes les récompenses arrivent ici (objectifs, ligue, cadres). Seuls les boosters de duel vont directement dans le stock.
+create table if not exists public.tcg_boite (
+  id bigint generated always as identity primary key,
+  joueur uuid not null references public.profils(id) on delete cascade,
+  titre text not null,
+  texte text not null default '',
+  boosters int not null default 0,
+  cadre text,
+  cree timestamptz not null default now(),
+  recupere timestamptz
+);
+create index if not exists tcg_boite_joueur on public.tcg_boite (joueur, cree desc);
+alter table public.tcg_boite enable row level security;
+drop policy if exists "ma boite" on public.tcg_boite;
+create policy "ma boite" on public.tcg_boite for select using (auth.uid() = joueur);
+create table if not exists public.tcg_cadres (
+  joueur uuid not null references public.profils(id) on delete cascade,
+  cadre text not null,
+  obtenu timestamptz not null default now(),
+  primary key (joueur, cadre)
+);
+alter table public.tcg_cadres enable row level security;
+drop policy if exists "cadres publics" on public.tcg_cadres;
+create policy "cadres publics" on public.tcg_cadres for select using (true);
+create table if not exists public.tcg_objectifs_faits (
+  joueur uuid not null references public.profils(id) on delete cascade,
+  code text not null,
+  periode date not null,
+  primary key (joueur, code, periode)
+);
+alter table public.tcg_objectifs_faits enable row level security;
+create table if not exists public.tcg_ligue_semaines (semaine date primary key, fait timestamptz not null default now());
+alter table public.tcg_ligue_semaines enable row level security;
+
+-- Le cadre est rangé à la fin de l'adresse de l'avatar (« #c=or ») : tout le site l'affiche sans autre changement.
+-- Ce garde-fou retire un cadre qui n'a pas été gagné.
+create or replace function public.tcg_verifier_cadre() returns trigger language plpgsql security definer set search_path = public as $$
+declare c text := substring(new.avatar from '#c=([a-z0-9]+)$');
+begin
+  if c is not null and not exists (select 1 from tcg_cadres where joueur = new.id and cadre = c) then
+    new.avatar := regexp_replace(new.avatar, '#c=[a-z0-9]+$', '');
+  end if;
+  return new;
+end $$;
+drop trigger if exists tcg_cadre_profil on public.profils;
+create trigger tcg_cadre_profil before insert or update on public.profils for each row execute function public.tcg_verifier_cadre();
+
+-- Jours et semaines à l'heure de Paris (la semaine commence le lundi)
+create or replace function public.tcg_debut_jour() returns timestamptz language sql stable as $$ select ((now() at time zone 'Europe/Paris')::date)::timestamp at time zone 'Europe/Paris' $$;
+create or replace function public.tcg_debut_semaine() returns timestamptz language sql stable as $$ select date_trunc('week', now() at time zone 'Europe/Paris') at time zone 'Europe/Paris' $$;
+-- Points de ligue d'un duel gagné : collectionneuse 1, boss final 2, joueur 3 (le débutant ne compte pas)
+create or replace function public.tcg_pts_ligue(adv text, vic boolean) returns int language sql immutable as $$
+  select case when not vic then 0 when adv = 'bot1' then 0 when adv = 'bot2' then 1 when adv = 'bot3' then 2 else 3 end $$;
+
+-- Récompenses de la ligue de la semaine passée : distribuées une seule fois, par le premier joueur qui passe
+create or replace function public.tcg_distribuer_ligue() returns void language plpgsql security definer set search_path = public as $$
+declare f timestamptz := tcg_debut_semaine(); d timestamptz := tcg_debut_semaine() - interval '7 days'; r record; n int := 0;
+begin
+  insert into tcg_ligue_semaines (semaine) values ((d at time zone 'Europe/Paris')::date) on conflict do nothing;
+  if not found then return; end if;
+  for r in select joueur, sum(tcg_pts_ligue(adversaire, victoire))::int as pts from tcg_combats
+           where quand >= d and quand < f group by joueur having sum(tcg_pts_ligue(adversaire, victoire)) > 0
+           order by pts desc, min(quand) limit 50 loop
+    n := n + 1;
+    insert into tcg_boite (joueur, titre, texte, boosters, cadre) values (r.joueur,
+      'Ligue : tu finis ' || case when n = 1 then '1er' else n || 'e' end || ' !',
+      'Classement de la semaine du ' || to_char(d at time zone 'Europe/Paris', 'DD/MM') || ' : ' || r.pts || ' points de ligue.',
+      case when n = 1 then 15 when n = 2 then 10 when n = 3 then 7 when n <= 10 then 4 else 2 end,
+      case when n = 1 then 'or' when n = 2 then 'argent' when n = 3 then 'bronze' when n <= 10 then 'top10' end);
+  end loop;
+end $$;
+
+-- Objectifs du jour et de la semaine : la récompense part dans la messagerie dès qu'un objectif est atteint
+create or replace function public.tcg_objectifs() returns json language plpgsql security definer set search_path = public as $$
+declare dj timestamptz := tcg_debut_jour(); dw timestamptz := tcg_debut_semaine();
+  pj date := (tcg_debut_jour() at time zone 'Europe/Paris')::date; pw date := (tcg_debut_semaine() at time zone 'Europe/Paris')::date;
+  ouv_j int; ouv_w int; duels_j int; duels_w int; epique_j int; mythique_w int; series_j int; quot_w int;
+  o record; liste jsonb := '[]'; per date;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  select count(*) filter (where quand >= dj), count(*) into ouv_j, ouv_w from tcg_ouvertures where joueur = auth.uid() and quand >= dw;
+  select count(*) filter (where quand >= dj and victoire and adversaire <> 'bot1'), count(*) filter (where victoire and adversaire <> 'bot1')
+    into duels_j, duels_w from tcg_combats where joueur = auth.uid() and quand >= dw;
+  select count(*) filter (where ov.quand >= dj and v.rarete in ('E', 'L', 'S')), count(*) filter (where v.rarete in ('L', 'S')), count(distinct v.serie) filter (where ov.quand >= dj)
+    into epique_j, mythique_w, series_j
+    from tcg_ouvertures ov cross join lateral unnest(ov.cartes) as x(c) join tcg_valeurs v on v.carte = replace(x.c, '*', '')
+    where ov.joueur = auth.uid() and ov.quand >= dw;
+  select count(*) into quot_w from tcg_objectifs_faits where joueur = auth.uid() and left(code, 2) = 'j_' and periode >= pw;
+  for o in select * from (values
+      ('j_ouvrir', 'jour', 'Ouvre 5 boosters', ouv_j, 5, 1, null::text),
+      ('j_duels', 'jour', 'Gagne 3 duels (hors débutant)', duels_j, 3, 1, null),
+      ('j_epique', 'jour', 'Obtiens une carte Épique ou mieux', epique_j, 1, 1, null),
+      ('j_series', 'jour', 'Ouvre des boosters de 2 séries différentes', series_j, 2, 1, null),
+      ('h_ouvrir', 'semaine', 'Ouvre 40 boosters', ouv_w, 40, 4, null),
+      ('h_duels', 'semaine', 'Gagne 25 duels (hors débutant)', duels_w, 25, 5, null),
+      ('h_mythique', 'semaine', 'Obtiens une Mythique ou une Suprême', mythique_w, 1, 3, null),
+      ('h_quotidiens', 'semaine', 'Réussis 15 objectifs du jour', quot_w, 15, 6, 'assidu')
+    ) t(code, type, titre, fait, cible, boosters, cadre) loop
+    per := case when o.type = 'jour' then pj else pw end;
+    if o.fait >= o.cible then
+      insert into tcg_objectifs_faits (joueur, code, periode) values (auth.uid(), o.code, per) on conflict do nothing;
+      if found then
+        insert into tcg_boite (joueur, titre, texte, boosters, cadre) values (auth.uid(), 'Objectif réussi : ' || o.titre,
+          case when o.type = 'jour' then 'Objectif du jour.' else 'Objectif de la semaine.' end, o.boosters, o.cadre);
+      end if;
+    end if;
+    liste := liste || jsonb_build_object('code', o.code, 'type', o.type, 'titre', o.titre, 'fait', least(o.fait, o.cible), 'cible', o.cible,
+      'boosters', o.boosters, 'cadre', o.cadre,
+      'gagne', exists (select 1 from tcg_objectifs_faits f where f.joueur = auth.uid() and f.code = o.code and f.periode = per));
+  end loop;
+  return json_build_object('fin_jour', dj + interval '1 day', 'fin_semaine', dw + interval '7 days', 'maintenant', now(), 'objectifs', liste);
+end $$;
+
+-- Lire sa messagerie (et recevoir au passage les récompenses en attente)
+create or replace function public.tcg_boite_lire() returns json language plpgsql security definer set search_path = public as $$
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  perform tcg_distribuer_ligue();
+  perform tcg_objectifs();
+  insert into tcg_objectifs_faits (joueur, code, periode) values (auth.uid(), 'bienvenue', date '2026-01-01') on conflict do nothing;
+  if found then
+    insert into tcg_boite (joueur, titre, texte, boosters) values (auth.uid(), 'Bienvenue dans ta messagerie !',
+      'Toutes tes récompenses arrivent ici : objectifs, ligue et cadres. Voici 3 boosters pour fêter ça.', 3);
+  end if;
+  return coalesce((select json_agg(json_build_object('id', id, 'titre', titre, 'texte', texte, 'boosters', boosters, 'cadre', cadre, 'cree', cree, 'recupere', recupere)
+    order by (recupere is null) desc, cree desc) from (select * from tcg_boite where joueur = auth.uid() order by cree desc limit 60) b), '[]'::json);
+end $$;
+
+-- Récupérer une récompense (ou toutes) : les boosters vont dans le stock, sans limite ; les cadres sont débloqués
+create or replace function public.tcg_recuperer(p_id bigint default null) returns json language plpgsql security definer set search_path = public as $$
+declare b int := 0; r record; cad text[] := '{}';
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  for r in update tcg_boite set recupere = now() where joueur = auth.uid() and recupere is null and (p_id is null or id = p_id) returning boosters, cadre loop
+    b := b + r.boosters;
+    if r.cadre is not null then
+      insert into tcg_cadres (joueur, cadre) values (auth.uid(), r.cadre) on conflict do nothing;
+      cad := cad || r.cadre;
+    end if;
+  end loop;
+  if b > 0 then
+    insert into tcg_bonus (joueur, nombre) values (auth.uid(), b) on conflict (joueur) do update set nombre = tcg_bonus.nombre + b;
+  end if;
+  return json_build_object('boosters', b, 'cadres', cad);
+end $$;
+
+-- Ligue de la semaine en cours
+create or replace function public.tcg_ligue() returns json language plpgsql security definer set search_path = public as $$
+declare dw timestamptz := tcg_debut_semaine();
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  perform tcg_distribuer_ligue();
+  return json_build_object('fin', dw + interval '7 days', 'maintenant', now(), 'moi', auth.uid(),
+    'mes_points', (select coalesce(sum(tcg_pts_ligue(adversaire, victoire)), 0) from tcg_combats where joueur = auth.uid() and quand >= dw),
+    'joueurs', coalesce((select json_agg(t) from (
+      select c.joueur as id, p.pseudo, p.avatar, sum(tcg_pts_ligue(c.adversaire, c.victoire))::int as pts
+      from tcg_combats c join profils p on p.id = c.joueur where c.quand >= dw
+      group by c.joueur, p.pseudo, p.avatar having sum(tcg_pts_ligue(c.adversaire, c.victoire)) > 0
+      order by pts desc, min(c.quand) limit 50) t), '[]'::json));
+end $$;
+
+-- Mes cadres, et mettre (ou enlever) un cadre sur sa photo de profil
+create or replace function public.tcg_cadres_lire() returns json language sql security definer set search_path = public as $$
+  select json_build_object('cadres', coalesce((select json_agg(cadre order by obtenu) from tcg_cadres where joueur = auth.uid()), '[]'::json),
+    'avatar', (select avatar from profils where id = auth.uid())) $$;
+create or replace function public.tcg_equiper(p_cadre text default null) returns json language plpgsql security definer set search_path = public as $$
+declare a text;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  if p_cadre is not null and not exists (select 1 from tcg_cadres where joueur = auth.uid() and cadre = p_cadre) then raise exception 'cadre pas encore gagné'; end if;
+  select regexp_replace(coalesce(avatar, ''), '#c=[a-z0-9]+$', '') into a from profils where id = auth.uid();
+  if coalesce(a, '') = '' then raise exception 'choisis d''abord un avatar sur ton profil'; end if;
+  update profils set avatar = a || coalesce('#c=' || p_cadre, '') where id = auth.uid() returning avatar into a;
+  return json_build_object('avatar', a);
+end $$;
+
+revoke all on function public.tcg_objectifs() from public, anon;
+revoke all on function public.tcg_boite_lire() from public, anon;
+revoke all on function public.tcg_recuperer(bigint) from public, anon;
+revoke all on function public.tcg_ligue() from public, anon;
+revoke all on function public.tcg_cadres_lire() from public, anon;
+revoke all on function public.tcg_equiper(text) from public, anon;
+revoke all on function public.tcg_distribuer_ligue() from public, anon, authenticated;
+grant execute on function public.tcg_objectifs() to authenticated;
+grant execute on function public.tcg_boite_lire() to authenticated;
+grant execute on function public.tcg_recuperer(bigint) to authenticated;
+grant execute on function public.tcg_ligue() to authenticated;
+grant execute on function public.tcg_cadres_lire() to authenticated;
+grant execute on function public.tcg_equiper(text) to authenticated;
 revoke all on function public.tcg_points_de(uuid) from public, anon;
 revoke all on function public.tcg_maj_points() from public, anon, authenticated;
 -- Remet à jour les points de tous les joueurs (utile la première fois)

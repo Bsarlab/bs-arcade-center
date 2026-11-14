@@ -1249,3 +1249,20 @@ form.carte-amis > .btn { justify-self: start; }
   ::view-transition-group(*), ::view-transition-old(*), ::view-transition-new(*) { animation: none !important; }
   .direct-point, .squelette { animation: none; }
 }
+
+/* ---------- Cadres de profil gagnés dans CARDS CENTER (« #c=… » à la fin de l'avatar) ---------- */
+img[src$="#c=or"] { box-shadow: 0 0 0 3px #ffd23f, 0 0 0 5px #8a6400, 0 0 16px 4px rgba(255,210,63,.8) !important; animation: cadre-pulse 2.4s ease-in-out infinite; }
+img[src$="#c=argent"] { box-shadow: 0 0 0 3px #eef2f8, 0 0 0 5px #7d8794, 0 0 14px 3px rgba(220,230,245,.7) !important; }
+img[src$="#c=bronze"] { box-shadow: 0 0 0 3px #e39a5b, 0 0 0 5px #7a4a22, 0 0 14px 3px rgba(227,154,91,.65) !important; }
+img[src$="#c=top10"] { box-shadow: 0 0 0 3px #8b5cf6, 0 0 0 5px #2a1a52, 0 0 14px 3px rgba(139,92,246,.8) !important; }
+img[src$="#c=assidu"] { box-shadow: 0 0 0 3px #22d3ee, 0 0 0 5px #0b3a44, 0 0 14px 3px rgba(34,211,238,.8) !important; }
+img[src$="#c=supreme"] { box-shadow: 0 0 0 3px #ff4fa3, 0 0 0 5px #fff, 0 0 18px 4px rgba(255,79,163,.85) !important; animation: cadre-pulse 1.6s ease-in-out infinite; }
+img[src$="#c=god"] { animation: cadre-arcenciel 2.2s linear infinite !important; }
+@keyframes cadre-pulse { 50% { filter: brightness(1.15) saturate(1.2); } }
+@keyframes cadre-arcenciel {
+  0%, 100% { box-shadow: 0 0 0 3px #ffd23f, 0 0 18px 5px rgba(255,210,63,.85); }
+  25% { box-shadow: 0 0 0 3px #ff4fa3, 0 0 18px 5px rgba(255,79,163,.85); }
+  50% { box-shadow: 0 0 0 3px #22d3ee, 0 0 18px 5px rgba(34,211,238,.85); }
+  75% { box-shadow: 0 0 0 3px #3ee07a, 0 0 18px 5px rgba(62,224,122,.85); }
+}
+@media (prefers-reduced-motion: reduce) { img[src*="#c="] { animation: none !important; } }

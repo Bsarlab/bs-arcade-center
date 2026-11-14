@@ -254,6 +254,9 @@
           if (error) throw error;
           avatar = sb.storage.from("avatars").getPublicUrl(chemin).data.publicUrl + "?v=" + Date.now();
         }
+        // On garde le cadre gagné quand on change d'avatar
+        const cadre = (profil?.avatar || "").match(/#c=[a-z0-9]+$/)?.[0] || "";
+        avatar = avatar.replace(/#c=[a-z0-9]+$/, "") + cadre;
         const { error } = await sb.from("profils").upsert({ id: session.user.id, pseudo: v("cPseudo").slice(0, 30), avatar, maj: new Date().toISOString() });
         if (error) throw error;
         photoEnAttente = null; avatarChoisi = null;
@@ -303,7 +306,8 @@
 
   // ---------- Joueurs présents dans un jeu (temps réel Supabase) ----------
   let salle = null;
-  const imageSure = (u) => { u = String(u || ""); return /^data:image\/svg\+xml,[A-Za-z0-9%._~!*()-]+$/.test(u) || /^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/avatars\/[A-Za-z0-9\/_.-]+(\?v=\d+)?$/.test(u) ? u : ""; };
+  // « #c=xxx » à la fin = cadre de profil gagné dans CARDS CENTER (affiché par style.css)
+  const imageSure = (u) => { u = String(u || ""); return /^data:image\/svg\+xml,[A-Za-z0-9%._~!*()-]+(#c=[a-z0-9]+)?$/.test(u) || /^https:\/\/[a-z0-9]+\.supabase\.co\/storage\/v1\/object\/public\/avatars\/[A-Za-z0-9\/_.-]+(\?v=\d+)?(#c=[a-z0-9]+)?$/.test(u) ? u : ""; };
   function afficherPresents(liste) {
     const z = $("lecteurJoueurs"); if (!z) return;
     z.hidden = !liste.length;
@@ -1017,6 +1021,21 @@
       }
       if (action === "proposer") { const { data, error } = await sb.rpc("tcg_proposer", { p_a: a.a, p_donne: a.donne, p_recoit: a.recoit }); return error ? err(error) : { id: data }; }
       if (action === "repondre") { const { error } = await sb.rpc("tcg_repondre", { p_id: a.id, p_accepte: !!a.accepte }); return error ? err(error) : { ok: true }; }
+      if (["boite", "objectifs", "ligue", "cadres"].includes(action)) {
+        const fn = { boite: "tcg_boite_lire", objectifs: "tcg_objectifs", ligue: "tcg_ligue", cadres: "tcg_cadres_lire" }[action];
+        const { data, error } = await sb.rpc(fn);
+        if (error) return err(error);
+        if (action === "ligue" && data?.joueurs) data.joueurs.forEach((j) => (j.avatar = imageSure(j.avatar)));
+        if (action === "cadres" && data) data.avatar = imageSure(data.avatar);
+        return data;
+      }
+      if (action === "recuperer") { const { data, error } = await sb.rpc("tcg_recuperer", { p_id: a.id ? Number(a.id) : null }); return error ? err(error) : data; }
+      if (action === "equiper") {
+        const { data, error } = await sb.rpc("tcg_equiper", { p_cadre: a.cadre ? String(a.cadre) : null });
+        if (error) return err(error);
+        await lireProfil(); partagerProfil();
+        return { avatar: imageSure(data?.avatar) };
+      }
       if (action === "classement") {
         const v = await sb.from("tcg_valeurs").select("carte").limit(1);
         if (v.error || !v.data?.length) return { pasActive: true };
