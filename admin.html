@@ -838,7 +838,7 @@ create or replace function public.tcg_etoiles(p_joueur uuid, p_carte text) retur
     then least(25, greatest(0, coalesce((select sum(nombre) from tcg_cartes where joueur = p_joueur and replace(carte, '*', '') = replace(p_carte, '*', '')), 0)::int - 1)) else 0 end $$;
 revoke all on function public.tcg_etoiles(uuid, text) from public, anon, authenticated;
 create or replace function public.tcg_combat(p_deck text[], p_adv uuid default null, p_bot int default 1) returns json language plpgsql security definer set search_path = public as $$
-declare lui text[]; m json[] := '{}'; i int; pa float; pb float; ga int := 0; gb int := 0; deja int; g int := 0; vic boolean; nom text; prix int;
+declare lui text[]; m json[] := '{}'; i int; pa float; pb float; ga int := 0; gb int := 0; deja int; g int := 0; vic boolean; nom text; prix int; eb int[] := array[0, 0, 0, 0, 0]; tir float;
 begin
   if auth.uid() is null then raise exception 'connexion requise'; end if;
   if p_deck is null or coalesce(array_length(p_deck, 1), 0) <> 5 then raise exception 'il faut 5 cartes'; end if;
@@ -858,17 +858,29 @@ begin
     prix := 1;
   else
     p_bot := greatest(1, least(4, coalesce(p_bot, 1)));
-    select array_agg(carte) into lui from (select carte from tcg_valeurs
-      where rarete = any (case p_bot when 1 then array['C', 'R'] when 2 then array['R', 'E'] when 3 then array['E', 'L'] else array['L', 'S'] end)
-      order by random() limit 5) t;
+    if p_bot = 4 then
+      -- Le Roi des Suprêmes : 5 Suprêmes tirées au hasard. Elles ont parfois des étoiles :
+      -- 30 % aucune, 40 % de 1 à 8, 25 % de 9 à 15, 5 % de 16 à 22 (en moyenne +12 % de puissance)
+      select array_agg(carte order by random()) into lui from (select carte from tcg_valeurs where rarete = 'S' order by random() limit 5) t;
+      for i in 1..5 loop
+        if (select rarete from tcg_valeurs where carte = lui[i]) = 'S' then
+          tir := random();
+          eb[i] := case when tir < 0.30 then 0 when tir < 0.70 then 1 + floor(random() * 8) when tir < 0.95 then 9 + floor(random() * 7) else 16 + floor(random() * 7) end;
+        end if;
+      end loop;
+    else
+      select array_agg(carte) into lui from (select carte from tcg_valeurs
+        where rarete = any (case p_bot when 1 then array['C', 'R'] when 2 then array['R', 'E'] else array['E', 'L'] end)
+        order by random() limit 5) t;
+    end if;
     nom := 'bot' || p_bot;
     prix := p_bot - 1;
   end if;
   for i in 1..5 loop
     pa := (select puissance from tcg_valeurs where carte = replace(p_deck[i], '*', '')) * (case when p_deck[i] like '%*' then 1.1 else 1 end) * (1 + 0.02 * tcg_etoiles(auth.uid(), p_deck[i])) * (0.85 + random() * 0.3);
-    pb := (select puissance from tcg_valeurs where carte = replace(lui[i], '*', '')) * (case when lui[i] like '%*' then 1.1 else 1 end) * (case when p_adv is null then 1 else 1 + 0.02 * tcg_etoiles(p_adv, lui[i]) end) * (0.85 + random() * 0.3);
+    pb := (select puissance from tcg_valeurs where carte = replace(lui[i], '*', '')) * (case when lui[i] like '%*' then 1.1 else 1 end) * (case when p_adv is null then 1 + 0.02 * eb[i] else 1 + 0.02 * tcg_etoiles(p_adv, lui[i]) end) * (0.85 + random() * 0.3);
     if pa >= pb then ga := ga + 1; else gb := gb + 1; end if;
-    m := m || json_build_object('a', p_deck[i], 'b', lui[i], 'pa', round(pa::numeric), 'pb', round(pb::numeric));
+    m := m || json_build_object('a', p_deck[i], 'b', lui[i], 'pa', round(pa::numeric), 'pb', round(pb::numeric), 'eb', case when p_adv is null then eb[i] else tcg_etoiles(p_adv, lui[i]) end);
   end loop;
   vic := ga > gb;
   -- Pas de limite : chaque victoire rapporte ses boosters

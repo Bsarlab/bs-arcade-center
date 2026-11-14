@@ -7145,7 +7145,7 @@ const BOTS = {
   1: { nom: "Le débutant", av: "🐣", txt: "Communes et Rares · entraînement, pas de booster", rar: ["C", "R"], prix: 0 },
   2: { nom: "La collectionneuse", av: "💼", txt: "Rares et Épiques · victoire = 1 booster", rar: ["R", "E"], prix: 1 },
   3: { nom: "Le boss", av: "👑", txt: "Épiques et Mythiques · victoire = 2 boosters", rar: ["E", "L"], prix: 2 },
-  4: { nom: "Le Roi des Suprêmes", av: "🐉", txt: "Mythiques et Suprêmes · victoire = 3 boosters", rar: ["L", "S"], prix: 3 },
+  4: { nom: "Le Roi des Suprêmes", av: "🐉", txt: "5 Suprêmes, parfois étoilées · victoire = 3 boosters", rar: ["S"], prix: 3 },
 };
 const puissance = (cle, et) => { const c = PAR_ID[cle.replace("*", "")]; return c ? Math.round(c.pw * (cle.endsWith("*") ? 1.1 : 1) * (1 + .02 * (et ?? etoilesDe(c)))) : 0; };
 let adversaire = { type: "bot", bot: 1 }, deck = [], joueursDuel = null, dernierDuel = null;
@@ -7155,7 +7155,10 @@ Local.combat = async function (main, bot) {
   if (main.some((k) => !(d.cartes || {})[k])) return { erreur: "carte non possédée" };
   const B = BOTS[bot] || BOTS[1];
   const pool = CARTES.filter((c) => B.rar.includes(c.r)).map((c) => c.id).sort(() => Math.random() - .5).slice(0, 5);
-  const manches = main.map((a, i) => ({ a, b: pool[i], pa: Math.round(puissance(a) * (.85 + Math.random() * .3)), pb: Math.round(puissance(pool[i], 0) * (.85 + Math.random() * .3)) }));
+  // Le Roi des Suprêmes : 5 Suprêmes, parfois avec des étoiles (30 % aucune, 40 % 1-8, 25 % 9-15, 5 % 16-22)
+  const eb = pool.map((k) => { if (bot !== 4 || PAR_ID[k].r !== "S") return 0; const t = Math.random(), x = Math.random();
+    return t < .3 ? 0 : t < .7 ? 1 + Math.floor(x * 8) : t < .95 ? 9 + Math.floor(x * 7) : 16 + Math.floor(x * 7); });
+  const manches = main.map((a, i) => ({ a, b: pool[i], eb: eb[i], pa: Math.round(puissance(a) * (.85 + Math.random() * .3)), pb: Math.round(puissance(pool[i], eb[i]) * (.85 + Math.random() * .3)) }));
   const ga = manches.filter((m) => m.pa >= m.pb).length, victoire = ga >= 3;
   const gain = victoire ? B.prix : 0;
   d.bonus = (d.bonus || 0) + gain;
@@ -7254,8 +7257,8 @@ async function animerDuel(r, serie = null) {
     const moi = $("cMoi"), lui = $("cLui");
     moi.className = "combattant entre-moi"; lui.className = "combattant entre-lui";
     moi.innerHTML = carteHTML(m.a) + `<span class="valeur">0</span>`;
-    lui.innerHTML = carteHTML(m.b, { etoiles: 0 }) + `<span class="valeur">0</span>`;
-    rangMoi[i].classList.add("joue"); rangLui[i].innerHTML = carteHTML(m.b, { etoiles: 0 }); rangLui[i].classList.add("joue");
+    lui.innerHTML = carteHTML(m.b, { etoiles: m.eb || 0 }) + `<span class="valeur">0</span>`;
+    rangMoi[i].classList.add("joue"); rangLui[i].innerHTML = carteHTML(m.b, { etoiles: m.eb || 0 }); rangLui[i].classList.add("joue");
     Son.retourne(); await t(650);
     // Les compteurs montent en même temps
     const vm = moi.querySelector(".valeur"), vl = lui.querySelector(".valeur"), duree = accelere ? 250 : 1100, t0 = performance.now();
