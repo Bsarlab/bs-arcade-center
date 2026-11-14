@@ -705,7 +705,7 @@ end $$;
 drop trigger if exists tcg_points on public.tcg_cartes;
 create trigger tcg_points after insert or update or delete on public.tcg_cartes for each row execute function public.tcg_maj_points();
 
--- Duels : 5 cartes contre 5, calculés par le serveur (impossible de tricher). Victoire = boosters, 5 par jour au maximum.
+-- Duels : 5 cartes contre 5, calculés par le serveur (impossible de tricher). Chaque victoire rapporte des boosters, sans limite.
 create table if not exists public.tcg_combats (
   id bigint generated always as identity primary key,
   joueur uuid not null references public.profils(id) on delete cascade,
@@ -752,15 +752,13 @@ begin
     m := m || json_build_object('a', p_deck[i], 'b', lui[i], 'pa', round(pa::numeric), 'pb', round(pb::numeric));
   end loop;
   vic := ga > gb;
+  -- Pas de limite : chaque victoire rapporte ses boosters
   if vic and prix > 0 then
-    select coalesce(sum(gain), 0) into deja from tcg_combats where joueur = auth.uid() and quand > now() - interval '1 day';
-    g := greatest(0, least(prix, 5 - deja));
-    if g > 0 then
-      insert into tcg_bonus (joueur, nombre) values (auth.uid(), g) on conflict (joueur) do update set nombre = tcg_bonus.nombre + g;
-    end if;
+    g := prix;
+    insert into tcg_bonus (joueur, nombre) values (auth.uid(), g) on conflict (joueur) do update set nombre = tcg_bonus.nombre + g;
   end if;
   insert into tcg_combats (joueur, adversaire, victoire, gain) values (auth.uid(), coalesce(p_adv::text, nom), vic, g);
-  return json_build_object('adversaire', lui, 'nom', nom, 'manches', array_to_json(m), 'victoire', vic, 'gain', g, 'score', json_build_array(ga, gb), 'plafond', vic and prix > 0 and g < prix);
+  return json_build_object('adversaire', lui, 'nom', nom, 'manches', array_to_json(m), 'victoire', vic, 'gain', g, 'score', json_build_array(ga, gb), 'plafond', false);
 end $$;
 revoke all on function public.tcg_combat(text[], uuid, int) from public, anon;
 grant execute on function public.tcg_combat(text[], uuid, int) to authenticated;

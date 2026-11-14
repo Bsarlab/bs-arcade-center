@@ -610,7 +610,7 @@ body[data-theme="2"] .scene-paquet::after { background: radial-gradient(closest-
   </nav>
   <button class="rond" type="button" id="btnSon" aria-label="Couper le son" title="Son"></button>
 </header>
-<div class="defile" aria-hidden="true"><div><span>★ NOUVEAU : SÉRIE 2 « MÉDAILLES ET BATAILLES »</span><span>⚔ DUELS : JUSQU'À 5 BOOSTERS GAGNÉS PAR JOUR</span><span>🦩 1 SEULE CARTE SUPRÊME PAR SÉRIE</span><span>🏁 COURSE : GAGNE DES BOOSTERS AVEC TES VÉHICULES</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
+<div class="defile" aria-hidden="true"><div><span>★ NOUVEAU : SÉRIE 2 « MÉDAILLES ET BATAILLES »</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 1 SEULE CARTE SUPRÊME PAR SÉRIE</span><span>🏁 COURSE : GAGNE DES BOOSTERS AVEC TES VÉHICULES</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
 
 
 <main>
@@ -5294,12 +5294,10 @@ Local.combat = async function (main, bot) {
   const pool = CARTES.filter((c) => B.rar.includes(c.r)).map((c) => c.id).sort(() => Math.random() - .5).slice(0, 5);
   const manches = main.map((a, i) => ({ a, b: pool[i], pa: Math.round(puissance(a) * (.85 + Math.random() * .3)), pb: Math.round(puissance(pool[i]) * (.85 + Math.random() * .3)) }));
   const ga = manches.filter((m) => m.pa >= m.pb).length, victoire = ga >= 3;
-  d.duels = (d.duels || []).filter((x) => Date.now() - x.t < 864e5);
-  const deja = d.duels.reduce((s, x) => s + x.g, 0);
-  const gain = victoire ? Math.max(0, Math.min(B.prix, 5 - deja)) : 0;
-  d.duels.push({ t: Date.now(), g: gain }); d.bonus = (d.bonus || 0) + gain;
+  const gain = victoire ? B.prix : 0;
+  d.bonus = (d.bonus || 0) + gain;
   this.ecrire(d);
-  return { adversaire: pool, nom: "bot" + bot, manches, victoire, gain, score: [ga, 5 - ga], plafond: victoire && gain < B.prix };
+  return { adversaire: pool, nom: "bot" + bot, manches, victoire, gain, score: [ga, 5 - ga], plafond: false };
 };
 
 async function afficherDuel() {
@@ -5323,7 +5321,7 @@ async function afficherDuel() {
       ${enLigne ? "" : `<p style="margin-top:10px">Connecte-toi sur le site pour défier tes amis et les autres joueurs.</p>`}
     </div>
     <div class="duel-bloc"><h3>2. Compose ta main</h3>
-      <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Victoire : 5 boosters par jour au maximum.</p>
+      <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Chaque victoire rapporte ses boosters, sans limite.</p>
       <div class="main-duel">${[0, 1, 2, 3, 4].map((i) => deck[i] ? `<div class="place" data-retirer="${i}"><span class="ordre">${i + 1}</span>${carteHTML(deck[i])}</div>` : `<div class="place">${i + 1}</div>`).join("")}</div>
       <div class="actions"><button class="btn alerte" type="button" id="btnDuel" ${pret ? "" : "disabled"}>Lancer le duel</button><button class="btn" type="button" id="btnMeilleures" ${mes.length < 5 ? "disabled" : ""}>Prendre mes 5 meilleures</button>${deck.length ? `<button class="btn" type="button" id="btnViderMain">Vider la main</button>` : ""}</div>
     </div>
