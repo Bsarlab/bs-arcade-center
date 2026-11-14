@@ -1055,6 +1055,7 @@
         if (action === "cadres" && data) data.avatar = imageSure(data.avatar);
         return data;
       }
+      if (action === "recycler") { const { data, error } = await sb.rpc("tcg_recycler", { p_carte: a.carte ? String(a.carte) : null }); return error ? err(error) : data; }
       if (action === "recuperer") { const { data, error } = await sb.rpc("tcg_recuperer", { p_id: a.id ? Number(a.id) : null }); return error ? err(error) : data; }
       if (action === "equiper") {
         const { data, error } = await sb.rpc("tcg_equiper", { p_cadre: a.cadre ? String(a.cadre) : null });

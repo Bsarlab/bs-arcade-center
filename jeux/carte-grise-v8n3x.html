@@ -766,6 +766,16 @@ body[data-theme="3"] .d1 { opacity: 0; }
 }
 .carte.s3 .c-img { display: none; } .art-jeu { position: absolute; inset: 0; width: 100%; height: 100%; }
 .c-photo > svg.art-jeu { opacity: 1; }
+/* ---------- Poussière de booster ---------- */
+.poussiere { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 24px; margin: 0 0 18px; padding: 16px 18px; border-radius: 18px; background: linear-gradient(110deg, color-mix(in srgb, var(--violet) 18%, transparent), color-mix(in srgb, var(--cyan) 10%, transparent)); border: 1px solid color-mix(in srgb, var(--violet) 40%, transparent); }
+.poussiere-jauge { flex: 1; min-width: 240px; display: grid; grid-template-columns: 1fr auto; gap: 2px 12px; align-items: baseline; }
+.poussiere-jauge span { font-family: var(--f-titre); font-weight: 800; font-size: 18px; letter-spacing: .04em; }
+.poussiere-jauge b { font-family: var(--f-tampon); font-weight: 400; font-size: 22px; color: var(--jaune); }
+.poussiere-jauge .obj-barre, .poussiere-jauge small { grid-column: 1 / -1; }
+.poussiere-jauge small { color: var(--pale); font-size: 13px; }
+#btnRecyclerTout.confirmer { background: linear-gradient(90deg, #ff3b5c, #ff8a3d); color: #fff; }
+.case .recycler { position: absolute; top: -9px; left: -7px; z-index: 5; padding: 2px 8px; border-radius: 999px; border: 0; background: var(--violet); color: #fff; font-family: var(--f-titre); font-weight: 800; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,.5); opacity: .9; transition: transform .2s, opacity .2s; }
+.case .recycler:hover { transform: scale(1.08); opacity: 1; }
 
 /* ---------- Cadres de profil gagnés dans CARDS CENTER (« #c=… » à la fin de l'avatar) : affichés partout où apparaît la photo ---------- */
 img[src$="#c=or"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=or"]) { box-shadow: 0 0 0 3px #ffd23f, 0 0 0 5px #8a6400, 0 0 16px 4px rgba(255,210,63,.8) !important; animation: cadre-pulse 2.4s ease-in-out infinite; }
@@ -803,7 +813,7 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
   </nav>
   <button class="rond" type="button" id="btnSon" aria-label="Couper le son" title="Son"></button>
 </header>
-<div class="defile" aria-hidden="true"><div><span>🎮 NOUVEAU : SÉRIE 3 « MANETTES &amp; CASSETTES »</span><span>🎯 OBJECTIFS DU JOUR ET DE LA SEMAINE</span><span>🏆 LIGUE : LES MEILLEURS GAGNENT DES BOOSTERS ET UN CADRE CHAQUE SEMAINE</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 DES CARTES SUPRÊMES CACHÉES DANS CHAQUE SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
+<div class="defile" aria-hidden="true"><div><span>🎮 NOUVEAU : SÉRIE 3 « MANETTES &amp; CASSETTES »</span><span>🎯 OBJECTIFS DU JOUR ET DE LA SEMAINE</span><span>🏆 LIGUE : LES MEILLEURS GAGNENT DES BOOSTERS ET UN CADRE CHAQUE SEMAINE</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 DES CARTES SUPRÊMES CACHÉES DANS CHAQUE SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>✨ RECYCLE TES DOUBLONS EN POUSSIÈRE : 100 = 1 BOOSTER</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
 
 
 <main>
@@ -850,6 +860,7 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
       <button class="serie-onglet" type="button" data-vue="2">Médailles et Batailles</button>
       <button class="serie-onglet" type="button" data-vue="3">Manettes &amp; Cassettes</button>
     </div>
+    <div id="zonePoussiere"></div>
     <div class="classeur-page">
       <div class="filtres" id="filtres" role="group" aria-label="Filtrer"></div>
       <div class="grille-classeur" id="grille"></div>
@@ -6184,7 +6195,7 @@ const Local = {
   ecrire(d) { try { localStorage.setItem("cg-invite", JSON.stringify(d)); } catch {} },
   async etat() {
     const d = this.lire(), maintenant = Date.now(), r = (d.ouvertures || []).filter((t) => maintenant - t < 36e5);
-    return { restants: Math.max(0, PAR_HEURE - r.length), prochain: r.length >= PAR_HEURE ? new Date(Math.min(...r) + 36e5).toISOString() : null, bonus: d.bonus || 0, total: d.total || 0, maintenant: new Date().toISOString() };
+    return { restants: Math.max(0, PAR_HEURE - r.length), prochain: r.length >= PAR_HEURE ? new Date(Math.min(...r) + 36e5).toISOString() : null, bonus: d.bonus || 0, total: d.total || 0, poussiere: d.poussiere || 0, maintenant: new Date().toISOString() };
   },
   async ouvrir(se) {
     const e = await this.etat(), d = this.lire();
@@ -6231,6 +6242,7 @@ const Serveur = {
   async etat() { return this.appel("etat"); },
   async ouvrir(se) { return this.appel("ouvrir", { serie: se }); },
   async collection(joueur) { return this.appel("collection", joueur ? { joueur } : {}); },
+  async recycler(carte) { return this.appel("recycler", carte ? { carte } : {}); },
   async depart() { return this.appel("depart"); },
   async arrivee(course, place) { return course ? this.appel("arrivee", { course, place }) : { erreur: "départ non enregistré" }; },
 };
@@ -6600,6 +6612,8 @@ function breche() {
 let filtre = "tous";
 const FILTRES = [["tous", "Toutes"], ["S", "Suprême", "var(--rS)"], ["L", "Mythiques", "var(--rL)"], ["E", "Épiques", "var(--rE)"], ["R", "Rares", "var(--rR)"], ["C", "Communes", "var(--rC)"], ["holo", "Holo"], ["manque", "Manquantes"]];
 function afficherClasseur() {
+  $("zonePoussiere").innerHTML = blocPoussiere();
+  $("btnRecyclerTout").onclick = () => recycler(null);
   document.querySelectorAll("[data-vue]").forEach((b) => b.setAttribute("aria-pressed", Number(b.dataset.vue) === serieVue));
   $("nomSerie").textContent = `Série ${serieVue} · ${SERIES[serieVue].nom}`;
   const TOTAL = TOTAL_SERIE(serieVue);
@@ -6618,7 +6632,7 @@ function afficherClasseur() {
   $("grille").innerHTML = liste.length ? liste.map((c) => {
     const nb = possede(c.id), holo = (collection[c.id + "*"] || 0) > 0;
     if (!nb) return `<div class="case"><div class="manquante"><b>${String(c.i + 1).padStart(2, "0")}</b><span>${RARETES[c.r]}</span><span>???</span></div></div>`;
-    return `<div class="case">${nb > 1 ? `<span class="compte">×${nb}</span>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
+    return `<div class="case">${nb > 1 ? `<span class="compte">×${nb}</span><button class="recycler" type="button" data-recycler="${c.id}" title="Recycler un doublon">♻ +${POUSSIERE[c.r]}</button>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
   }).join("") : `<p class="vide-classeur">Aucune carte ici pour l'instant.</p>`;
 }
 
@@ -7000,6 +7014,56 @@ async function equiper(cadre) {
   toast(cadre ? `Cadre « ${CADRES[cadre] || cadre} » affiché sur ton profil !` : "Cadre retiré."); afficherBoite();
 }
 
+// ---------- Poussière de booster : on recycle ses doublons, 100 poussières = 1 booster ----------
+const POUSSIERE = { C: 1, R: 2, E: 3, L: 10, S: 25 };
+// Ce que rapporterait le recyclage de tous les doublons (on garde toujours 1 exemplaire, de préférence holo)
+function doublons() {
+  let cartes = 0, gain = 0;
+  CARTES.forEach((c) => { const t = possede(c.id); if (t > 1) { cartes += t - 1; gain += (t - 1) * POUSSIERE[c.r]; } });
+  return { cartes, gain };
+}
+Local.recycler = async function (id) {
+  const d = this.lire(); d.cartes ||= {};
+  let cartes = 0, gain = 0;
+  CARTES.filter((c) => !id || c.id === id.replace("*", "")).forEach((c) => {
+    const n = d.cartes[c.id] || 0, h = d.cartes[c.id + "*"] || 0, total = n + h;
+    if (total <= 1) return;
+    const extra = id ? 1 : total - 1, rn = Math.min(n, extra), rh = extra - rn;
+    if (n - rn > 0) d.cartes[c.id] = n - rn; else delete d.cartes[c.id];
+    if (h - rh > 0) d.cartes[c.id + "*"] = h - rh; else delete d.cartes[c.id + "*"];
+    cartes += extra; gain += extra * POUSSIERE[c.r];
+  });
+  const q = (d.poussiere || 0) + gain, b = Math.floor(q / 100);
+  d.poussiere = q % 100; d.bonus = (d.bonus || 0) + b;
+  this.ecrire(d);
+  return { cartes, gain, poussiere: d.poussiere, boosters: b };
+};
+function blocPoussiere() {
+  const q = (etat && etat.poussiere) || 0, { cartes, gain } = doublons();
+  return `<div class="poussiere">
+    <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${q} / 100</b><div class="obj-barre"><i style="width:${q}%"></i></div><small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 · Suprême +25 par doublon recyclé. À 100, tu gagnes un booster.</small></div>
+    <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${gain})` : "Aucun doublon à recycler"}</button>
+  </div>`;
+}
+let confirmeRecyclage = false;
+async function recycler(id) {
+  if (!id && !confirmeRecyclage) {
+    confirmeRecyclage = true;
+    const b = $("btnRecyclerTout"); b.textContent = "Sûr ? On garde 1 exemplaire de chaque carte. Clique pour confirmer"; b.classList.add("confirmer");
+    setTimeout(() => { confirmeRecyclage = false; if ($("btnRecyclerTout") === b) afficherClasseur(); }, 4000);
+    return;
+  }
+  confirmeRecyclage = false;
+  const r = await Stock.recycler(id || null).catch((e) => ({ erreur: e.message }));
+  if (!r || r.erreur) { toast("Recyclage impossible : " + ((r && r.erreur) || "réessaie")); return; }
+  if (!r.cartes) { toast("Rien à recycler."); return; }
+  Son.dechire();
+  toast(`+${r.gain} poussière${r.gain > 1 ? "s" : ""}` + (r.boosters ? ` · ${r.boosters} booster${r.boosters > 1 ? "s" : ""} gagné${r.boosters > 1 ? "s" : ""}${enLigne ? " (dans ta messagerie)" : ""} !` : ` · ${r.poussiere} / 100`));
+  if (r.boosters) { flash(); Son.rare("L"); }
+  await Promise.all([chargerCollection(), majEtat()]);
+  afficherClasseur(); majBoite(true);
+}
+
 // ---------- Navigation ----------
 function aller(ecran) {
   ["accueil", "classeur", "credits", "course", "echanges", "duel", "objectifs", "ligue", "boite"].forEach((e) => ($("e-" + e).hidden = e !== ecran));
@@ -7023,6 +7087,7 @@ document.addEventListener("click", (e) => {
   const vu = e.target.closest("[data-vue]"); if (vu) { serieVue = Number(vu.dataset.vue); filtre = "tous"; appliquerTheme(serieVue); afficherClasseur(); return; }
   const bo = e.target.closest("[data-bot]"); if (bo) { adversaire = { type: "bot", bot: Number(bo.dataset.bot) }; afficherDuel(); return; }
   const ad = e.target.closest("[data-adv]"); if (ad) { adversaire = { type: "joueur", id: ad.dataset.adv, pseudo: ad.dataset.pseudo }; afficherDuel(); return; }
+  const ry = e.target.closest("[data-recycler]"); if (ry) { recycler(ry.dataset.recycler); return; }
   const rc = e.target.closest("[data-recup]"); if (rc) { recuperer(rc.dataset.recup || null); return; }
   const eq = e.target.closest("[data-equiper]"); if (eq) { equiper(eq.dataset.equiper || null); return; }
   const dk = e.target.closest("[data-deck]"); if (dk) { basculerCarteDuel(dk.dataset.deck); return; }

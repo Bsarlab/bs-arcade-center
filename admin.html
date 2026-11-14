@@ -419,7 +419,8 @@ begin
   select count(*), min(quand) into n, premier from tcg_ouvertures where joueur = auth.uid() and source = 'heure' and quand > now() - interval '1 hour';
   b := coalesce((select nombre from tcg_bonus where joueur = auth.uid()), 0);
   return json_build_object('restants', greatest(0, 5 - n), 'prochain', case when n >= 5 then premier + interval '1 hour' end, 'bonus', b, 'maintenant', now(),
-    'total', (select count(*) from tcg_ouvertures where joueur = auth.uid()));
+    'total', (select count(*) from tcg_ouvertures where joueur = auth.uid()),
+    'poussiere', coalesce((select quantite from tcg_poussiere where joueur = auth.uid()), 0));
 end $$;
 
 alter table public.tcg_ouvertures add column if not exists god boolean not null default false;
@@ -1042,6 +1043,47 @@ grant execute on function public.tcg_recuperer(bigint) to authenticated;
 grant execute on function public.tcg_ligue() to authenticated;
 grant execute on function public.tcg_cadres_lire() to authenticated;
 grant execute on function public.tcg_equiper(text) to authenticated;
+
+-- Poussière de booster : on recycle ses doublons (on garde toujours 1 exemplaire, de préférence holo).
+-- Commune +1, Rare +2, Épique +3, Mythique +10, Suprême +25. Chaque fois qu'on atteint 100, un booster part dans la messagerie.
+create table if not exists public.tcg_poussiere (
+  joueur uuid primary key references public.profils(id) on delete cascade,
+  quantite int not null default 0
+);
+alter table public.tcg_poussiere enable row level security;
+drop policy if exists "ma poussiere" on public.tcg_poussiere;
+create policy "ma poussiere" on public.tcg_poussiere for select using (auth.uid() = joueur);
+create or replace function public.tcg_recycler(p_carte text default null) returns json language plpgsql security definer set search_path = public as $$
+declare r record; n int; h int; extra int; rn int; rh int; gain int := 0; nb int := 0; q int; b int := 0;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  perform pg_advisory_xact_lock(hashtext('tcgr' || auth.uid()::text));
+  for r in select replace(c.carte, '*', '') as base, v.rarete, sum(c.nombre)::int as total
+           from tcg_cartes c join tcg_valeurs v on v.carte = replace(c.carte, '*', '')
+           where c.joueur = auth.uid() and c.nombre > 0 and (p_carte is null or replace(c.carte, '*', '') = replace(p_carte, '*', ''))
+           group by 1, 2 having sum(c.nombre) > 1 loop
+    extra := case when p_carte is null then r.total - 1 else 1 end;
+    select coalesce(sum(nombre) filter (where carte = r.base), 0), coalesce(sum(nombre) filter (where carte = r.base || '*'), 0)
+      into n, h from tcg_cartes where joueur = auth.uid() and carte in (r.base, r.base || '*');
+    rn := least(n, extra); rh := extra - rn;
+    update tcg_cartes set nombre = nombre - rn where joueur = auth.uid() and carte = r.base and rn > 0;
+    update tcg_cartes set nombre = nombre - rh where joueur = auth.uid() and carte = r.base || '*' and rh > 0;
+    nb := nb + extra;
+    gain := gain + extra * case r.rarete when 'C' then 1 when 'R' then 2 when 'E' then 3 when 'L' then 10 else 25 end;
+  end loop;
+  delete from tcg_cartes where joueur = auth.uid() and nombre <= 0;
+  insert into tcg_poussiere (joueur, quantite) values (auth.uid(), gain)
+    on conflict (joueur) do update set quantite = tcg_poussiere.quantite + gain returning quantite into q;
+  if q >= 100 then
+    b := q / 100;
+    update tcg_poussiere set quantite = q % 100 where joueur = auth.uid();
+    insert into tcg_boite (joueur, titre, texte, boosters) values (auth.uid(), 'Poussière de booster',
+      b * 100 || ' poussières de doublons transformées en booster' || case when b > 1 then 's' else '' end || '.', b);
+  end if;
+  return json_build_object('cartes', nb, 'gain', gain, 'poussiere', q % 100, 'boosters', b);
+end $$;
+revoke all on function public.tcg_recycler(text) from public, anon;
+grant execute on function public.tcg_recycler(text) to authenticated;
 revoke all on function public.tcg_points_de(uuid) from public, anon;
 revoke all on function public.tcg_maj_points() from public, anon, authenticated;
 -- Remet à jour les points de tous les joueurs (utile la première fois)
