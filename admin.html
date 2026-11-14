@@ -508,11 +508,11 @@ alter table public.tcg_valeurs enable row level security;
 drop policy if exists "valeurs publiques" on public.tcg_valeurs;
 create policy "valeurs publiques" on public.tcg_valeurs for select using (true);
 insert into public.tcg_valeurs (carte, points, puissance, serie, rarete) values
-  ('kangoopower', 2000, 168, 1, 'S'),
-  ('p206beauf', 2000, 166, 1, 'S'),
-  ('p206keke', 2000, 166, 1, 'S'),
-  ('racingkeke', 2000, 166, 1, 'S'),
-  ('kekepower', 2000, 166, 1, 'S'),
+  ('kangoopower', 2000, 239, 1, 'S'),
+  ('p206beauf', 2000, 193, 1, 'S'),
+  ('p206keke', 2000, 193, 1, 'S'),
+  ('racingkeke', 2000, 213, 1, 'S'),
+  ('kekepower', 2000, 173, 1, 'S'),
   ('concorde', 250, 126, 1, 'L'),
   ('kangoo', 250, 102, 1, 'L'),
   ('multipla', 250, 102, 1, 'L'),
@@ -591,9 +591,9 @@ insert into public.tcg_valeurs (carte, points, puissance, serie, rarete) values
   ('tram', 10, 36, 1, 'C'),
   ('bateaumouche', 10, 34, 1, 'C'),
   ('voilier', 10, 34, 1, 'C'),
-  ('mbappe', 2000, 174, 2, 'S'),
-  ('messi', 2000, 168, 2, 'S'),
-  ('zidane', 2000, 172, 2, 'S'),
+  ('mbappe', 2000, 217, 2, 'S'),
+  ('messi', 2000, 239, 2, 'S'),
+  ('zidane', 2000, 216, 2, 'S'),
   ('ronaldo', 250, 126, 2, 'L'),
   ('kane', 250, 128, 2, 'L'),
   ('yamal', 250, 126, 2, 'L'),
@@ -726,14 +726,14 @@ insert into public.tcg_valeurs (carte, points, puissance, serie, rarete) values
   ('tchouameni', 10, 50, 2, 'C'),
   ('theo', 10, 50, 2, 'C'),
   ('thuram', 10, 48, 2, 'C'),
-  ('minecraft', 2000, 174, 3, 'S'),
-  ('gtav', 2000, 174, 3, 'S'),
-  ('tetris', 2000, 170, 3, 'S'),
-  ('wiisports', 2000, 174, 3, 'S'),
-  ('fortnite', 2000, 166, 3, 'S'),
-  ('lol', 2000, 164, 3, 'S'),
-  ('gta6', 2000, 176, 3, 'S'),
-  ('fifa18', 2000, 172, 3, 'S'),
+  ('minecraft', 2000, 242, 3, 'S'),
+  ('gtav', 2000, 217, 3, 'S'),
+  ('tetris', 2000, 215, 3, 'S'),
+  ('wiisports', 2000, 197, 3, 'S'),
+  ('fortnite', 2000, 193, 3, 'S'),
+  ('lol', 2000, 192, 3, 'S'),
+  ('gta6', 2000, 218, 3, 'S'),
+  ('fifa18', 2000, 176, 3, 'S'),
   ('amongus', 250, 122, 3, 'L'),
   ('rocketleague', 250, 120, 3, 'L'),
   ('valorant', 250, 120, 3, 'L'),
@@ -848,9 +848,9 @@ begin
     nom := coalesce((select pseudo from profils where id = p_adv), 'Joueur');
     prix := 1;
   else
-    p_bot := greatest(1, least(3, coalesce(p_bot, 1)));
+    p_bot := greatest(1, least(4, coalesce(p_bot, 1)));
     select array_agg(carte) into lui from (select carte from tcg_valeurs
-      where rarete = any (case p_bot when 1 then array['C', 'R'] when 2 then array['R', 'E'] else array['E', 'L'] end)
+      where rarete = any (case p_bot when 1 then array['C', 'R'] when 2 then array['R', 'E'] when 3 then array['E', 'L'] else array['L', 'S'] end)
       order by random() limit 5) t;
     nom := 'bot' || p_bot;
     prix := p_bot - 1;
@@ -1063,7 +1063,7 @@ grant execute on function public.jeu_hebdo(text) to authenticated;
 -- Jours et semaines à l'heure de Paris (la semaine commence le lundi)
 create or replace function public.tcg_debut_jour() returns timestamptz language sql stable as $$ select ((now() at time zone 'Europe/Paris')::date)::timestamp at time zone 'Europe/Paris' $$;
 create or replace function public.tcg_debut_semaine() returns timestamptz language sql stable as $$ select date_trunc('week', now() at time zone 'Europe/Paris') at time zone 'Europe/Paris' $$;
--- Points de ligue d'un duel gagné : collectionneuse 1, boss final 2, joueur 3 (le débutant ne compte pas)
+-- Points de ligue d'un duel gagné : collectionneuse 1, boss 2, Roi des Suprêmes ou joueur 3 (le débutant ne compte pas)
 create or replace function public.tcg_pts_ligue(adv text, vic boolean) returns int language sql immutable as $$
   select case when not vic then 0 when adv = 'bot1' then 0 when adv = 'bot2' then 1 when adv = 'bot3' then 2 else 3 end $$;
 

@@ -817,6 +817,9 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
 .serie-btn > i .paquet { position: absolute; left: 0; top: 0; transform-origin: 0 0; transform: scale(.2); filter: drop-shadow(0 18px 22px rgba(0,0,0,.55)); animation: none; transition: transform .3s; }
 .serie-btn:hover > i .paquet, .serie-btn[aria-pressed="true"] > i .paquet { transform: scale(.2) rotate(-4deg); }
 .serie-btn > i .paquet-code { display: none; }
+.c-rang { font-style: normal; margin-left: .3em; color: #ffd23f; letter-spacing: 0; text-shadow: 0 0 6px rgba(255,210,63,.8); }
+.hierarchie-s { margin: 10px 0 0; font-size: 13px; color: var(--pale); line-height: 1.6; }
+.hierarchie-s b { color: #ffd23f; }
 </style>
 </head>
 <body>
@@ -984,7 +987,8 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 168
+"pw": 239,
+"rang": 4
 },
 {
 "id": "p206beauf",
@@ -1003,7 +1007,8 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 166
+"pw": 193,
+"rang": 2
 },
 {
 "id": "p206keke",
@@ -1022,7 +1027,8 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 166
+"pw": 193,
+"rang": 2
 },
 {
 "id": "racingkeke",
@@ -1041,7 +1047,8 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 166
+"pw": 213,
+"rang": 3
 },
 {
 "id": "kekepower",
@@ -1060,7 +1067,8 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 166
+"pw": 173,
+"rang": 1
 },
 {
 "id": "concorde",
@@ -2500,7 +2508,8 @@ const CARTES = [
 "cite": "Soulier d'or de la Coupe du monde 2026 avec 10 buts, 2e du Ballon d'Or 2026.",
 "q": "Kylian Mbappé",
 "sil": "foot",
-"pw": 174
+"pw": 217,
+"rang": 3
 },
 {
 "id": "messi",
@@ -2518,7 +2527,8 @@ const CARTES = [
 "cite": "Finaliste de la Coupe du monde 2026.",
 "q": "Lionel Messi",
 "sil": "foot",
-"pw": 168
+"pw": 239,
+"rang": 4
 },
 {
 "id": "zidane",
@@ -2536,7 +2546,8 @@ const CARTES = [
 "cite": "Triple vainqueur de la Ligue des champions comme entraîneur du Real Madrid.",
 "q": "Zinédine Zidane",
 "sil": "foot",
-"pw": 172
+"pw": 216,
+"rang": 3
 },
 {
 "id": "ronaldo",
@@ -4931,7 +4942,8 @@ const CARTES = [
 "img": "Minecraft Beta 1.8.1 Gameplay Screenshot.png",
 "auteur": "Xbox México",
 "lic": "CC BY 3.0",
-"pw": 174
+"pw": 242,
+"rang": 4
 },
 {
 "id": "gtav",
@@ -4951,7 +4963,8 @@ const CARTES = [
 "auteur": "Rockstar Games",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 174
+"pw": 217,
+"rang": 3
 },
 {
 "id": "tetris",
@@ -4971,7 +4984,8 @@ const CARTES = [
 "auteur": "The Tetris Company",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 170
+"pw": 215,
+"rang": 3
 },
 {
 "id": "wiisports",
@@ -4991,7 +5005,8 @@ const CARTES = [
 "auteur": "Nintendo",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 174
+"pw": 197,
+"rang": 2
 },
 {
 "id": "fortnite",
@@ -5011,7 +5026,8 @@ const CARTES = [
 "auteur": "Epic Games",
 "lic": "Domaine public",
 "logo": 2,
-"pw": 166
+"pw": 193,
+"rang": 2
 },
 {
 "id": "lol",
@@ -5031,7 +5047,8 @@ const CARTES = [
 "auteur": "Riot Games",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 164
+"pw": 192,
+"rang": 2
 },
 {
 "id": "gta6",
@@ -5051,7 +5068,8 @@ const CARTES = [
 "auteur": "Rockstar Games",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 176
+"pw": 218,
+"rang": 3
 },
 {
 "id": "fifa18",
@@ -5071,7 +5089,8 @@ const CARTES = [
 "auteur": "EA Sports",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 172
+"pw": 176,
+"rang": 1
 },
 {
 "id": "amongus",
@@ -6424,7 +6443,7 @@ function carteHTML(cle, o = {}) {
       <div class="c-corps"><div class="c-nom"><b>${esc(c.n)}</b></div>
       <div class="c-texte">${c.txt}<i>${S2 ? esc(c.cite) : `« ${esc(c.cite)} »`}</i></div></div>
       <div class="c-pied"><span class="c-stat men" title="${ST[0]}">${ICONES.menace}${c.men}</span>
-        <span class="c-rar"><b>${RARETES[c.r]}</b>${POINTS[c.r]} pts · ${String(c.i + 1).padStart(2, "0")}/${TOTAL_SERIE(c.se)}</span>
+        <span class="c-rar"><b>${RARETES[c.r]}${c.rang ? `<em class="c-rang" title="${RANGS_S[c.rang]} : rang ${c.rang} sur 4 des Suprêmes">${"★".repeat(c.rang)}</em>` : ""}</b>${POINTS[c.r]} pts · ${String(c.i + 1).padStart(2, "0")}/${TOTAL_SERIE(c.se)}</span>
         <span class="c-stat conf" title="${ST[1]}">${ICONES.conf}${c.conf}</span></div>
     </div>
     ${holo ? `<span class="c-holo">HOLO</span>` : ""}
@@ -7101,10 +7120,12 @@ function afficherCredits() {
 // ---------- Salle de duel : 5 cartes contre 5 ----------
 // La puissance d'une carte = base selon la rareté + 2 × (ses deux stats). Holo : +10 %.
 // À chaque manche, la puissance varie de ±15 % (un peu de chance). 3 manches gagnées = victoire.
+const RANGS_S = { 1: "Élite", 2: "Héros", 3: "Titan", 4: "Divin" };
 const BOTS = {
   1: { nom: "Le débutant", av: "🐣", txt: "Communes et Rares · entraînement, pas de booster", rar: ["C", "R"], prix: 0 },
   2: { nom: "La collectionneuse", av: "💼", txt: "Rares et Épiques · victoire = 1 booster", rar: ["R", "E"], prix: 1 },
-  3: { nom: "Le boss final", av: "👑", txt: "Épiques et Mythiques · victoire = 2 boosters", rar: ["E", "L"], prix: 2 },
+  3: { nom: "Le boss", av: "👑", txt: "Épiques et Mythiques · victoire = 2 boosters", rar: ["E", "L"], prix: 2 },
+  4: { nom: "Le Roi des Suprêmes", av: "🐉", txt: "Mythiques et Suprêmes · victoire = 3 boosters", rar: ["L", "S"], prix: 3 },
 };
 const puissance = (cle) => { const c = PAR_ID[cle.replace("*", "")]; return c ? Math.round(c.pw * (cle.endsWith("*") ? 1.1 : 1)) : 0; };
 let adversaire = { type: "bot", bot: 1 }, deck = [], joueursDuel = null, dernierDuel = null;
@@ -7141,6 +7162,7 @@ async function afficherDuel() {
       <div class="adversaires">${Object.entries(BOTS).map(([n, b]) => `<button class="adv" type="button" data-bot="${n}" aria-pressed="${adversaire.type === "bot" && adversaire.bot === Number(n)}"><span class="av">${b.av}</span><b>${b.nom}</b><small>${b.txt}</small></button>`).join("")}
       ${(joueursDuel || []).map((j) => `<button class="adv" type="button" data-adv="${esc(j.id)}" data-pseudo="${esc(j.pseudo)}" aria-pressed="${adversaire.id === j.id}"><span class="av">${j.avatar ? `<img src="${esc(j.avatar)}" alt="">` : "🃏"}</span><b>${esc(j.pseudo)}</b><small>${j.ami ? "Ami · " : ""}ses 5 meilleures cartes · victoire = 1 booster</small></button>`).join("")}</div>
       ${enLigne ? "" : `<p style="margin-top:10px">Connecte-toi sur le site pour défier tes amis et les autres joueurs.</p>`}
+      <p class="hierarchie-s">Hiérarchie des Suprêmes en duel : <b>★</b> Élite · <b>★★</b> Héros · <b>★★★</b> Titan · <b>★★★★</b> Divin. Plus il y a d'étoiles, plus la carte frappe fort.</p>
     </div>
     <div class="duel-bloc"><h3>2. Compose ta main</h3>
       <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Chaque victoire rapporte ses boosters, sans limite.</p>
@@ -7228,7 +7250,7 @@ async function animerDuel(r, serie = null) {
   if (r.victoire) { Son.corne(); flash(); } else Son.erreur();
   fin.hidden = false;
   $("btnAccelere").hidden = true;
-  const detail = r.victoire ? (r.gain ? `Tu gagnes ${r.gain} booster${r.gain > 1 ? "s" : ""} !` : B && !B.prix ? "C'était un entraînement : bats la collectionneuse ou le boss final pour gagner des boosters." : "") : "Change l'ordre de tes cartes ou ouvre des boosters pour renforcer ta main.";
+  const detail = r.victoire ? (r.gain ? `Tu gagnes ${r.gain} booster${r.gain > 1 ? "s" : ""} !` : B && !B.prix ? "C'était un entraînement : bats la collectionneuse, le boss ou le Roi des Suprêmes pour gagner des boosters." : "") : "Change l'ordre de tes cartes ou ouvre des boosters pour renforcer ta main.";
   majEtat();
   if (serie && serie.n < serie.total) {
     fin.innerHTML = `<div><h3>${r.victoire ? "Victoire !" : "Défaite…"}</h3><p>${r.score[0]} manche${r.score[0] > 1 ? "s" : ""} à ${r.score[1]}. ${r.gain ? `+${r.gain} booster${r.gain > 1 ? "s" : ""}. ` : ""}Duel suivant…</p></div>`;
@@ -7300,7 +7322,7 @@ async function afficherLigue() {
   const rang = r.joueurs.findIndex((j) => j.id === r.moi);
   z.innerHTML = `<div class="ligue-haut">
       <div class="carte-info ligue-moi"><small>Tes points cette semaine</small><b>${r.mes_points}</b><span>${rang >= 0 ? `Tu es ${rang === 0 ? "1er" : rang + 1 + "e"} !` : "Gagne un duel pour entrer au classement."}</span><span class="ligue-fin">Fin de la semaine dans ${dans(r.fin)}</span></div>
-      <div class="carte-info"><h3>Comment marquer</h3><p>Duel gagné contre la collectionneuse : <b>1 point</b><br>contre le boss final : <b>2 points</b><br>contre un autre joueur : <b>3 points</b></p></div>
+      <div class="carte-info"><h3>Comment marquer</h3><p>Duel gagné contre la collectionneuse : <b>1 point</b><br>contre le boss : <b>2 points</b><br>contre le Roi des Suprêmes ou un autre joueur : <b>3 points</b></p></div>
       <div class="carte-info"><h3>Récompenses du lundi</h3><ul class="ligue-prix">${RECOMPENSES_LIGUE.map(([p, t, c]) => `<li><b>${p}</b><span>${t}</span>${c ? `<i class="cadre-mini c-${c}"></i>` : ""}</li>`).join("")}</ul></div>
     </div>
     <ol class="ligue-liste">${r.joueurs.map((j, i) => `<li class="${j.id === r.moi ? "moi" : ""}"><span class="rang">${i + 1}</span><img src="${esc(j.avatar || "")}" alt=""><span>${esc(j.pseudo)}</span><b>${j.pts} pts</b></li>`).join("") || `<li class="vide">Personne n'a encore marqué de points cette semaine : à toi de jouer !</li>`}</ol>`;
