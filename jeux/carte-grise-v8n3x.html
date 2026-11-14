@@ -829,6 +829,21 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
 @keyframes et-diamant { to { background-position: -200% 0; } }
 @keyframes et-feu { from { box-shadow: 0 0 8px #a855f7, 0 -2px 10px rgba(236,72,153,.6); filter: brightness(1); } to { box-shadow: 0 0 14px #c084fc, 0 -6px 16px rgba(236,72,153,.9); filter: brightness(1.25); } }
 @media (prefers-reduced-motion: reduce) { .c-et { animation: none !important; } }
+.btn-proba { flex: none; width: 46px; height: 46px; border-radius: 50%; border: 2px solid #ffd23f; background: rgba(255,210,63,.1); color: #ffd23f; font: 900 22px/1 var(--f-titre); cursor: pointer; align-self: center; transition: transform .2s, background .2s; }
+.btn-proba:hover, .btn-proba[aria-expanded="true"] { background: #ffd23f; color: #120b02; transform: rotate(-8deg) scale(1.06); }
+.probas { grid-column: 1 / -1; margin-top: 18px; padding: clamp(16px, 3vw, 26px); border-radius: 18px; border: 1px solid var(--trait); background: rgba(8,5,22,.82); backdrop-filter: blur(6px); }
+.probas h3 { margin: 0 0 4px; font-family: var(--f-titre); }
+.probas .p-intro { margin: 0 0 14px; color: var(--pale); font-size: 14px; }
+.probas .p-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px; }
+.probas .p-bloc { padding: 12px 14px; border-radius: 12px; background: rgba(255,255,255,.04); border: 1px solid var(--trait); }
+.probas .p-bloc.god { border-color: #ffd23f; background: rgba(255,210,63,.07); }
+.probas h4 { margin: 0 0 8px; font-size: 15px; }
+.probas table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.probas th, .probas td { text-align: left; padding: 4px 6px; border-bottom: 1px solid rgba(255,255,255,.07); vertical-align: top; }
+.probas th { color: var(--pale); font-weight: 600; }
+.probas .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+.probas .rC { color: var(--rC); } .probas .rR { color: var(--rR); } .probas .rE { color: var(--rE); } .probas .rL { color: var(--rL); } .probas .rS { color: var(--rS); font-weight: 800; }
+.probas .p-note { margin: 10px 0 0; font-size: 12.5px; color: var(--pale); line-height: 1.5; }
 </style>
 </head>
 <body>
@@ -874,12 +889,14 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
         </div>
         <div class="actions">
           <button class="btn alerte" type="button" id="btnOuvrir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v16H5zM5 9h14M12 13v4M10 15h4"/></svg>Ouvrir un booster</button>
+          <button class="btn-proba" type="button" id="btnProba" aria-expanded="false" aria-controls="probas" title="Ce qu’il y a dans les boosters (probabilités)">?</button>
           <button class="btn" type="button" data-aller="classeur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v16H4zM10 4h4v16h-4zM15 5l4 1-3 14-4-1"/></svg>Collection</button>
           <button class="btn" type="button" data-aller="duel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l9-9M13 11l4-7 3 3-7 4M20 20l-9-9M11 11L7 4 4 7l7 4"/></svg>Duel <small>+ boosters</small></button>
           <button class="btn" type="button" data-aller="echanges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>Amis &amp; échanges <small id="badgeEchanges"></small></button>
         </div>
       </div>
       <div class="scene-paquet"><div id="paquetAccueil"></div></div>
+      <div class="probas" id="probas" hidden></div>
     </div>
   </section>
 
@@ -7525,6 +7542,38 @@ addEventListener("message", (e) => { if (e.data && e.data.type === "bs-profil" &
 
 // Boutons de série : la vraie jaquette du booster de chaque série, en miniature
 document.querySelectorAll(".serie-btn[data-serie] > i").forEach((i) => { i.innerHTML = paquetHTML("230px", Number(i.parentElement.dataset.serie)); });
+
+// ---------- « ? » : probabilités des boosters (mêmes chiffres que le serveur) ----------
+const PROBA = {
+  normal: [["1, 2 et 3", [["C", 92], ["R", 8]]], ["4", [["R", 88], ["E", 12]]], ["5", [["R", 78], ["E", 18.9], ["L", 3], ["S", .1]]]],
+  god: [["1", [["E", 100]]], ["2", [["E", 40], ["L", 60]]], ["3 et 4", [["L", 100]]], ["5", [["L", 85], ["S", 15]]]],
+  // nombre moyen de cartes de chaque rareté par booster
+  moyNormal: { C: 2.76, R: 1.9, E: .309, L: .03, S: .001 }, moyGod: { E: 1.4, L: 3.45, S: .15 },
+};
+const pct = (x) => (x >= 1 ? x.toFixed(1) : x >= .1 ? x.toFixed(2) : x.toFixed(3)).replace(/\.?0+$/, "").replace(".", ",") + " %";
+const unSur = (x) => x > 0 && x < 1 ? ` <small>(1 sur ${Math.round(100 / x).toLocaleString("fr-FR")})</small>` : "";
+function dessinerProbas() {
+  const se = serieActive, n = {}; CARTES.forEach((c) => { if (c.se === se) n[c.r] = (n[c.r] || 0) + 1; });
+  const rar = (r) => `<span class="r${r}">${RARETES[r]}</span>`;
+  const slots = (l) => `<table><tr><th>Carte</th><th>Peut être</th></tr>${l.map(([k, v]) => `<tr><td>${k}</td><td>${v.map(([r, p]) => `${rar(r)} ${pct(p)}`).join(" · ")}</td></tr>`).join("")}</table>`;
+  const parCarte = ["C", "R", "E", "L", "S"].filter((r) => n[r]).map((r) => {
+    const a = PROBA.moyNormal[r] / n[r] * 100, g = PROBA.moyGod[r] ? PROBA.moyGod[r] / n[r] * 100 : 0;
+    return `<tr><td>${rar(r)} <small>(${n[r]} cartes)</small></td><td class="n">${pct(a)}${unSur(a)}</td><td class="n">${g ? pct(g) : "—"}</td></tr>`;
+  }).join("");
+  $("probas").innerHTML = `<h3>Ce qu'il y a dans les boosters</h3>
+    <p class="p-intro">Les vrais chiffres du jeu, pour la série ${se} « ${SERIES[se].nom} ». Chaque booster contient 5 cartes.</p>
+    <div class="p-grille">
+      <div class="p-bloc"><h4>Booster normal</h4>${slots(PROBA.normal)}
+        <p class="p-note">Dans un booster : au moins une ${rar("E")} 28,6 %, une ${rar("L")} 3 %, une ${rar("S")} 0,1 % (1 sur 1 000).<br>Chaque carte a <b>4 %</b> de chance d'être <b>holo</b>, Mythiques et Suprêmes comprises (+10 % de puissance en duel).</p></div>
+      <div class="p-bloc god"><h4>✨ God pack</h4>${slots(PROBA.god)}
+        <p class="p-note"><b>1 chance sur 1 000</b> à chaque booster, et toujours au 100e, 200e, 300e… (environ 1,1 % en moyenne, un tous les 91 boosters).<br>Chaque carte a <b>25 %</b> de chance d'être holo. Une Mythique ou une Suprême est remplacée par une carte que tu n'as pas encore.</p></div>
+      <div class="p-bloc"><h4>Une carte précise dans un booster</h4>
+        <table><tr><th>Rareté</th><th class="n">Normal</th><th class="n">God pack</th></tr>${parCarte}</table>
+        <p class="p-note">Moins une rareté a de cartes dans la série, plus chacune a de chances de sortir. Les doublons de Suprêmes leur donnent des étoiles.</p></div>
+    </div>`;
+}
+$("btnProba").onclick = () => { const p = $("probas"), o = p.hidden; p.hidden = !o; $("btnProba").setAttribute("aria-expanded", String(o)); if (o) { dessinerProbas(); p.scrollIntoView({ behavior: "smooth", block: "nearest" }); } };
+document.addEventListener("click", (e) => { if (e.target.closest(".serie-btn") && !$("probas").hidden) setTimeout(dessinerProbas, 50); });
 
 // =========================================================
 // CARTE GRISE : la course (pseudo-3D façon arcade) et les échanges
