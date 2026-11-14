@@ -145,13 +145,14 @@
   </div></section>`;
     }
 
-    const p = profil || { pseudo: "", avatar: "" }, choisi = avatarDe(p);
+    const p = profil || { pseudo: "", avatar: "" }, choisi = avatarDe(p).replace(/#c=[a-z0-9]+$/, "");
+    setTimeout(remplirCadres, 0);
     return entete(`${t("compte_bonjour")} ${esc(p.pseudo)}`, t("compte_texte_connecte")) + `
   <section class="section serree"><div class="conteneur">
     <form class="carte-compte large" data-compte="profil">
       ${alerte()}
       <div class="profil-tete">
-        <span class="profil-avatar"><img id="apercuAvatar" src="${esc(choisi)}" alt=""></span>
+        <span class="profil-avatar"><img id="apercuAvatar" src="${esc(avatarDe(p))}" alt=""></span>
         <div class="profil-champs">
           ${champ("cPseudo", t("compte_pseudo"), "text", `required maxlength="30" value="${esc(p.pseudo)}" autocomplete="nickname"`)}
           <p class="meta">${esc(session.user.email)}${p.tag ? ` · ${t("amis_mon_code")} : <b>${esc(p.pseudo)}#${esc(p.tag)}</b>` : ""}</p>
@@ -162,6 +163,7 @@
         ${AVATARS.map((a, i) => `<button type="button" class="choix-avatar" role="radio" aria-checked="${a === choisi}" data-avatar="${i}"><img src="${a}" alt="Avatar ${i + 1}"></button>`).join("")}
         <label class="choix-avatar photo" title="${t("compte_ma_photo")}">${I.photo}<span>${t("compte_ma_photo")}</span><input type="file" id="cPhoto" accept="image/png,image/jpeg,image/webp" hidden></label>
       </div>
+      <div id="cadresProfil" class="cadres-profil"></div>
       <div class="boutons">
         <button class="btn plein grand" type="submit" ${etat.envoi ? "disabled" : ""}>${t("compte_enregistrer")}</button>
         <a class="btn grand" href="#/jeux">${t("compte_aller_jouer")}</a>
@@ -172,6 +174,30 @@
     </form>
   </div></section>`;
   };
+
+  // ---------- Cadres gagnés dans CARDS CENTER : on choisit celui qui s'affiche autour de sa photo, partout sur le site ----------
+  const NOMS_CADRES = { or: "Champion de la ligue", argent: "2e de la ligue", bronze: "3e de la ligue", top10: "Top 10 de la ligue", assidu: "Assidu", supreme: "Suprême", god: "Béni des dieux" };
+  async function remplirCadres() {
+    const z = $("cadresProfil"); if (!z || !sb || !session) return;
+    const { data, error } = await sb.rpc("tcg_cadres_lire");
+    if (error || !data || !$("cadresProfil")) return;
+    const base = (imageSure(data.avatar) || "").replace(/#c=[a-z0-9]+$/, ""), actuel = ((data.avatar || "").match(/#c=([a-z0-9]+)$/) || [])[1] || "";
+    const liste = data.cadres || [];
+    z.innerHTML = `<p class="sous-titre">Mon cadre de profil</p>
+      ${!liste.length ? `<p class="meta">Gagne des cadres dans CARDS CENTER (ligue de la semaine, objectifs, god pack, carte Suprême) : ils s'afficheront autour de ta photo sur tout le site.</p>` : !base ? `<p class="meta">Enregistre d'abord un avatar pour pouvoir y mettre un cadre.</p>` : `
+      <div class="grille-cadres">
+        <button type="button" class="choix-cadre" data-cadre-profil="" aria-pressed="${!actuel}"><img src="${esc(base)}" alt=""><span>Sans cadre</span></button>
+        ${liste.map((c) => `<button type="button" class="choix-cadre" data-cadre-profil="${esc(c)}" aria-pressed="${actuel === c}"><img src="${esc(base + "#c=" + c)}" alt=""><span>${esc(NOMS_CADRES[c] || c)}</span></button>`).join("")}
+      </div>`}`;
+  }
+  document.addEventListener("click", async (e) => {
+    const b = e.target.closest("[data-cadre-profil]"); if (!b || !sb) return;
+    const { error } = await sb.rpc("tcg_equiper", { p_cadre: b.dataset.cadreProfil || null });
+    if (error) { notifier("Impossible de changer de cadre"); return; }
+    await lireProfil(); partagerProfil();
+    const ap = $("apercuAvatar"); if (ap) ap.src = avatarDe(profil);
+    notifier(b.dataset.cadreProfil ? "Cadre affiché sur ton profil !" : "Cadre retiré"); remplirCadres();
+  });
 
   // ---------- Actions ----------
   let avatarChoisi = null, photoEnAttente = null;
