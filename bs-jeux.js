@@ -32,6 +32,8 @@
     victoire: function () { return appeler("victoire", []); },
     // BS.evenement("nuit") -> compte une action réussie pour les objectifs du jour du jeu
     evenement: function (type) { return appeler("evenement", [String(type || "action")]); },
+    // BS.recompenses() -> missions de la semaine et skins gagnés dans ce jeu (null hors connexion)
+    recompenses: function () { return appeler("recompenses", []); },
     tcg: function (action, args) { return appeler("tcg", [action, args || {}]); },
   };
   // Mise à jour si le joueur se connecte pendant que le jeu est ouvert

@@ -1283,3 +1283,5 @@ form.carte-amis > .btn { justify-self: start; }
 .objectifs-cadre.verrou .choix-cadre-img { filter: saturate(.55) brightness(.85); }
 .choix-cadre small em { font-style: normal; font-weight: 700; display: block; margin-top: 3px; }
 @media (max-width: 700px) { .objectifs-jeu { grid-template-columns: 1fr; } }
+.objectifs-hebdo { grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid rgba(127,127,127,.25); }
+.objectifs-hebdo li i { background: linear-gradient(90deg, #f59e0b var(--p), rgba(127,127,127,.25) var(--p)); }

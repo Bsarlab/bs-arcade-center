@@ -1017,6 +1017,49 @@ grant execute on function public.jeu_evenement(text, text) to authenticated;
 grant execute on function public.jeu_objectifs(text) to authenticated;
 grant execute on function public.jeu_objectifs_resume() to authenticated;
 
+-- ---------- Missions de la semaine et skins à gagner dans les jeux (Zone 777, puis La Bousculade…) ----------
+-- Chaque lundi : 3 nouvelles missions tirées dans la liste du jeu et un nouveau skin à gagner. Un skin gagné est gardé pour toujours.
+create table if not exists public.jeu_skins (
+  joueur uuid not null references public.profils(id) on delete cascade,
+  jeu text not null,
+  skin text not null,
+  obtenu timestamptz not null default now(),
+  primary key (joueur, jeu, skin)
+);
+alter table public.jeu_skins enable row level security;
+create or replace function public.jeu_hebdo_defs() returns jsonb language sql immutable as $$ select '{
+  "jmw0lc154": {
+    "skins": [["pacha", "Le Pacha"], ["jackpot", "Roi du Jackpot"], ["blanc", "Smoking blanc"], ["alien", "Visiteur de l''espace"], ["flamant", "Flamant du désert"], ["neon", "Néon de minuit"], ["croupier", "Croupier de minuit"], ["parrain", "Parrain du désert"]],
+    "missions": [["secondes", 2700, "Joue 45 minutes"], ["secondes", 5400, "Joue 1 h 30"], ["sessions", 6, "Lance 6 parties d''au moins 1 minute"], ["sessions", 10, "Lance 10 parties d''au moins 1 minute"],
+                 ["actions", 3, "Termine 3 nuits"], ["actions", 5, "Termine 5 nuits"], ["jours", 3, "Joue 3 jours différents"], ["complets", 2, "Réussis tous les objectifs du jour 2 fois"]]
+  }
+}'::jsonb $$;
+create or replace function public.jeu_hebdo(p_jeu text) returns json language plpgsql security definer set search_path = public as $$
+declare d jsonb := jeu_hebdo_defs() -> p_jeu; lundi date := date_trunc('week', jeu_aujourdhui())::date;
+  n int; ns int; nm int; sk jsonb; liste jsonb := '[]'; tous boolean := true; o jsonb; v int; k int;
+  t_sec int; t_ses int; t_act int; t_jours int; t_comp int;
+begin
+  if auth.uid() is null or d is null then return null; end if;
+  n := floor((lundi - date '2026-01-05') / 7);
+  ns := jsonb_array_length(d -> 'skins'); nm := jsonb_array_length(d -> 'missions');
+  sk := d -> 'skins' -> (((n % ns) + ns) % ns);
+  select coalesce(sum(secondes), 0), coalesce(sum(sessions), 0), coalesce(sum(actions), 0),
+         count(*) filter (where secondes > 0 or sessions > 0), count(*) filter (where complet)
+    into t_sec, t_ses, t_act, t_jours, t_comp
+    from jeu_journal where joueur = auth.uid() and jeu = p_jeu and jour >= lundi;
+  foreach k in array array[0, 3, 5] loop
+    o := d -> 'missions' -> ((((n + k) % nm) + nm) % nm);
+    v := case o ->> 0 when 'secondes' then t_sec when 'sessions' then t_ses when 'actions' then t_act when 'jours' then t_jours else t_comp end;
+    liste := liste || jsonb_build_object('nom', o ->> 2, 'type', o ->> 0, 'val', least(v, (o ->> 1)::int), 'but', (o ->> 1)::int, 'fait', v >= (o ->> 1)::int);
+    if v < (o ->> 1)::int then tous := false; end if;
+  end loop;
+  if tous then insert into jeu_skins (joueur, jeu, skin) values (auth.uid(), p_jeu, sk ->> 0) on conflict do nothing; end if;
+  return json_build_object('jeu', p_jeu, 'semaine', lundi, 'fin', lundi + 7, 'skin', sk ->> 0, 'skin_nom', sk ->> 1, 'missions', liste, 'complet', tous,
+    'obtenus', coalesce((select json_agg(s.skin order by s.obtenu) from jeu_skins s where s.joueur = auth.uid() and s.jeu = p_jeu), '[]'::json));
+end $$;
+revoke all on function public.jeu_hebdo(text) from public, anon;
+grant execute on function public.jeu_hebdo(text) to authenticated;
+
 -- Jours et semaines à l'heure de Paris (la semaine commence le lundi)
 create or replace function public.tcg_debut_jour() returns timestamptz language sql stable as $$ select ((now() at time zone 'Europe/Paris')::date)::timestamp at time zone 'Europe/Paris' $$;
 create or replace function public.tcg_debut_semaine() returns timestamptz language sql stable as $$ select date_trunc('week', now() at time zone 'Europe/Paris') at time zone 'Europe/Paris' $$;

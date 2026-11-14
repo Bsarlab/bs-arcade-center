@@ -395,6 +395,7 @@
   }
   // ---------- Objectifs du jour des jeux du site (3 par jour ; 3 jours complets = le cadre du jeu) ----------
   const JEUX_OBJECTIFS = { jmvgdsi5v: "Golf with TEC3H", jmvgplix8: "BRELAN", jmvhuwavm: "Loup-Garou de Brumeval", jmvp0a0wh: "Bal Masqué", jmvz9p0v8: "La Bousculade", jmw0lc154: "Zone 777", jmw0rvbcc: "Cul Sec !" };
+  const JEUX_HEBDO = { jmw0lc154: true };
   const etatObjectifs = {};
   // Pendant qu'on joue (onglet visible), le site compte une minute de jeu toutes les minutes
   function demarrerChrono(id) {
@@ -442,6 +443,21 @@
     const { data, error } = await sb.rpc("jeu_objectifs", { p_jeu: id });
     if (error || !data) { zone.remove(); return; }
     etatObjectifs[id] = data; dessinerObjectifs(id, data);
+    if (JEUX_HEBDO[id]) {
+      const r = await sb.rpc("jeu_hebdo", { p_jeu: id });
+      if (r.data && document.getElementById("objectifsJeu")?.dataset.jeu === id) dessinerHebdo(r.data);
+    }
+  }
+  function dessinerHebdo(h) {
+    const z = document.querySelector("#objectifsJeu .objectifs-jeu"); if (!z) return;
+    z.querySelector(".objectifs-hebdo")?.remove();
+    const fin = new Date(h.fin + "T00:00:00"), jours = Math.max(1, Math.ceil((fin - Date.now()) / 864e5));
+    const val = (o) => o.type === "secondes" ? `${Math.floor(o.val / 60)} / ${Math.floor(o.but / 60)} min` : `${o.val} / ${o.but}`;
+    const eu = h.obtenus.includes(h.skin);
+    z.insertAdjacentHTML("beforeend", `<div class="objectifs-hebdo"><div class="objectifs-liste"><p class="etiquette">Missions de la semaine · encore ${jours} jour${jours > 1 ? "s" : ""}</p>
+      <h2>${eu ? `Skin « ${esc(h.skin_nom)} » gagné !` : `Gagne le skin « ${esc(h.skin_nom)} »`}</h2>
+      <ul>${h.missions.map((o) => `<li class="${o.fait ? "fait" : ""}"><span class="coche">${o.fait ? "✓" : ""}</span><div><b>${esc(o.nom)}</b><i style="--p:${Math.round((o.val / o.but) * 100)}%"></i></div><small>${val(o)}</small></li>`).join("")}</ul>
+      <p class="meta">Chaque lundi : 3 nouvelles missions et un nouveau skin. Un skin gagné est à toi pour toujours : choisis-le dans la Garde-robe du jeu.</p></div></div>`);
   }
   window.BS_PLATEFORME = {
     actif: () => actifs(),
@@ -488,6 +504,14 @@
       const ordre = ["haut", "bas"].includes(o.ordre) ? o.ordre : "haut";
       const { data, error } = await sb.rpc("envoyer_score", { p_jeu: id, p_score: valeur, p_ordre: ordre, p_libelle: String(o.libelle || "").slice(0, 20) });
       if (error) { console.warn(error); erreurScore(error); return null; }
+      return data;
+    },
+    // Missions de la semaine et skins gagnés dans le jeu ouvert (null si on n'est pas connecté)
+    async recompenses() {
+      const id = (typeof jeuActuel !== "undefined" && jeuActuel?.id) || partie?.id;
+      if (!id || !connecte()) return null;
+      const { data, error } = await sb.rpc("jeu_hebdo", { p_jeu: id });
+      if (error) { console.warn(error); return null; }
       return data;
     },
     // Action propre à un jeu pour ses objectifs du jour (ex. une nuit terminée dans Zone 777)
