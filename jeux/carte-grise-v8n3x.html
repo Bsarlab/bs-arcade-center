@@ -776,6 +776,10 @@ body[data-theme="3"] .d1 { opacity: 0; }
 #btnRecyclerTout.confirmer { background: linear-gradient(90deg, #ff3b5c, #ff8a3d); color: #fff; }
 .case .recycler { position: absolute; top: -9px; left: -7px; z-index: 5; padding: 2px 8px; border-radius: 999px; border: 0; background: var(--violet); color: #fff; font-family: var(--f-titre); font-weight: 800; font-size: 13px; box-shadow: 0 2px 8px rgba(0,0,0,.5); opacity: .9; transition: transform .2s, opacity .2s; }
 .case .recycler:hover { transform: scale(1.08); opacity: 1; }
+/* Série 3 : logos officiels (domaine public) en entier sur un fond sombre ou clair */
+.carte.s3 .c-img[data-logo="1"], .carte.s3 .c-img[data-logo="2"] { object-fit: contain; padding: 10% 9% 16%; box-sizing: border-box; }
+.carte.s3 .c-img[data-logo="1"] { background: radial-gradient(circle at 50% 45%, #3a2f6e, #120c26 75%); }
+.carte.s3 .c-img[data-logo="2"] { background: radial-gradient(circle at 50% 45%, #ffffff, #d9d3f5 80%); }
 
 /* ---------- Cadres de profil gagnés dans CARDS CENTER (« #c=… » à la fin de l'avatar) : affichés partout où apparaît la photo ---------- */
 img[src$="#c=or"], :is(.profil-avatar, .profil-public-avatar, .invitation-avatar, .citation-avatar):has(> img[src$="#c=or"]) { box-shadow: 0 0 0 3px #ffd23f, 0 0 0 5px #8a6400, 0 0 16px 4px rgba(255,210,63,.8) !important; animation: cadre-pulse 2.4s ease-in-out infinite; }
@@ -4924,6 +4928,10 @@ const CARTES = [
 "cite": "Sorti sur trois générations de consoles.",
 "se": 3,
 "cout": 10,
+"img": "Grand Theft Auto logo series.svg",
+"auteur": "Rockstar Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 174
 },
 {
@@ -4940,9 +4948,10 @@ const CARTES = [
 "cite": "Des blocs qui tombent, et on ne s'arrête plus.",
 "se": 3,
 "cout": 10,
-"img": "Game Boy with Tetris cartridge.jpg",
-"auteur": "Studio Alijn",
-"lic": "CC0",
+"img": "Tetris logo 2019.svg",
+"auteur": "The Tetris Company",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 170
 },
 {
@@ -4959,9 +4968,10 @@ const CARTES = [
 "cite": "Des télés cassées par des manettes lancées trop fort.",
 "se": 3,
 "cout": 10,
-"img": "Duo playing Wii Sports.jpg",
-"auteur": "david murphy from Helsinki, Finland",
-"lic": "CC BY-SA 2.0",
+"img": "Wii Sports logo.svg",
+"auteur": "Nintendo",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 174
 },
 {
@@ -4978,9 +4988,10 @@ const CARTES = [
 "cite": "Le mode battle royale a été créé en quelques semaines, en 2017.",
 "se": 3,
 "cout": 10,
-"img": "Fortnite Battle Royale at GDC 2018.jpg",
-"auteur": "Official GDC",
-"lic": "CC BY 2.0",
+"img": "Fortnite logo 2.svg",
+"auteur": "Epic Games",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 166
 },
 {
@@ -4997,9 +5008,10 @@ const CARTES = [
 "cite": "Gratuit, mais personne ne s'arrête à une partie.",
 "se": 3,
 "cout": 10,
-"img": "2015 League of Legends World Championship group stage (124787029).jpg",
-"auteur": "Bruce Liu",
-"lic": "CC BY-SA 3.0",
+"img": "League of Legends 2019 vector.svg",
+"auteur": "Riot Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 164
 },
 {
@@ -5016,6 +5028,10 @@ const CARTES = [
 "cite": "Retour à Vice City, dans l'État de Leonida.",
 "se": 3,
 "cout": 10,
+"img": "Grand Theft Auto VI logo (with gradient).svg",
+"auteur": "Rockstar Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 176
 },
 {
@@ -5032,9 +5048,10 @@ const CARTES = [
 "cite": "Des soirées entières à ouvrir des packs.",
 "se": 3,
 "cout": 10,
-"img": "Nintendo Switch Fifa 18 (36712088131).jpg",
-"auteur": "dronepicr",
-"lic": "CC BY 2.0",
+"img": "FIFA 18 logo official (SGDB 11460).png",
+"auteur": "EA Sports",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 172
 },
 {
@@ -5051,6 +5068,10 @@ const CARTES = [
 "cite": "Quelqu'un ment dans le vaisseau.",
 "se": 3,
 "cout": 8,
+"img": "Among Us Logo.svg",
+"auteur": "InnerSloth",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 122
 },
 {
@@ -5067,9 +5088,10 @@ const CARTES = [
 "cite": "Gratuit depuis 2020.",
 "se": 3,
 "cout": 8,
-"img": "Rocket League - DreamHack Montreal 2018 - 06.jpg",
-"auteur": "Ye Fang (Norman) Kuang",
-"lic": "CC BY 2.0",
+"img": "Rocket League logo.svg",
+"auteur": "Psyonix",
+"lic": "CC BY-SA 4.0",
+"logo": 1,
 "pw": 120
 },
 {
@@ -5086,9 +5108,10 @@ const CARTES = [
 "cite": "Des tournois mondiaux dès ses débuts.",
 "se": 3,
 "cout": 8,
-"img": "Valorant Champions Los Angeles 2023.jpg",
-"auteur": "David Jiang",
-"lic": "CC BY-SA 4.0",
+"img": "Valorant logo - pink color version.svg",
+"auteur": "Riot Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 120
 },
 {
@@ -5140,9 +5163,10 @@ const CARTES = [
 "cite": "Ici, tout le monde peut créer son jeu.",
 "se": 3,
 "cout": 8,
-"img": "Roblox headquarters.jpg",
-"auteur": "Mliu92",
-"lic": "CC BY-SA 3.0",
+"img": "Roblox logo 2017.svg",
+"auteur": "Roblox Corporation",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 108
 },
 {
@@ -5159,9 +5183,10 @@ const CARTES = [
 "cite": "Des héros aux pouvoirs tous différents.",
 "se": 3,
 "cout": 8,
-"img": "Overwatch at GDC 2016 (25259995644).jpg",
-"auteur": "Official GDC",
-"lic": "CC BY 2.0",
+"img": "Overwatch Logo Transparent.png",
+"auteur": "BobDeblonde",
+"lic": "CC BY-SA 4.0",
+"logo": 1,
 "pw": 126
 },
 {
@@ -5178,6 +5203,10 @@ const CARTES = [
 "cite": "Le jeu de survie à faire entre potes, la nuit.",
 "se": 3,
 "cout": 8,
+"img": "The forest logo.webp",
+"auteur": "Endnight Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 124
 },
 {
@@ -5194,6 +5223,10 @@ const CARTES = [
 "cite": "Créé au départ par une seule personne.",
 "se": 3,
 "cout": 8,
+"img": "Phasmophobia logo white text.png",
+"auteur": "Kinetic Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 122
 },
 {
@@ -5210,6 +5243,10 @@ const CARTES = [
 "cite": "Des chutes ridicules garanties.",
 "se": 3,
 "cout": 8,
+"img": "Fall Guys Logo Wordmark.svg",
+"auteur": "Mediatonic",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 122
 },
 {
@@ -5242,6 +5279,10 @@ const CARTES = [
 "cite": "Créé par un studio de Montréal.",
 "se": 3,
 "cout": 8,
+"img": "Dead by Daylight Logo.png",
+"auteur": "Behaviour Interactive",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 124
 },
 {
@@ -5258,9 +5299,10 @@ const CARTES = [
 "cite": "Le jeu qui a lancé le tir à la première personne.",
 "se": 3,
 "cout": 6,
-"img": "Doom Install Disks (70145859).jpg",
-"auteur": "Matt Schilder",
-"lic": "CC BY-SA 2.0",
+"img": "Doom – Game’s logo.svg",
+"auteur": "id Software",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 107
 },
 {
@@ -5296,9 +5338,10 @@ const CARTES = [
 "cite": "Des téléphones avec le jeu installé ont été revendus très cher.",
 "se": 3,
 "cout": 6,
-"img": "Flappy Bird arcade game (32956457128).jpg",
-"auteur": "daveynin",
-"lic": "CC BY 2.0",
+"img": "Flappy Bird logo.png",
+"auteur": "Gametech Holdings",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 95
 },
 {
@@ -5350,9 +5393,10 @@ const CARTES = [
 "cite": "Des tuyaux, des pièces et un drapeau à la fin.",
 "se": 3,
 "cout": 6,
-"img": "Vs. Super Mario Bros.jpg",
-"auteur": "Rob Boudon",
-"lic": "CC BY 2.0",
+"img": "Super Mario Bros. logo.png",
+"auteur": "Nintendo",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 105
 },
 {
@@ -5369,6 +5413,10 @@ const CARTES = [
 "cite": "Élu jeu de l'année 2017 aux Game Awards.",
 "se": 3,
 "cout": 6,
+"img": "The Legend of Zelda Breath of the Wild.svg",
+"auteur": "Nintendo",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 105
 },
 {
@@ -5385,9 +5433,10 @@ const CARTES = [
 "cite": "Les carapaces bleues ont brisé des amitiés.",
 "se": 3,
 "cout": 6,
-"img": "Hori Mario Kart Racing Wheel Deluxe and Pro Mini for Nintendo Switch.jpg",
-"auteur": "Kyu3a",
+"img": "MarioKart8DeluxeLogo.png",
+"auteur": "RumierK",
 "lic": "CC BY-SA 4.0",
+"logo": 1,
 "pw": 101
 },
 {
@@ -5404,9 +5453,10 @@ const CARTES = [
 "cite": "Toujours joué en compétition plus de 25 ans après.",
 "se": 3,
 "cout": 6,
-"img": "PGL CS2 Major Copenhagen 2024 stage - 01.jpg",
-"auteur": "European Parliament",
-"lic": "CC BY 2.0",
+"img": "Counter-Strike CS logo.svg",
+"auteur": "Valve",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 103
 },
 {
@@ -5423,9 +5473,10 @@ const CARTES = [
 "cite": "Les combos sont nés d'un bug.",
 "se": 3,
 "cout": 6,
-"img": "Street Fighter II arcade machine.jpg",
-"auteur": "John Turner",
-"lic": "CC BY 2.0",
+"img": "Street Fighter old logo.png",
+"auteur": "Capcom",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 103
 },
 {
@@ -5461,9 +5512,10 @@ const CARTES = [
 "cite": "Les ennemis accélèrent… parce que la machine a moins de calculs à faire.",
 "se": 3,
 "cout": 6,
-"img": "Space Invaders in Computerspielemuseum Berlin.jpg",
-"auteur": "Bsivko",
-"lic": "CC BY-SA 4.0",
+"img": "Space invaders logo.svg",
+"auteur": "Taito",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 99
 },
 {
@@ -5480,9 +5532,10 @@ const CARTES = [
 "cite": "Un des jeux de rôle les plus récompensés.",
 "se": 3,
 "cout": 6,
-"img": "Adam Badowski - Gamescom 2013.jpeg",
-"auteur": "Holek",
-"lic": "CC BY-SA 3.0",
+"img": "EN The-Witcher-3 Logo-Black RGB.svg",
+"auteur": "CD Projekt RED",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 103
 },
 {
@@ -5499,9 +5552,10 @@ const CARTES = [
 "cite": "Un western géant et très lent, exprès.",
 "se": 3,
 "cout": 6,
-"img": "Red Dead Redemption 2 cast - New York Game Awards 2019.jpg",
-"auteur": "Ken Questa",
-"lic": "CC BY-SA 4.0",
+"img": "Red Dead Redemption 2 Logo.png",
+"auteur": "Rockstar Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 105
 },
 {
@@ -5518,6 +5572,10 @@ const CARTES = [
 "cite": "Tu vas mourir. Beaucoup.",
 "se": 3,
 "cout": 6,
+"img": "Elden Ring logo black.svg",
+"auteur": "FromSoftware",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 101
 },
 {
@@ -5534,9 +5592,10 @@ const CARTES = [
 "cite": "On peut mettre un seau sur la tête des marchands.",
 "se": 3,
 "cout": 6,
-"img": "Virtuix Omni Skyrim (cropped).jpg",
-"auteur": "Czar",
-"lic": "CC BY-SA 3.0",
+"img": "The Elder Scrolls V - Skyrim logo.png",
+"auteur": "Bethesda Softworks",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 103
 },
 {
@@ -5572,9 +5631,10 @@ const CARTES = [
 "cite": "Revenu en grâce quelques années plus tard.",
 "se": 3,
 "cout": 4,
-"img": "PGA 2019 Cyberpunk 2077.jpg",
-"auteur": "Klapi",
-"lic": "CC BY-SA 4.0",
+"img": "Cyberpunk 2077 logo yellow-purple.svg",
+"auteur": "CD Projekt RED",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 81
 },
 {
@@ -5591,6 +5651,10 @@ const CARTES = [
 "cite": "Des milliards de planètes à visiter.",
 "se": 3,
 "cout": 4,
+"img": "No Man’s Sky – Text logo.svg",
+"auteur": "Hello Games",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 81
 },
 {
@@ -5607,9 +5671,10 @@ const CARTES = [
 "cite": "Leur langue inventée s'appelle le simlish.",
 "se": 3,
 "cout": 4,
-"img": "Sims Stand.jpg",
-"auteur": "Kristin Wassermann",
-"lic": "CC BY-SA 2.0",
+"img": "The Sims series logo.svg",
+"auteur": "Maxis",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 81
 },
 {
@@ -5645,6 +5710,10 @@ const CARTES = [
 "cite": "Ses packs de joueurs, comme des boosters.",
 "se": 3,
 "cout": 4,
+"img": "EA Sports FC logo.svg",
+"auteur": "Electronic Arts",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 75
 },
 {
@@ -5661,9 +5730,10 @@ const CARTES = [
 "cite": "Une des séries les plus vendues.",
 "se": 3,
 "cout": 4,
-"img": "Call of Duty XP 2011 - King of the Hill challenge (6114022498).jpg",
-"auteur": "The Conmunity - Pop Culture Geek",
-"lic": "CC BY 2.0",
+"img": "Call of Duty logo 2023.svg",
+"auteur": "Activision",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 77
 },
 {
@@ -5680,9 +5750,10 @@ const CARTES = [
 "cite": "Le jeu de combat le plus vendu.",
 "se": 3,
 "cout": 4,
-"img": "Evo 2009 - 3731301896 - Super Smash Bros. play.jpg",
-"auteur": "Chris Ainsworth",
-"lic": "CC BY-SA 2.0",
+"img": "Super Smash Bros. Ultimate logo.svg",
+"auteur": "Nintendo",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 77
 },
 {
@@ -5699,6 +5770,10 @@ const CARTES = [
 "cite": "On y rembourse un prêt immobilier.",
 "se": 3,
 "cout": 4,
+"img": "Animal Crossing-New Horizons.png",
+"auteur": "Nintendo",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 71
 },
 {
@@ -5715,9 +5790,10 @@ const CARTES = [
 "cite": "Un héros sans bras ni jambes.",
 "se": 3,
 "cout": 4,
-"img": "Rayman Legends on Xbox 360 at Gamescom 2013 (9588358605).jpg",
-"auteur": "Sergey Galyonkin",
-"lic": "CC BY-SA 2.0",
+"img": "Rayman logo.png",
+"auteur": "Ubisoft",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 75
 },
 {
@@ -5734,9 +5810,10 @@ const CARTES = [
 "cite": "Des villes historiques à escalader.",
 "se": 3,
 "cout": 4,
-"img": "MGP Live's Production of \"Assassin's Creed Symphony.\".jpg",
-"auteur": "MGP Live",
-"lic": "CC BY 4.0",
+"img": "Assassin's Creed logo.svg",
+"auteur": "Ubisoft",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 77
 },
 {
@@ -5753,9 +5830,10 @@ const CARTES = [
 "cite": "Un pistolet qui fait des trous dans les murs.",
 "se": 3,
 "cout": 4,
-"img": "Portal 2 pax prime 2010.jpg",
-"auteur": "Michael Myers from Arlington, VA, USA",
-"lic": "CC BY 2.0",
+"img": "Portal Logo.svg",
+"auteur": "Valve",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 75
 },
 {
@@ -5772,9 +5850,10 @@ const CARTES = [
 "cite": "Un royaume d'insectes, immense.",
 "se": 3,
 "cout": 4,
-"img": "Team Cherry PAX AUS 2024 9.jpg",
-"auteur": "DrShoggoth",
-"lic": "CC0",
+"img": "Hollow Knight Textlogo.png",
+"auteur": "Team Cherry",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 75
 },
 {
@@ -5810,9 +5889,10 @@ const CARTES = [
 "cite": "Rock star dans le salon.",
 "se": 3,
 "cout": 4,
-"img": "Guitar Hero series controllers.jpg",
-"auteur": "Y2kcrazyjoker4",
+"img": "Guitar Hero logo.svg",
+"auteur": "Harmonix",
 "lic": "Domaine public",
+"logo": 1,
 "pw": 63
 },
 {
@@ -5829,6 +5909,10 @@ const CARTES = [
 "cite": "La mascotte de la première PlayStation.",
 "se": 3,
 "cout": 4,
+"img": "Crash bandicoot logo.png",
+"auteur": "Naughty Dog",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 65
 },
 {
@@ -5861,9 +5945,10 @@ const CARTES = [
 "cite": "Un battle royale avec des pouvoirs.",
 "se": 3,
 "cout": 4,
-"img": "Apex Legends gaming Gamescom 2019 (48605673176).jpg",
-"auteur": "dronepicr",
-"lic": "CC BY 2.0",
+"img": "Apex Legends logo.svg",
+"auteur": "Respawn Entertainment",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 77
 },
 {
@@ -5918,9 +6003,10 @@ const CARTES = [
 "cite": "Adapté en film d'animation.",
 "se": 3,
 "cout": 2,
-"img": "Donald Pettit Angry Birds ISS.jpg",
-"auteur": "NASA",
+"img": "Angry Birds logo.svg",
+"auteur": "Rovio",
 "lic": "Domaine public",
+"logo": 2,
 "pw": 58
 },
 {
@@ -5953,6 +6039,10 @@ const CARTES = [
 "cite": "Un nouvel épisode chaque année.",
 "se": 3,
 "cout": 2,
+"img": "Just Dance logo 2022.svg",
+"auteur": "Ubisoft",
+"lic": "Domaine public",
+"logo": 2,
 "pw": 54
 },
 {
@@ -6115,6 +6205,10 @@ const CARTES = [
 "cite": "Des niveaux créés par les joueurs.",
 "se": 3,
 "cout": 2,
+"img": "Geometry Dash.svg",
+"auteur": "RobTop Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 48
 },
 {
@@ -6150,9 +6244,10 @@ const CARTES = [
 "cite": "Les zombies adorent les cerveaux.",
 "se": 3,
 "cout": 2,
-"img": "Plants vs. Zombies arcade game.jpg",
-"auteur": "Eric Haines",
-"lic": "CC BY 2.0",
+"img": "Plantas contra Zombis.svg",
+"auteur": "PopCap Games",
+"lic": "Domaine public",
+"logo": 1,
 "pw": 48
 },
 {
@@ -6305,7 +6400,7 @@ function carteHTML(cle, o = {}) {
   const S2 = c.se === 2, ST = SERIES[c.se].stats;
   return `<div class="carte r-${c.r} s${c.se} ${holo ? "holo" : ""}" data-cle="${esc(cle)}" ${o.w ? `style="--w:${o.w}"` : ""}>
     <div class="c-cadre">
-      <div class="c-photo">${c.se === 3 ? ART_JEU(c) : SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" src="${PHOTO(c)}" alt="${esc(S2 ? c.n : c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" data-q="${!c.local && c.q ? esc(c.q) : ""}" data-id="${c.id}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else if(this.dataset.q){chercherPhoto(this)}else this.remove()"><span class="c-cout" title="Puissance de combat">⚔ ${c.pw}</span><span class="c-categorie">${esc(S2 ? c.sport : c.cl)}</span></div>
+      <div class="c-photo">${c.se === 3 ? ART_JEU(c) : SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" data-logo="${c.logo || ""}" src="${PHOTO(c)}" alt="${esc(S2 ? c.n : c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" data-q="${!c.local && c.q ? esc(c.q) : ""}" data-id="${c.id}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else if(this.dataset.q){chercherPhoto(this)}else this.remove()"><span class="c-cout" title="Puissance de combat">⚔ ${c.pw}</span><span class="c-categorie">${esc(S2 ? c.sport : c.cl)}</span></div>
       ${S2 ? `<div class="c-ruban"><b>${esc(c.an)}</b><span>${esc(c.cl.split(" · ")[1] || c.sport)}</span></div>` : c.se === 3 ? `<div class="c-etiq"><b>${esc(c.marque)}</b><span>${esc(c.an)}</span></div>` : `<div class="c-plaque"><i>F</i><span>${esc(c.marque)}</span><em>${esc(c.an)}</em></div>`}
       <div class="c-corps"><div class="c-nom"><b>${esc(c.n)}</b></div>
       <div class="c-texte">${c.txt}<i>${S2 ? esc(c.cite) : `« ${esc(c.cite)} »`}</i></div></div>
