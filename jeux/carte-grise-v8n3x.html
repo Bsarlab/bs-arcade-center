@@ -594,10 +594,40 @@ body[data-theme="2"] .scene-paquet::after { background: radial-gradient(closest-
 
 @media (prefers-reduced-motion: reduce) { .decor .route, .decor .projo, .decor .phare, .decor .flashs, .flottants i, .defile div { animation: none !important; } }
 .paquet .paquet-sous { font-size: calc(var(--pw) * .05); white-space: nowrap; }
+
+/* ---------- Fond animé plus présent ---------- */
+.d1 .route { opacity: 1; }
+.d1 .soleil { opacity: .8; }
+.flottants i { opacity: .4; width: 84px; }
+.flottants i:nth-child(n+7) { width: 46px; opacity: .3; }
+.flottants i:nth-child(7) { left: 14%; animation-duration: 17s; animation-delay: -6s; }
+.flottants i:nth-child(8) { left: 52%; animation-duration: 23s; animation-delay: -18s; }
+.flottants i:nth-child(9) { left: 72%; animation-duration: 18s; animation-delay: -2s; }
+.flottants i:nth-child(10) { left: 33%; animation-duration: 26s; animation-delay: -11s; }
+.aurores { position: fixed; inset: 0; z-index: -1; pointer-events: none; overflow: hidden; }
+.aurores i { position: absolute; width: 55vmax; height: 55vmax; border-radius: 50%; filter: blur(80px); opacity: .32; animation: aurore 18s ease-in-out infinite alternate; }
+.aurores i:nth-child(1) { left: -15vmax; top: -15vmax; background: var(--violet); }
+.aurores i:nth-child(2) { right: -18vmax; top: 10vh; background: var(--rose); animation-duration: 23s; animation-delay: -7s; }
+.aurores i:nth-child(3) { left: 20vw; bottom: -25vmax; background: var(--cyan); animation-duration: 27s; animation-delay: -12s; }
+@keyframes aurore { 0% { transform: translate(0, 0) scale(1); } 50% { transform: translate(18vw, 10vh) scale(1.25); } 100% { transform: translate(-10vw, 20vh) scale(.9); } }
+/* L'ouverture laisse voir le fond qui bouge, avec des rayons qui tournent derrière le booster */
+.ouverture { background: radial-gradient(70% 55% at 50% 45%, color-mix(in srgb, var(--nuit3) 70%, transparent), color-mix(in srgb, var(--nuit) 93%, transparent) 75%); backdrop-filter: blur(6px); }
+.ouverture-centre::before { content: ""; position: absolute; left: 50%; top: 50%; width: 160vmax; height: 160vmax; margin: -80vmax 0 0 -80vmax; background: repeating-conic-gradient(from 0deg, color-mix(in srgb, var(--violet) 35%, transparent) 0 5deg, transparent 5deg 15deg); -webkit-mask-image: radial-gradient(circle, #000, transparent 45%); mask-image: radial-gradient(circle, #000, transparent 45%); animation: rayons 22s linear infinite; pointer-events: none; }
+
+/* ---------- God pack ---------- */
+.paquet.god { animation: god-flotte 1.6s ease-in-out infinite; filter: drop-shadow(0 0 30px #ffd23f) drop-shadow(0 0 60px #ff4fa3); }
+.paquet.god::before { content: ""; position: absolute; inset: -14%; z-index: -1; border-radius: 30px; background: conic-gradient(from var(--angle, 0deg), #ffd23f, #ff4fa3, #8b5cf6, #22d3ee, #3ee07a, #ffd23f); filter: blur(22px); animation: tourne-bord 2s linear infinite; }
+@keyframes god-flotte { 0%, 100% { transform: translateY(0) rotate(-2deg) scale(1); } 50% { transform: translateY(-14px) rotate(2deg) scale(1.04); } }
+.ouverture.god .ouverture-centre::before { background: repeating-conic-gradient(from 0deg, rgba(255,210,63,.5) 0 5deg, transparent 5deg 12deg, rgba(255,79,163,.35) 12deg 17deg, transparent 17deg 24deg); animation-duration: 8s; }
+.ouverture.god .ouverture-aide { font-family: var(--f-tampon); font-size: clamp(22px, 4vw, 40px); background: linear-gradient(90deg, #ffd23f, #ff4fa3, #22d3ee, #ffd23f) 0 0 / 300% 100%; -webkit-background-clip: text; background-clip: text; color: transparent; animation: god-texte 2s linear infinite; }
+@keyframes god-texte { to { background-position: -300% 0; } }
+.ouverture.god .ouverture-tete span:first-child { color: #ffd23f; text-shadow: 0 0 12px #ffd23f; }
+.serie-duel { display: flex; flex-wrap: wrap; gap: 6px 14px; align-items: center; margin-top: 4px; color: var(--doux); font-size: 14px; }
+.arene .serie-progres { position: absolute; top: 18px; left: 22px; z-index: 6; padding: 6px 14px; border-radius: 999px; background: rgba(255,255,255,.08); font-family: var(--f-titre); font-weight: 800; letter-spacing: .06em; }
 </style>
 </head>
 <body>
-<div class="salle" aria-hidden="true"></div><div class="neon" aria-hidden="true"></div><div class="decor d1" aria-hidden="true"><div class="soleil"></div><div class="route"></div><i class="phare"></i><i class="phare"></i><i class="phare"></i><i class="phare"></i></div><div class="decor d2" aria-hidden="true"><div class="pelouse"></div><i class="projo"></i><i class="projo"></i><i class="projo"></i><div class="flashs"></div></div><div class="flottants" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="grain" aria-hidden="true"></div>
+<div class="salle" aria-hidden="true"></div><div class="neon" aria-hidden="true"></div><div class="decor d1" aria-hidden="true"><div class="soleil"></div><div class="route"></div><i class="phare"></i><i class="phare"></i><i class="phare"></i><i class="phare"></i></div><div class="decor d2" aria-hidden="true"><div class="pelouse"></div><i class="projo"></i><i class="projo"></i><i class="projo"></i><div class="flashs"></div></div><div class="aurores" aria-hidden="true"><i></i><i></i><i></i></div><div class="flottants" aria-hidden="true"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></div><div class="grain" aria-hidden="true"></div>
 
 <header class="barre">
   <button class="logo" type="button" data-aller="accueil" aria-label="Retour à l'accueil">
@@ -610,7 +640,7 @@ body[data-theme="2"] .scene-paquet::after { background: radial-gradient(closest-
   </nav>
   <button class="rond" type="button" id="btnSon" aria-label="Couper le son" title="Son"></button>
 </header>
-<div class="defile" aria-hidden="true"><div><span>★ NOUVEAU : SÉRIE 2 « MÉDAILLES ET BATAILLES »</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 1 SEULE CARTE SUPRÊME PAR SÉRIE</span><span>🏁 COURSE : GAGNE DES BOOSTERS AVEC TES VÉHICULES</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
+<div class="defile" aria-hidden="true"><div><span>★ NOUVEAU : SÉRIE 2 « MÉDAILLES ET BATAILLES »</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 1 SEULE CARTE SUPRÊME PAR SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
 
 
 <main>
@@ -630,13 +660,13 @@ body[data-theme="2"] .scene-paquet::after { background: radial-gradient(closest-
           <div class="etat-ligne"><span>Boosters disponibles</span><span class="voyants" id="voyants"></span></div>
           <div class="etat-ligne"><span id="libelleMinuteur">Prochain booster</span><span class="minuteur" id="minuteur">--:--</span></div>
           <div class="etat-ligne"><span>Mes points</span><span class="minuteur" id="pointsAccueil">0</span></div>
-          <div class="etat-ligne" id="ligneBonus" hidden><span>Boosters gagnés (courses et duels)</span><span class="minuteur" id="bonus">0</span></div>
+          <div class="etat-ligne"><span>God Pack garanti dans</span><span class="minuteur" id="godDans">100</span></div>
+          <div class="etat-ligne" id="ligneBonus" hidden><span>Boosters gagnés en duel</span><span class="minuteur" id="bonus">0</span></div>
         </div>
         <div class="actions">
           <button class="btn alerte" type="button" id="btnOuvrir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v16H5zM5 9h14M12 13v4M10 15h4"/></svg>Ouvrir un booster</button>
           <button class="btn" type="button" data-aller="classeur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v16H4zM10 4h4v16h-4zM15 5l4 1-3 14-4-1"/></svg>Collection</button>
           <button class="btn" type="button" data-aller="duel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l9-9M13 11l4-7 3 3-7 4M20 20l-9-9M11 11L7 4 4 7l7 4"/></svg>Duel <small>+ boosters</small></button>
-          <button class="btn" type="button" data-aller="course"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 21V4M5 4h11l-2 4 2 4H5"/></svg>Course <small>série 1</small></button>
           <button class="btn" type="button" data-aller="echanges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>Amis &amp; échanges <small id="badgeEchanges"></small></button>
         </div>
       </div>
@@ -4734,13 +4764,14 @@ const Local = {
   ecrire(d) { try { localStorage.setItem("cg-invite", JSON.stringify(d)); } catch {} },
   async etat() {
     const d = this.lire(), maintenant = Date.now(), r = (d.ouvertures || []).filter((t) => maintenant - t < 36e5);
-    return { restants: Math.max(0, PAR_HEURE - r.length), prochain: r.length >= PAR_HEURE ? new Date(Math.min(...r) + 36e5).toISOString() : null, bonus: d.bonus || 0, maintenant: new Date().toISOString() };
+    return { restants: Math.max(0, PAR_HEURE - r.length), prochain: r.length >= PAR_HEURE ? new Date(Math.min(...r) + 36e5).toISOString() : null, bonus: d.bonus || 0, total: d.total || 0, maintenant: new Date().toISOString() };
   },
   async ouvrir(se) {
     const e = await this.etat(), d = this.lire();
     if (e.restants <= 0) { if ((d.bonus || 0) <= 0) return { erreur: "plus de booster disponible" }; d.bonus--; }
     else d.ouvertures = [...(d.ouvertures || []).filter((t) => Date.now() - t < 36e5), Date.now()];
-    const cartes = tirerBooster(se);
+    d.total = (d.total || 0) + 1;
+    const cartes = tirerBooster(se, d.total % 100 === 0 || Math.random() < .001);
     d.cartes ||= {}; cartes.forEach((k) => (d.cartes[k] = (d.cartes[k] || 0) + 1));
     this.ecrire(d); return { cartes };
   },
@@ -4757,16 +4788,22 @@ const Local = {
   },
 };
 // Même tirage que le serveur (le serveur fait foi quand on est connecté)
-function tirerBooster(se = 1) {
+// God pack : 1 booster sur 100 garanti (sinon 1 chance sur 1000). Au moins une Mythique et une Épique, tout le reste Épique ou mieux.
+function tirerBooster(se = 1, god = false) {
   const pool = (r) => CARTES.filter((c) => c.r === r && c.se === se).map((c) => c.id);
   const P = { C: pool("C"), R: pool("R"), E: pool("E"), L: pool("L"), S: pool("S") };
-  const au = (l) => l[Math.floor(Math.random() * l.length)];
-  return [1, 2, 3, 4, 5].map((i) => {
+  const pioche = (r) => P[r][Math.floor(Math.random() * P[r].length)];
+  const res = [];
+  for (let i = 1; i <= 5; i++) {
     const x = Math.random();
-    // Suprême 1 booster sur 1000, Mythique environ 3 %, Épique environ 30 %
-    const r = i <= 3 ? (x < .08 ? "R" : "C") : i === 4 ? (x < .12 ? "E" : "R") : (x < .001 ? "S" : x < .031 ? "L" : x < .22 ? "E" : "R");
-    return au(P[r]) + (Math.random() < .04 ? "*" : "");
-  });
+    let r;
+    if (god) r = i === 1 ? "L" : i === 2 ? "E" : i === 5 && x < .01 ? "S" : x < .3 ? "L" : "E";
+    else if (i <= 3) r = x < .08 ? "R" : "C";
+    else if (i === 4) r = x < .12 ? "E" : "R";
+    else r = x < .001 ? "S" : x < .031 ? "L" : x < .22 ? "E" : "R";
+    res.push(pioche(r) + (Math.random() < (god ? .25 : .04) ? "*" : ""));
+  }
+  return res;
 }
 const Serveur = {
   appel: (action, args) => (window.BS && BS.tcg ? BS.tcg(action, args) : Promise.resolve(null)),
@@ -4797,6 +4834,7 @@ async function majEtat(e) {
   decalage = etat.maintenant ? Date.parse(etat.maintenant) - Date.now() : 0;
   $("voyants").innerHTML = Array.from({ length: PAR_HEURE }, (_, i) => `<span class="voyant ${i < etat.restants ? "on" : ""}"></span>`).join("");
   $("ligneBonus").hidden = !etat.bonus; $("bonus").textContent = etat.bonus || 0;
+  if (etat.total !== undefined) { const n = 100 - (etat.total % 100); $("godDans").textContent = n === 1 ? "le prochain !" : n + " boosters"; }
   const peut = etat.restants > 0 || etat.bonus > 0;
   $("btnOuvrir").disabled = !peut;
   tic();
@@ -4833,6 +4871,7 @@ function majCompteurs() {
 
 // ---------- Ouverture d'un booster ----------
 let enCours = false;
+let godPack = false;
 async function ouvrirBooster() {
   if (enCours) return;
   enCours = true; $("btnOuvrir").disabled = true;
@@ -4844,6 +4883,8 @@ async function ouvrirBooster() {
     return;
   }
   const cartes = r.cartes.map(String);
+  // Un booster normal n'a jamais de Mythique en 1re carte : c'est la signature d'un god pack
+  godPack = PAR_ID[cartes[0].replace("*", "")]?.r === "L";
   cartes.forEach((k) => (collection[k] = (collection[k] || 0) + 1));
   majCompteurs();
   // Les plus rares à la fin, pour le suspense
@@ -4855,11 +4896,14 @@ function montrerOuverture(ordre, avant) {
   const o = $("ouverture");
   o.hidden = false; document.body.style.overflow = "hidden";
   $("paquetOuverture").innerHTML = paquetHTML("min(240px, 52vw)", serieActive);
+  o.classList.toggle("god", godPack);
+  if (godPack) { $("paquetOuverture").querySelector(".paquet").classList.add("god"); setTimeout(() => { flash(); Son.corne(); }, 300); }
   $("ouvTitre").textContent = `Booster · série ${serieActive} « ${SERIES[serieActive].nom} »`;
   $("paquetOuverture").style.display = "";
   $("tirage").className = "tirage"; $("tirage").innerHTML = "";
   $("ouvPied").innerHTML = "";
-  $("aide").hidden = false; $("aide").textContent = "Clique sur le booster pour le déchirer";
+  $("aide").hidden = false; $("aide").textContent = godPack ? "✨ GOD PACK ! Clique pour l'ouvrir ✨" : "Clique sur le booster pour le déchirer";
+  $("ouvTitre").textContent = (godPack ? "✨ GOD PACK ✨ · " : "") + $("ouvTitre").textContent;
   const paquet = $("paquetOuverture").querySelector(".paquet");
   let ouvert = false;
   const briser = async () => {
@@ -4893,7 +4937,8 @@ async function retourner(slot) {
   if (slot.classList.contains("vue")) { zoomer(slot.dataset.cle); return; }
   if (cinemaEnCours) return;
   const r = slot.dataset.r;
-  if (["E", "L", "S"].includes(r) && !reduit) await cinema(slot.dataset.cle, r);
+  // Dans un god pack, les Épiques se retournent sans cinématique (sinon c'est trop long)
+  if (["E", "L", "S"].includes(r) && !reduit && !(godPack && r === "E")) await cinema(slot.dataset.cle, r);
   slot.classList.add("vue"); Son.retourne();
   if (r === "R") setTimeout(() => Son.rare(r), 250);
   if (![...$("tirage").querySelectorAll(".slot")].some((s) => !s.classList.contains("vue"))) finOuverture();
@@ -5323,7 +5368,7 @@ async function afficherDuel() {
     <div class="duel-bloc"><h3>2. Compose ta main</h3>
       <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Chaque victoire rapporte ses boosters, sans limite.</p>
       <div class="main-duel">${[0, 1, 2, 3, 4].map((i) => deck[i] ? `<div class="place" data-retirer="${i}"><span class="ordre">${i + 1}</span>${carteHTML(deck[i])}</div>` : `<div class="place">${i + 1}</div>`).join("")}</div>
-      <div class="actions"><button class="btn alerte" type="button" id="btnDuel" ${pret ? "" : "disabled"}>Lancer le duel</button><button class="btn" type="button" id="btnMeilleures" ${mes.length < 5 ? "disabled" : ""}>Prendre mes 5 meilleures</button>${deck.length ? `<button class="btn" type="button" id="btnViderMain">Vider la main</button>` : ""}</div>
+      <div class="actions"><button class="btn alerte" type="button" id="btnDuel" ${pret ? "" : "disabled"}>Lancer le duel</button><button class="btn alerte" type="button" id="btnSerie" ${pret ? "" : "disabled"}>5 duels à la suite</button><button class="btn" type="button" id="btnMeilleures" ${mes.length < 5 ? "disabled" : ""}>Prendre mes 5 meilleures</button>${deck.length ? `<button class="btn" type="button" id="btnViderMain">Vider la main</button>` : ""}</div>
     </div>
     <div class="duel-bloc"><h3>3. Ta collection, de la plus forte à la plus faible</h3>
       ${mes.length < 5 ? `<p>Il te faut au moins 5 cartes différentes : ouvre des boosters !</p>` : ""}
@@ -5333,6 +5378,7 @@ async function afficherDuel() {
   $("btnMeilleures").onclick = () => { deck = []; const vus = new Set(); for (const k of mes) { const id = k.replace("*", ""); if (!vus.has(id)) { vus.add(id); deck.push(k); } if (deck.length === 5) break; } afficherDuel(); };
   if ($("btnViderMain")) $("btnViderMain").onclick = () => { deck = []; afficherDuel(); };
   $("btnDuel").onclick = lancerDuel;
+  $("btnSerie").onclick = lancerSerie;
 }
 function basculerCarteDuel(k) {
   if (deck.includes(k)) deck = deck.filter((x) => x !== k);
@@ -5340,23 +5386,41 @@ function basculerCarteDuel(k) {
   else { toast("Ta main est pleine : retire d'abord une carte."); return; }
   const y = scrollY; afficherDuel().then(() => scrollTo({ top: y, behavior: "instant" }));
 }
+const unDuel = () => enLigne
+  ? Serveur.appel("combat", { deck, adversaire: adversaire.type === "joueur" ? adversaire.id : null, bot: adversaire.bot || 1 })
+  : Local.combat(deck, adversaire.bot || 1);
+const bloquerBoutons = (b) => ["btnDuel", "btnSerie"].forEach((id) => { if ($(id)) $(id).disabled = b; });
 async function lancerDuel() {
   if (deck.length !== 5) return;
-  if ($("btnDuel")) $("btnDuel").disabled = true;
-  const r = enLigne
-    ? await Serveur.appel("combat", { deck, adversaire: adversaire.type === "joueur" ? adversaire.id : null, bot: adversaire.bot || 1 })
-    : await Local.combat(deck, adversaire.bot || 1);
-  if (!r || r.erreur || !r.manches) { toast("Duel impossible : " + ((r && r.erreur) || "réessaie")); if ($("btnDuel")) $("btnDuel").disabled = false; return; }
-  dernierDuel = { deck: [...deck], adversaire: { ...adversaire } };
+  bloquerBoutons(true);
+  const r = await unDuel();
+  if (!r || r.erreur || !r.manches) { toast("Duel impossible : " + ((r && r.erreur) || "réessaie")); bloquerBoutons(false); return; }
+  dernierDuel = { deck: [...deck], adversaire: { ...adversaire }, serie: false };
   await animerDuel(r);
 }
+// 5 duels enchaînés contre le même adversaire, avec un bilan à la fin
+async function lancerSerie() {
+  if (deck.length !== 5) return;
+  bloquerBoutons(true);
+  dernierDuel = { deck: [...deck], adversaire: { ...adversaire }, serie: true };
+  const bilan = { v: 0, g: 0 };
+  for (let n = 1; n <= 5; n++) {
+    const r = await unDuel();
+    if (!r || r.erreur || !r.manches) {
+      if (!r || !/attends/i.test(r.erreur || "")) { toast("Duel impossible : " + ((r && r.erreur) || "réessaie")); if (n === 1) bloquerBoutons(false); break; }
+      await pause(1200); n--; continue;
+    }
+    bilan.v += r.victoire ? 1 : 0; bilan.g += r.gain || 0;
+    await animerDuel(r, { n, total: 5, bilan });
+  }
+}
 let accelere = false;
-async function animerDuel(r) {
+async function animerDuel(r, serie = null) {
   const a = $("arene"), nomAdv = r.nom && r.nom.startsWith("bot") ? BOTS[r.nom.slice(3)].nom : (r.nom || "Adversaire");
-  accelere = false;
+  if (!serie || serie.n === 1) accelere = false;
   a.hidden = false; document.body.style.overflow = "hidden";
   const t = (ms) => pause(accelere ? ms / 4 : ms);
-  a.innerHTML = `<button class="onglet quitter" type="button" id="btnAccelere">Accélérer ⏩</button>
+  a.innerHTML = `${serie ? `<span class="serie-progres">Duel ${serie.n} / ${serie.total} · ${serie.bilan.v} victoire${serie.bilan.v > 1 ? "s" : ""}</span>` : ""}<button class="onglet quitter" type="button" id="btnAccelere" ${accelere ? "hidden" : ""}>Accélérer ⏩</button>
     <div class="arene-tete"><span>${esc(nomAdv)}</span><span class="arene-score" id="scoreLui">${"<i></i>".repeat(5)}</span></div>
     <div class="rangee" id="rangLui">${r.manches.map(() => `<div class="mini cachee">${dosHTML()}</div>`).join("")}</div>
     <div class="duel-centre" id="centre"><div class="combattant" id="cMoi"></div><span class="versus">contre</span><div class="combattant" id="cLui"></div><span class="choc" id="choc"></span></div>
@@ -5386,13 +5450,25 @@ async function animerDuel(r) {
   const fin = $("areneFin"), B = r.nom && r.nom.startsWith("bot") ? BOTS[r.nom.slice(3)] : null;
   if (r.victoire) { Son.corne(); flash(); } else Son.erreur();
   fin.hidden = false;
-  fin.innerHTML = `<div><h3>${r.victoire ? "Victoire !" : "Défaite…"}</h3>
-    <p>${r.score[0]} manche${r.score[0] > 1 ? "s" : ""} à ${r.score[1]}. ${r.victoire ? (r.gain ? `Tu gagnes ${r.gain} booster${r.gain > 1 ? "s" : ""} !` : B && !B.prix ? "C'était un entraînement : bats la collectionneuse ou le boss final pour gagner des boosters." : r.plafond ? "Tu as déjà gagné 5 boosters en duel aujourd'hui : reviens demain." : "") : "Change l'ordre de tes cartes ou ouvre des boosters pour renforcer ta main."}</p>
-    <div class="actions"><button class="btn alerte" type="button" id="btnRevanche">${r.victoire ? "Rejouer" : "Revanche"}</button><button class="btn" type="button" id="btnFinDuel">Retour</button></div></div>`;
   $("btnAccelere").hidden = true;
-  $("btnFinDuel").onclick = fermerArene;
-  $("btnRevanche").onclick = async () => { fermerArene(); await pause(100); deck = [...dernierDuel.deck]; adversaire = { ...dernierDuel.adversaire }; lancerDuel(); };
+  const detail = r.victoire ? (r.gain ? `Tu gagnes ${r.gain} booster${r.gain > 1 ? "s" : ""} !` : B && !B.prix ? "C'était un entraînement : bats la collectionneuse ou le boss final pour gagner des boosters." : "") : "Change l'ordre de tes cartes ou ouvre des boosters pour renforcer ta main.";
   majEtat();
+  if (serie && serie.n < serie.total) {
+    fin.innerHTML = `<div><h3>${r.victoire ? "Victoire !" : "Défaite…"}</h3><p>${r.score[0]} manche${r.score[0] > 1 ? "s" : ""} à ${r.score[1]}. ${r.gain ? `+${r.gain} booster${r.gain > 1 ? "s" : ""}. ` : ""}Duel suivant…</p></div>`;
+    await pause(accelere ? 900 : 2000);
+    return;
+  }
+  if (serie) {
+    fin.innerHTML = `<div><h3>${serie.bilan.v >= 3 ? "Série gagnée !" : "Série terminée"}</h3>
+      <p>${serie.bilan.v} victoire${serie.bilan.v > 1 ? "s" : ""} sur 5${serie.bilan.g ? ` · tu gagnes <b>${serie.bilan.g} booster${serie.bilan.g > 1 ? "s" : ""}</b> !` : "."}</p>
+      <div class="actions"><button class="btn alerte" type="button" id="btnRevanche">Encore 5 duels</button><button class="btn" type="button" id="btnFinDuel">Retour</button></div></div>`;
+  } else {
+    fin.innerHTML = `<div><h3>${r.victoire ? "Victoire !" : "Défaite…"}</h3>
+      <p>${r.score[0]} manche${r.score[0] > 1 ? "s" : ""} à ${r.score[1]}. ${detail}</p>
+      <div class="actions"><button class="btn alerte" type="button" id="btnRevanche">${r.victoire ? "Rejouer" : "Revanche"}</button><button class="btn" type="button" id="btnFinDuel">Retour</button></div></div>`;
+  }
+  $("btnFinDuel").onclick = fermerArene;
+  $("btnRevanche").onclick = async () => { const d = dernierDuel; fermerArene(); await pause(100); deck = [...d.deck]; adversaire = { ...d.adversaire }; d.serie ? lancerSerie() : lancerDuel(); };
 }
 function fermerArene() { $("arene").hidden = true; document.body.style.overflow = ""; afficherDuel(); }
 

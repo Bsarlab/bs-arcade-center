@@ -418,13 +418,15 @@ begin
   if auth.uid() is null then raise exception 'connexion requise'; end if;
   select count(*), min(quand) into n, premier from tcg_ouvertures where joueur = auth.uid() and source = 'heure' and quand > now() - interval '1 hour';
   b := coalesce((select nombre from tcg_bonus where joueur = auth.uid()), 0);
-  return json_build_object('restants', greatest(0, 5 - n), 'prochain', case when n >= 5 then premier + interval '1 hour' end, 'bonus', b, 'maintenant', now());
+  return json_build_object('restants', greatest(0, 5 - n), 'prochain', case when n >= 5 then premier + interval '1 hour' end, 'bonus', b, 'maintenant', now(),
+    'total', (select count(*) from tcg_ouvertures where joueur = auth.uid()));
 end $$;
 
+alter table public.tcg_ouvertures add column if not exists god boolean not null default false;
 -- Tirage fait par le serveur : impossible de choisir ses cartes depuis le navigateur. Chaque série a son booster.
 drop function if exists public.tcg_ouvrir();
 create or replace function public.tcg_ouvrir(p_serie int default 1) returns text[] language plpgsql security definer set search_path = public as $$
-declare n int; src text; res text[] := '{}'; i int; r float; pool text[]; c text;
+declare n int; src text; res text[] := '{}'; i int; r float; pool text[]; c text; tot int; god boolean;
   communes text[]; rares text[]; epiques text[]; legendaires text[]; supremes text[];
 begin
   if auth.uid() is null then raise exception 'connexion requise'; end if;
@@ -443,20 +445,25 @@ begin
     if not found then raise exception 'plus de booster disponible'; end if;
     src := 'bonus';
   end if;
+  -- God pack : 1 booster sur 100 garanti (le 100e, le 200e…), sinon 1 chance sur 1000.
+  -- Dedans : une Mythique, une Épique, puis que des Épiques ou mieux.
+  select count(*) into tot from tcg_ouvertures where joueur = auth.uid();
+  god := (tot + 1) % 100 = 0 or random() < 0.001;
   for i in 1..5 loop
     r := random();
     -- Suprême : 1 booster sur 1000. Mythique : environ 3 %. Épique : environ 30 %.
-    if i <= 3 then pool := case when r < 0.08 then rares else communes end;
+    if god then pool := case when i = 1 then legendaires when i = 2 then epiques when i = 5 and r < 0.01 then supremes when r < 0.3 then legendaires else epiques end;
+    elsif i <= 3 then pool := case when r < 0.08 then rares else communes end;
     elsif i = 4 then pool := case when r < 0.12 then epiques else rares end;
     else pool := case when r < 0.001 then supremes when r < 0.031 then legendaires when r < 0.22 then epiques else rares end;
     end if;
     c := pool[1 + floor(random() * array_length(pool, 1))::int];
-    if random() < 0.04 then c := c || '*'; end if;
+    if random() < (case when god then 0.25 else 0.04 end) then c := c || '*'; end if;
     res := res || c;
     insert into tcg_cartes (joueur, carte, nombre) values (auth.uid(), c, 1)
       on conflict (joueur, carte) do update set nombre = tcg_cartes.nombre + 1;
   end loop;
-  insert into tcg_ouvertures (joueur, source, cartes) values (auth.uid(), src, res);
+  insert into tcg_ouvertures (joueur, source, cartes, god) values (auth.uid(), src, res, god);
   return res;
 end $$;
 revoke all on function public.tcg_etat() from public, anon;
@@ -726,7 +733,7 @@ begin
   if (select count(distinct x) from unnest(p_deck) x) <> 5 then raise exception 'il faut 5 cartes différentes'; end if;
   if exists (select 1 from unnest(p_deck) x where not exists (select 1 from tcg_cartes c where c.joueur = auth.uid() and c.carte = x and c.nombre > 0)) then raise exception 'carte non possédée'; end if;
   perform pg_advisory_xact_lock(hashtext('tcgc' || auth.uid()::text));
-  if exists (select 1 from tcg_combats where joueur = auth.uid() and quand > now() - interval '8 seconds') then raise exception 'attends quelques secondes entre deux duels'; end if;
+  if exists (select 1 from tcg_combats where joueur = auth.uid() and quand > now() - interval '1 second') then raise exception 'attends une seconde entre deux duels'; end if;
   if p_adv is not null then
     if p_adv = auth.uid() then raise exception 'tu ne peux pas te défier toi-même'; end if;
     select array_agg(carte order by pw desc) into lui from (
