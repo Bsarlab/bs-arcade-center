@@ -6689,14 +6689,14 @@ function ART_JEU(c) {
 
 const PHOTO = (c) => c.se === 3 ? (c.img ? IMG(c, 960) : "") : (window.PHOTOS_INTEGREES && PHOTOS_INTEGREES[c.id]) || `../images/voitures/${c.id}.jpg`;
 const ETOILES_MAX = 25;
-// Nombre d'étoiles d'une Suprême dans MA collection (exemplaires normaux + holos, moins un)
+// Nombre d'étoiles d'une Suprême (remplacé plus loin : étoiles achetées au Comptoir)
 function etoilesDe(c) { if (!c || c.r !== "S") return 0; return Math.max(0, Math.min(ETOILES_MAX, (collection[c.id] || 0) + (collection[c.id + "*"] || 0) - 1)); }
 // 5 emplacements : chaque doublon fait passer une étoile de plus à la couleur suivante (blanc → or → diamant → ambre → noir)
 function etoilesHTML(n) {
   n = Math.max(0, Math.min(ETOILES_MAX, n || 0));
   const palier = Math.ceil(n / 5) || 0, plein = n - Math.max(0, palier - 1) * 5;
   const cases = Array.from({ length: 5 }, (_, i) => `<i class="t${i < plein ? palier : Math.max(0, palier - 1)}">★</i>`).join("");
-  const titre = n ? `${n} étoile${n > 1 ? "s" : ""} : +${n * 2} % de puissance en duel` : "Aucune étoile : chaque doublon de cette Suprême lui en donne une";
+  const titre = n ? `${n} étoile${n > 1 ? "s" : ""} : +${n * 2} % de puissance en duel` : "Aucune étoile : achète-lui des étoiles au Comptoir de Gégé (10 000 poussières)";
   return `<div class="c-etoiles p${palier}" title="${titre}">${cases}${n ? `<b>${n}</b>` : ""}</div>`;
 }
 function carteHTML(cle, o = {}) {
@@ -7246,7 +7246,7 @@ function afficherClasseur() {
   $("grille").innerHTML = liste.length ? liste.map((c) => {
     const nb = possede(c.id), holo = (collection[c.id + "*"] || 0) > 0;
     if (!nb) return `<div class="case"><div class="manquante"><b>${String(c.i + 1).padStart(2, "0")}</b><span>${RARETES[c.r]}</span><span>???</span></div></div>`;
-    return `<div class="case">${nb > 1 && c.r === "S" ? `<span class="compte" title="Chaque doublon d’une Suprême lui donne une étoile">×${nb}</span>` : nb > 1 ? `<span class="compte">×${nb}</span><button class="recycler" type="button" data-recycler="${c.id}" title="Recycler un doublon">♻ +${POUSSIERE[c.r] * ((collection[c.id] || 0) > 0 ? 1 : 2)}</button>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
+    return `<div class="case">${nb > 1 ? `<span class="compte">×${nb}</span><button class="recycler" type="button" data-recycler="${c.id}" title="Recycler un doublon">♻ +${POUSSIERE[c.r] * ((collection[c.id] || 0) > 0 ? 1 : 2)}</button>` : ""}${carteHTML(holo ? c.id + "*" : c.id)}</div>`;
   }).join("") : `<p class="vide-classeur">Aucune carte ici pour l'instant.</p>`;
 }
 
@@ -7435,7 +7435,7 @@ async function afficherDuel() {
       <div class="adversaires">${Object.entries(BOTS).map(([n, b]) => `<button class="adv" type="button" data-bot="${n}" aria-pressed="${adversaire.type === "bot" && adversaire.bot === Number(n)}"><span class="av">${b.av}</span><b>${b.nom}</b><small>${b.txt}</small></button>`).join("")}
       ${(joueursDuel || []).map((j) => `<button class="adv" type="button" data-adv="${esc(j.id)}" data-pseudo="${esc(j.pseudo)}" aria-pressed="${adversaire.id === j.id}"><span class="av">${j.avatar ? `<img src="${esc(j.avatar)}" alt="">` : "🃏"}</span><b>${esc(j.pseudo)}</b><small>${j.ami ? "Ami · " : ""}ses 5 meilleures cartes · victoire = 1 booster</small></button>`).join("")}</div>
       ${enLigne ? "" : `<p style="margin-top:10px">Connecte-toi sur le site pour défier tes amis et les autres joueurs.</p>`}
-      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Chaque doublon d'une Suprême (ou 10 000 poussières) lui donne une étoile (+2 % de puissance, 25 au maximum) : ★ blanches, puis <b>★ dorées</b>, <span class="c-et p3">★ diamant</span>, <span class="c-et p4">★ ambre</span> et <span class="c-et p5">★ noires</span>.</p>
+      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Les étoiles s'achètent au Comptoir de Gégé, 10 000 poussières l'une (+2 % de puissance, 25 au maximum) : ★ blanches, puis <b>★ dorées</b>, <span class="c-et p3">★ diamant</span>, <span class="c-et p4">★ ambre</span> et <span class="c-et p5">★ noires</span>.</p>
     </div>
     <div class="duel-bloc"><h3>2. Compose ta main</h3>
       <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Chaque victoire rapporte ses boosters, sans limite.</p>
@@ -7644,7 +7644,6 @@ const POUSSIERE = { C: 1, R: 2, E: 3, L: 10, S: 25 };
 function doublons() {
   let cartes = 0, gain = 0;
   CARTES.forEach((c) => {
-    if (c.r === "S") return;
     const n = collection[c.id] || 0, h = collection[c.id + "*"] || 0, t = n + h;
     if (t > 1) { const rn = Math.min(n, t - 1); cartes += t - 1; gain += (rn + 2 * (t - 1 - rn)) * POUSSIERE[c.r]; }
   });
@@ -7655,7 +7654,7 @@ Local.recycler = async function (id) {
   let cartes = 0, gain = 0;
   CARTES.filter((c) => !id || c.id === id.replace("*", "")).forEach((c) => {
     const n = d.cartes[c.id] || 0, h = d.cartes[c.id + "*"] || 0, total = n + h;
-    if (total <= 1 || c.r === "S") return;
+    if (total <= 1) return;
     const extra = id ? 1 : total - 1, rn = Math.min(n, extra), rh = extra - rn;
     if (n - rn > 0) d.cartes[c.id] = n - rn; else delete d.cartes[c.id];
     if (h - rh > 0) d.cartes[c.id + "*"] = h - rh; else delete d.cartes[c.id + "*"];
@@ -7800,7 +7799,7 @@ function dessinerProbas() {
         <p class="p-note"><b>1 chance sur 1 000</b> à chaque booster, et toujours au 100e, 200e, 300e… (environ 1,1 % en moyenne, un tous les 91 boosters).<br>Chaque carte a <b>25 %</b> de chance d'être holo. Une Mythique ou une Suprême est remplacée par une carte que tu n'as pas encore.</p></div>
       <div class="p-bloc"><h4>Une carte précise dans un booster</h4>
         <table><tr><th>Rareté</th><th class="n">Normal</th><th class="n">God pack</th></tr>${parCarte}</table>
-        <p class="p-note">Moins une rareté a de cartes dans la série, plus chacune a de chances de sortir. Les doublons de Suprêmes leur donnent des étoiles.</p></div>
+        <p class="p-note">Moins une rareté a de cartes dans la série, plus chacune a de chances de sortir. Un doublon de Suprême se recycle en 5 000 poussières ; les étoiles s'achètent au Comptoir.</p></div>
     </div>`;
 }
 $("btnProba").onclick = () => { const p = $("probas"), o = p.hidden; p.hidden = !o; $("btnProba").setAttribute("aria-expanded", String(o)); if (o) { dessinerProbas(); p.scrollIntoView({ behavior: "smooth", block: "nearest" }); } };
@@ -7991,11 +7990,21 @@ function resumeLot(cartes, avant) {
 // ---------- Poussière : elle s'accumule, puis on l'échange (100 = 1 booster, 10 000 = 1 étoile de Suprême) ----------
 const PRIX_BOOSTER = 100, PRIX_ETOILE = 10000;
 const etoilesAchetees = (id) => Number((etat && etat.etoiles && etat.etoiles[id]) || 0);
-// Étoiles : 1 par doublon + celles achetées avec la poussière (25 au maximum, il faut posséder la carte)
+// Étoiles : uniquement celles achetées au Comptoir (25 au maximum, il faut posséder la carte)
+// Les doublons ne donnent que de la poussière : 5 000 pour une Suprême
+POUSSIERE.S = 5000;
+doublons = function () {
+  let cartes = 0, gain = 0;
+  CARTES.forEach((c) => {
+    const n = collection[c.id] || 0, h = collection[c.id + "*"] || 0, t = n + h;
+    if (t > 1) { const rn = Math.min(n, t - 1); cartes += t - 1; gain += (rn + 2 * (t - 1 - rn)) * POUSSIERE[c.r]; }
+  });
+  return { cartes, gain };
+};
 etoilesDe = function (c) {
   if (!c || c.r !== "S") return 0;
   const ex = (collection[c.id] || 0) + (collection[c.id + "*"] || 0);
-  return ex > 0 ? Math.min(ETOILES_MAX, ex - 1 + etoilesAchetees(c.id)) : 0;
+  return ex > 0 ? Math.min(ETOILES_MAX, etoilesAchetees(c.id)) : 0;
 };
 // Mode invité : mêmes règles que le serveur
 const _etatLocal = Local.etat;
@@ -8005,7 +8014,7 @@ Local.recycler = async function (id) {
   let cartes = 0, gain = 0;
   CARTES.filter((c) => !id || c.id === id.replace("*", "")).forEach((c) => {
     const n = d.cartes[c.id] || 0, h = d.cartes[c.id + "*"] || 0, total = n + h;
-    if (total <= 1 || c.r === "S") return;
+    if (total <= 1) return;
     const extra = id ? 1 : total - 1, rn = Math.min(n, extra), rh = extra - rn;
     if (n - rn > 0) d.cartes[c.id] = n - rn; else delete d.cartes[c.id];
     if (h - rh > 0) d.cartes[c.id + "*"] = h - rh; else delete d.cartes[c.id + "*"];
@@ -8028,7 +8037,7 @@ Local.poussiereEtoile = async function (id) {
   if (etoilesDe(c) >= ETOILES_MAX) return { erreur: "cette Suprême a déjà 25 étoiles" };
   if ((d.poussiere || 0) < PRIX_ETOILE) return { erreur: "pas assez de poussière" };
   d.poussiere -= PRIX_ETOILE; d.etoiles ||= {}; d.etoiles[id] = (d.etoiles[id] || 0) + 1; this.ecrire(d);
-  return { carte: id, etoiles: Math.min(ETOILES_MAX, possede(id) - 1 + d.etoiles[id]), poussiere: d.poussiere };
+  return { carte: id, etoiles: Math.min(ETOILES_MAX, d.etoiles[id]), poussiere: d.poussiere };
 };
 Serveur.poussiereBooster = function (n) { return this.appel("poussiere_booster", { n }); };
 Serveur.poussiereEtoile = function (carte) { return this.appel("poussiere_etoile", { carte }); };
@@ -8040,7 +8049,7 @@ blocPoussiere = function () {
   return `<div class="poussiere">
     <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${nf(q)}</b>
       <div class="obj-barre" title="Vers une étoile de Suprême"><i style="width:${pct}%"></i></div>
-      <small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 par doublon recyclé, le double pour une holo. Échange ta poussière chez Gégé : 100 = 1 booster, 10 000 = 1 étoile de Suprême.</small></div>
+      <small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 · Suprême +5 000 par doublon recyclé, le double pour une holo. Échange ta poussière chez Gégé : 100 = 1 booster, 10 000 = 1 étoile de Suprême.</small></div>
     <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${nf(gain)})` : "Aucun doublon à recycler"}</button>
     <button class="btn lien-comptoir" type="button" data-aller="comptoir">🛒 Le Comptoir de Gégé <small>dépenser</small></button>
   </div>`;
@@ -8364,7 +8373,7 @@ function majComptoir() {
     <div class="cpt-articles">
       <article class="cpt-article vente" data-article="vendre">
         <div class="cpt-visuel"><span class="cpt-recyc">♻</span></div>
-        <h4>Tes doublons</h4><p>${cartes ? `${cartes} doublon${cartes > 1 ? "s" : ""} à vendre. Gégé garde jamais ton dernier exemplaire, et les doublons de Suprêmes restent des étoiles.` : "Aucun doublon pour l'instant."}</p>
+        <h4>Tes doublons</h4><p>${cartes ? `${cartes} doublon${cartes > 1 ? "s" : ""} à vendre. Gégé garde jamais ton dernier exemplaire. Un doublon de Suprême vaut 5 000 !` : "Aucun doublon pour l'instant."}</p>
         <div class="cpt-achat"><span class="cpt-prix gain">+${nf(gain)} <i>✨</i></span>
           <button class="btn${cartes ? " alerte" : ""}" type="button" id="cptVendre" ${cartes ? "" : "disabled"}>Vendre</button></div>
       </article>

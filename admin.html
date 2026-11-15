@@ -845,11 +845,11 @@ create table if not exists public.tcg_etoiles_bonus (
 alter table public.tcg_etoiles_bonus enable row level security;
 drop policy if exists "mes etoiles" on public.tcg_etoiles_bonus;
 create policy "mes etoiles" on public.tcg_etoiles_bonus for select using (auth.uid() = joueur);
--- Étoiles d'une Suprême : un par doublon + celles achetées avec la poussière (25 au maximum, il faut posséder la carte)
+-- Étoiles d'une Suprême : uniquement celles achetées avec la poussière au Comptoir (25 au maximum, il faut posséder la carte)
 create or replace function public.tcg_etoiles(p_joueur uuid, p_carte text) returns int language sql stable security definer set search_path = public as $$
   with n as (select coalesce((select sum(nombre) from tcg_cartes where joueur = p_joueur and replace(carte, '*', '') = replace(p_carte, '*', '')), 0)::int as ex)
   select case when (select rarete from tcg_valeurs where carte = replace(p_carte, '*', '')) = 'S' and n.ex > 0
-    then least(25, n.ex - 1 + coalesce((select nombre from tcg_etoiles_bonus where joueur = p_joueur and carte = replace(p_carte, '*', '')), 0)) else 0 end from n $$;
+    then least(25, coalesce((select nombre from tcg_etoiles_bonus where joueur = p_joueur and carte = replace(p_carte, '*', '')), 0)) else 0 end from n $$;
 revoke all on function public.tcg_etoiles(uuid, text) from public, anon, authenticated;
 create or replace function public.tcg_combat(p_deck text[], p_adv uuid default null, p_bot int default 1) returns json language plpgsql security definer set search_path = public as $$
 declare lui text[]; m json[] := '{}'; i int; pa float; pb float; ga int := 0; gb int := 0; deja int; g int := 0; vic boolean; nom text; prix int; eb int[] := array[0, 0, 0, 0, 0]; tir float;
@@ -1259,7 +1259,7 @@ grant execute on function public.tcg_cadres_lire() to authenticated;
 grant execute on function public.tcg_equiper(text) to authenticated;
 
 -- Poussière de booster : on recycle ses doublons (on garde toujours 1 exemplaire, de préférence holo).
--- Commune +1, Rare +2, Épique +3, Mythique +10, Suprême +25. Chaque fois qu'on atteint 100, un booster part dans la messagerie.
+-- Commune +1, Rare +2, Épique +3, Mythique +10, Suprême +5000 (le double pour une holo). La poussière s'accumule et s'échange au Comptoir.
 create table if not exists public.tcg_poussiere (
   joueur uuid primary key references public.profils(id) on delete cascade,
   quantite int not null default 0
@@ -1274,7 +1274,7 @@ begin
   perform pg_advisory_xact_lock(hashtext('tcgr' || auth.uid()::text));
   for r in select replace(c.carte, '*', '') as base, v.rarete, sum(c.nombre)::int as total
            from tcg_cartes c join tcg_valeurs v on v.carte = replace(c.carte, '*', '')
-           where c.joueur = auth.uid() and c.nombre > 0 and v.rarete <> 'S' and (p_carte is null or replace(c.carte, '*', '') = replace(p_carte, '*', ''))
+           where c.joueur = auth.uid() and c.nombre > 0 and (p_carte is null or replace(c.carte, '*', '') = replace(p_carte, '*', ''))
            group by 1, 2 having sum(c.nombre) > 1 loop
     extra := case when p_carte is null then r.total - 1 else 1 end;
     select coalesce(sum(nombre) filter (where carte = r.base), 0), coalesce(sum(nombre) filter (where carte = r.base || '*'), 0)
@@ -1284,7 +1284,7 @@ begin
     update tcg_cartes set nombre = nombre - rh where joueur = auth.uid() and carte = r.base || '*' and rh > 0;
     nb := nb + extra;
     -- Une holo recyclée rapporte le double
-    gain := gain + (rn + 2 * rh) * case r.rarete when 'C' then 1 when 'R' then 2 when 'E' then 3 when 'L' then 10 else 25 end;
+    gain := gain + (rn + 2 * rh) * case r.rarete when 'C' then 1 when 'R' then 2 when 'E' then 3 when 'L' then 10 else 5000 end;
   end loop;
   delete from tcg_cartes where joueur = auth.uid() and nombre <= 0;
   insert into tcg_poussiere (joueur, quantite) values (auth.uid(), gain)
