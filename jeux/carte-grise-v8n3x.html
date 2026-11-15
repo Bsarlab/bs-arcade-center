@@ -871,10 +871,10 @@ html { overflow-x: clip; }
 
 @media (prefers-reduced-motion: no-preference) {
   /* Changement d'écran : le nouvel écran glisse depuis le côté où on va */
-  .e-anim.entre { animation: ecran-entre .55s var(--glisse) both; }
+  .e-anim.entre { animation: ecran-entre .55s var(--glisse) backwards; }
   @keyframes ecran-entre { from { opacity: 0; transform: translateX(var(--dx, 40px)) scale(.985); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
   /* Collection : les cartes arrivent en cascade quand on change de série ou de filtre */
-  .grille-classeur.cascade .case { animation: case-entre .6s var(--glisse) both; animation-delay: calc(min(var(--i, 0), 28) * 22ms); }
+  .grille-classeur.cascade .case { animation: case-entre .6s var(--glisse) backwards; animation-delay: calc(min(var(--i, 0), 28) * 22ms); }
   @keyframes case-entre { from { opacity: 0; transform: translateY(26px) scale(.94) rotate(-1.5deg); } to { opacity: 1; transform: none; } }
   /* Cartes de la collection : elles se soulèvent et s'inclinent en douceur */
   .grille-classeur .carte { transition: transform .5s var(--glisse), box-shadow .5s var(--glisse); }
@@ -889,12 +889,12 @@ html { overflow-x: clip; }
     transition: transform .95s var(--glisse), opacity .35s var(--doux); transition-delay: calc(var(--k, 0) * 110ms); }
   .tirage.distribue .slot { transform: none; opacity: 1; }
   .retourne { transition: transform .8s cubic-bezier(.3, 1.3, .45, 1); }
-  .slot.vue { animation: slot-pop .55s var(--ressort) .35s both; }
+  .slot.vue { animation: slot-pop .55s var(--ressort) .35s; }
   @keyframes slot-pop { 0% { transform: none; } 45% { transform: translateY(-10px) scale(1.06); } 100% { transform: none; } }
   /* Écran d'ouverture : il s'ouvre en fondu zoomé */
   .ouverture:not([hidden]) { animation: ouverture-entre .45s var(--glisse) both; }
   @keyframes ouverture-entre { from { opacity: 0; } to { opacity: 1; } }
-  .ouverture:not([hidden]) #paquetOuverture .paquet { animation: paquet-arrive .8s var(--ressort) both; }
+  .ouverture:not([hidden]) #paquetOuverture { animation: paquet-arrive .8s var(--ressort) backwards; }
   @keyframes paquet-arrive { from { opacity: 0; transform: translateY(60px) scale(.7) rotate(-12deg); } to { opacity: 1; transform: none; } }
   /* Messages : ils montent avec un rebond */
   .toast { transition: transform .55s var(--ressort), opacity .3s var(--doux) !important; }
@@ -902,7 +902,7 @@ html { overflow-x: clip; }
   .balayage { position: fixed; inset: 0; z-index: 40; pointer-events: none; background: radial-gradient(circle at var(--bx, 50%) var(--by, 30%), var(--bc, rgba(255,79,163,.35)) 0, transparent 60%); animation: balayage .7s var(--glisse) forwards; }
   @keyframes balayage { from { opacity: 0; transform: scale(.4); } 35% { opacity: 1; } to { opacity: 0; transform: scale(1.6); } }
   /* Panneau des probabilités et autres panneaux qui s'ouvrent */
-  .probas:not([hidden]) { animation: ecran-entre .45s var(--glisse) both; --dx: 0; }
+  .probas:not([hidden]) { animation: ecran-entre .45s var(--glisse) backwards; --dx: 0; }
 }
 
 </style>
