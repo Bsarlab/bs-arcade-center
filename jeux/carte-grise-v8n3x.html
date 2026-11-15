@@ -820,6 +820,19 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
 .c-rang { font-style: normal; margin-left: .3em; color: #ffd23f; letter-spacing: 0; text-shadow: 0 0 6px rgba(255,210,63,.8); }
 .hierarchie-s { margin: 10px 0 0; font-size: 13px; color: var(--pale); line-height: 1.6; }
 .hierarchie-s b { color: #ffd23f; }
+.c-etoiles { position: absolute; left: 50%; bottom: .45em; z-index: 3; transform: translateX(-50%); display: flex; align-items: center; gap: .08em; padding: .12em .5em; border-radius: 999px; background: rgba(5,4,12,.62); box-shadow: 0 0 0 1px rgba(255,255,255,.12); font-size: 1.2em; line-height: 1; pointer-events: none; white-space: nowrap; }
+.c-etoiles i { font-style: normal; display: inline-block; }
+.c-etoiles b { margin-left: .3em; font: 800 .62em/1 var(--f-titre, sans-serif); color: #fff; opacity: .9; }
+.c-etoiles .t0 { color: transparent; -webkit-text-stroke: 1px rgba(255,255,255,.55); }
+.c-etoiles .t1 { color: #fff; text-shadow: 0 0 6px rgba(255,255,255,.95); }
+.c-etoiles .t2 { color: #ffd23f; text-shadow: 0 0 7px rgba(255,210,63,.95); }
+.c-etoiles .t3 { background: linear-gradient(120deg, #e0fbff, #7dd3fc 35%, #fff 50%, #a5f3fc 70%, #e0fbff); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 4px rgba(125,211,252,.95)); }
+.c-etoiles .t4 { color: #ff9f1c; text-shadow: 0 0 7px #ff7a00, 0 0 12px rgba(255,122,0,.6); }
+.c-etoiles .t5 { color: #0a0a0a; -webkit-text-stroke: .7px #e9a8ff; text-shadow: 0 0 6px #d946ef; }
+.c-etoiles.p5 { background: radial-gradient(ellipse at 50% 120%, #ff3df5 0%, #9333ea 40%, #3b0764 80%); box-shadow: 0 0 12px #a855f7, 0 -4px 14px rgba(236,72,153,.75); animation: et-feu .9s ease-in-out infinite alternate; }
+.c-etoiles.p3 { box-shadow: 0 0 0 1px rgba(125,211,252,.5), 0 0 10px rgba(125,211,252,.45); }
+.c-etoiles.p4 { box-shadow: 0 0 0 1px rgba(255,159,28,.5), 0 0 10px rgba(255,122,0,.45); }
+.c-etoiles.p2 { box-shadow: 0 0 0 1px rgba(255,210,63,.45), 0 0 8px rgba(255,210,63,.35); }
 .c-et { font-style: normal; margin-left: .35em; letter-spacing: -.05em; display: inline-block; }
 .c-et.p1 { color: #fff; text-shadow: 0 0 5px rgba(255,255,255,.9); }
 .c-et.p2 { color: #ffd23f; text-shadow: 0 0 6px rgba(255,210,63,.9); }
@@ -6539,10 +6552,13 @@ const PHOTO = (c) => c.se === 3 ? (c.img ? IMG(c, 960) : "") : (window.PHOTOS_IN
 const ETOILES_MAX = 25;
 // Nombre d'étoiles d'une Suprême dans MA collection (exemplaires normaux + holos, moins un)
 function etoilesDe(c) { if (!c || c.r !== "S") return 0; return Math.max(0, Math.min(ETOILES_MAX, (collection[c.id] || 0) + (collection[c.id + "*"] || 0) - 1)); }
+// 5 emplacements : chaque doublon fait passer une étoile de plus à la couleur suivante (blanc → or → diamant → ambre → noir)
 function etoilesHTML(n) {
-  if (!n) return "";
-  const palier = Math.ceil(n / 5), nb = n - (palier - 1) * 5, noms = ["", "blanches", "dorées", "diamant", "ambre", "noires"];
-  return `<em class="c-et p${palier}" title="${n} étoile${n > 1 ? "s" : ""} (${noms[palier]}) : +${n * 2} % de puissance en duel">${"★".repeat(nb)}</em>`;
+  n = Math.max(0, Math.min(ETOILES_MAX, n || 0));
+  const palier = Math.ceil(n / 5) || 0, plein = n - Math.max(0, palier - 1) * 5;
+  const cases = Array.from({ length: 5 }, (_, i) => `<i class="t${i < plein ? palier : Math.max(0, palier - 1)}">★</i>`).join("");
+  const titre = n ? `${n} étoile${n > 1 ? "s" : ""} : +${n * 2} % de puissance en duel` : "Aucune étoile : chaque doublon de cette Suprême lui en donne une";
+  return `<div class="c-etoiles p${palier}" title="${titre}">${cases}${n ? `<b>${n}</b>` : ""}</div>`;
 }
 function carteHTML(cle, o = {}) {
   const holo = cle.endsWith("*"), c = PAR_ID[cle.replace("*", "")];
@@ -6550,12 +6566,12 @@ function carteHTML(cle, o = {}) {
   const S2 = c.se === 2, ST = SERIES[c.se].stats;
   return `<div class="carte r-${c.r} s${c.se} ${holo ? "holo" : ""}" data-cle="${esc(cle)}" ${o.w ? `style="--w:${o.w}"` : ""}>
     <div class="c-cadre">
-      <div class="c-photo">${c.se === 3 ? ART_JEU(c) : SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" data-logo="${c.logo || ""}" src="${PHOTO(c)}" alt="${esc(S2 ? c.n : c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" data-q="${!c.local && c.q ? esc(c.q) : ""}" data-id="${c.id}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else if(this.dataset.q){chercherPhoto(this)}else this.remove()"><span class="c-cout" title="Puissance de combat">⚔ ${c.pw}</span><span class="c-categorie">${esc(S2 ? c.sport : c.cl)}</span></div>
+      <div class="c-photo">${c.r === "S" ? etoilesHTML(o.etoiles ?? etoilesDe(c)) : ""}${c.se === 3 ? ART_JEU(c) : SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" data-logo="${c.logo || ""}" src="${PHOTO(c)}" alt="${esc(S2 ? c.n : c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" data-q="${!c.local && c.q ? esc(c.q) : ""}" data-id="${c.id}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else if(this.dataset.q){chercherPhoto(this)}else this.remove()"><span class="c-cout" title="Puissance de combat">⚔ ${c.pw}</span><span class="c-categorie">${esc(S2 ? c.sport : c.cl)}</span></div>
       ${S2 ? `<div class="c-ruban"><b>${esc(c.an)}</b><span>${esc(c.cl.split(" · ")[1] || c.sport)}</span></div>` : c.se === 3 ? `<div class="c-etiq"><b>${esc(c.marque)}</b><span>${esc(c.an)}</span></div>` : `<div class="c-plaque"><i>F</i><span>${esc(c.marque)}</span><em>${esc(c.an)}</em></div>`}
       <div class="c-corps"><div class="c-nom"><b>${esc(c.n)}</b></div>
       <div class="c-texte">${c.txt}<i>${S2 ? esc(c.cite) : `« ${esc(c.cite)} »`}</i></div></div>
       <div class="c-pied"><span class="c-stat men" title="${ST[0]}">${ICONES.menace}${c.men}</span>
-        <span class="c-rar"><b>${RARETES[c.r]}${etoilesHTML(o.etoiles ?? etoilesDe(c))}</b>${c.rang ? RANGS_S[c.rang] + " · " : ""}${POINTS[c.r]} pts · ${String(c.i + 1).padStart(2, "0")}/${TOTAL_SERIE(c.se)}</span>
+        <span class="c-rar"><b>${RARETES[c.r]}</b>${c.rang ? RANGS_S[c.rang] + " · " : ""}${POINTS[c.r]} pts · ${String(c.i + 1).padStart(2, "0")}/${TOTAL_SERIE(c.se)}</span>
         <span class="c-stat conf" title="${ST[1]}">${ICONES.conf}${c.conf}</span></div>
     </div>
     ${holo ? `<span class="c-holo">HOLO</span>` : ""}
