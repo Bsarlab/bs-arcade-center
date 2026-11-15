@@ -489,11 +489,12 @@ begin
   end loop;
   insert into tcg_ouvertures (joueur, source, cartes, god) values (auth.uid(), src, res, god);
   -- Un god pack ou une Suprême débloque un cadre de profil (envoyé dans la messagerie)
-  if god then
-    insert into tcg_boite (joueur, titre, texte, cadre) values (auth.uid(), 'GOD PACK !', 'Tu as ouvert un god pack. Ton cadre « Béni des dieux » t''attend.', 'god');
+  -- (seulement la première fois : si le joueur a déjà le cadre, on ne le renvoie pas)
+  if god and tcg_cadre_neuf(auth.uid(), 'god') is not null then
+    insert into tcg_boite (joueur, titre, texte, cadre) values (auth.uid(), 'GOD PACK !', 'Tu as ouvert ton premier god pack. Ton cadre « Béni des dieux » t''attend.', 'god');
   end if;
-  if exists (select 1 from unnest(res) x join tcg_valeurs v on v.carte = replace(x, '*', '') where v.rarete = 'S') then
-    insert into tcg_boite (joueur, titre, texte, cadre) values (auth.uid(), 'Carte Suprême !', 'Tu as tiré une carte Suprême. Ton cadre « Suprême » t''attend.', 'supreme');
+  if tcg_cadre_neuf(auth.uid(), 'supreme') is not null and exists (select 1 from unnest(res) x join tcg_valeurs v on v.carte = replace(x, '*', '') where v.rarete = 'S') then
+    insert into tcg_boite (joueur, titre, texte, cadre) values (auth.uid(), 'Carte Suprême !', 'Tu as tiré ta première carte Suprême. Ton cadre « Suprême » t''attend.', 'supreme');
   end if;
   return res;
 end $$;
@@ -919,6 +920,17 @@ create table if not exists public.tcg_cadres (
   obtenu timestamptz not null default now(),
   primary key (joueur, cadre)
 );
+-- Un cadre n'est envoyé que si le joueur ne l'a pas déjà (ni en attente dans sa messagerie) : sinon null
+create or replace function public.tcg_cadre_neuf(p_joueur uuid, p_cadre text) returns text language sql stable security definer set search_path = public as $$
+  select case when p_cadre is null
+    or exists (select 1 from tcg_cadres where joueur = p_joueur and cadre = p_cadre)
+    or exists (select 1 from tcg_boite where joueur = p_joueur and cadre = p_cadre and recupere is null)
+  then null else p_cadre end
+$$;
+revoke all on function public.tcg_cadre_neuf(uuid, text) from public, anon, authenticated;
+-- Nettoyage : les messages encore non lus qui redonnaient un cadre déjà obtenu n'en donnent plus
+update public.tcg_boite b set cadre = null where b.recupere is null and b.cadre is not null
+  and exists (select 1 from public.tcg_cadres c where c.joueur = b.joueur and c.cadre = b.cadre);
 alter table public.tcg_cadres enable row level security;
 drop policy if exists "cadres publics" on public.tcg_cadres;
 create policy "cadres publics" on public.tcg_cadres for select using (true);
@@ -1105,7 +1117,7 @@ begin
       'Ligue : tu finis ' || case when n = 1 then '1er' else n || 'e' end || ' !',
       'Classement de la semaine du ' || to_char(d at time zone 'Europe/Paris', 'DD/MM') || ' : ' || r.pts || ' points de ligue.',
       case when n = 1 then 15 when n = 2 then 10 when n = 3 then 7 when n <= 10 then 4 else 2 end,
-      case when n = 1 then 'or' when n = 2 then 'argent' when n = 3 then 'bronze' when n <= 10 then 'top10' end);
+      tcg_cadre_neuf(r.joueur, case when n = 1 then 'or' when n = 2 then 'argent' when n = 3 then 'bronze' when n <= 10 then 'top10' end));
   end loop;
 end $$;
 
@@ -1145,7 +1157,7 @@ begin
       insert into tcg_objectifs_faits (joueur, code, periode) values (auth.uid(), o.code, per) on conflict do nothing;
       if found then
         insert into tcg_boite (joueur, titre, texte, boosters, cadre) values (auth.uid(), 'Objectif réussi : ' || o.titre,
-          case when o.type = 'jour' then 'Objectif du jour.' else 'Objectif de la semaine.' end, o.boosters, o.cadre);
+          case when o.type = 'jour' then 'Objectif du jour.' else 'Objectif de la semaine.' end, o.boosters, tcg_cadre_neuf(auth.uid(), o.cadre));
       end if;
     end if;
     liste := liste || jsonb_build_object('code', o.code, 'type', o.type, 'titre', o.titre, 'fait', least(o.fait, o.cible), 'cible', o.cible,
@@ -1179,7 +1191,8 @@ begin
     b := b + r.boosters;
     if r.cadre is not null then
       insert into tcg_cadres (joueur, cadre) values (auth.uid(), r.cadre) on conflict do nothing;
-      cad := cad || r.cadre;
+      -- on n'annonce « Nouveau cadre » que s'il vient vraiment d'être ajouté
+      if found then cad := cad || r.cadre; end if;
     end if;
   end loop;
   if b > 0 then
