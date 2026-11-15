@@ -1259,7 +1259,7 @@ grant execute on function public.tcg_cadres_lire() to authenticated;
 grant execute on function public.tcg_equiper(text) to authenticated;
 
 -- Poussière de booster : on recycle ses doublons (on garde toujours 1 exemplaire, de préférence holo).
--- Commune +1, Rare +2, Épique +3, Mythique +10, Suprême +5000 (le double pour une holo). La poussière s'accumule et s'échange au Comptoir.
+-- Commune +10, Rare +50, Épique +250, Mythique +500, Suprême +5000 (le double pour une holo). La poussière s'accumule et s'échange au Comptoir.
 create table if not exists public.tcg_poussiere (
   joueur uuid primary key references public.profils(id) on delete cascade,
   quantite int not null default 0
@@ -1284,7 +1284,7 @@ begin
     update tcg_cartes set nombre = nombre - rh where joueur = auth.uid() and carte = r.base || '*' and rh > 0;
     nb := nb + extra;
     -- Une holo recyclée rapporte le double
-    gain := gain + (rn + 2 * rh) * case r.rarete when 'C' then 1 when 'R' then 2 when 'E' then 3 when 'L' then 10 else 5000 end;
+    gain := gain + (rn + 2 * rh) * case r.rarete when 'C' then 10 when 'R' then 50 when 'E' then 250 when 'L' then 500 else 5000 end;
   end loop;
   delete from tcg_cartes where joueur = auth.uid() and nombre <= 0;
   insert into tcg_poussiere (joueur, quantite) values (auth.uid(), gain)

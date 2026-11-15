@@ -7991,8 +7991,8 @@ function resumeLot(cartes, avant) {
 const PRIX_BOOSTER = 100, PRIX_ETOILE = 50000;
 const etoilesAchetees = (id) => Number((etat && etat.etoiles && etat.etoiles[id]) || 0);
 // Étoiles : uniquement celles achetées au Comptoir (25 au maximum, il faut posséder la carte)
-// Les doublons ne donnent que de la poussière : 5 000 pour une Suprême
-POUSSIERE.S = 5000;
+// Les doublons ne donnent que de la poussière : Commune 10, Rare 50, Épique 250, Mythique 500, Suprême 5 000
+Object.assign(POUSSIERE, { C: 10, R: 50, E: 250, L: 500, S: 5000 });
 doublons = function () {
   let cartes = 0, gain = 0;
   CARTES.forEach((c) => {
@@ -8049,7 +8049,7 @@ blocPoussiere = function () {
   return `<div class="poussiere">
     <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${nf(q)}</b>
       <div class="obj-barre" title="Vers une étoile de Suprême"><i style="width:${pct}%"></i></div>
-      <small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 · Suprême +5 000 par doublon recyclé, le double pour une holo. Échange ta poussière chez Gégé : 100 = 1 booster, 50 000 = 1 étoile de Suprême.</small></div>
+      <small>Commune +10 · Rare +50 · Épique +250 · Mythique +500 · Suprême +5 000 par doublon recyclé, le double pour une holo. Échange ta poussière chez Gégé : 100 = 1 booster, 50 000 = 1 étoile de Suprême.</small></div>
     <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${nf(gain)})` : "Aucun doublon à recycler"}</button>
     <button class="btn lien-comptoir" type="button" data-aller="comptoir">🛒 Le Comptoir de Gégé <small>dépenser</small></button>
   </div>`;
