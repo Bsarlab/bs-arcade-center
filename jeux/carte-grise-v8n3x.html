@@ -1084,7 +1084,7 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
   </nav>
   <button class="rond" type="button" id="btnSon" aria-label="Couper le son" title="Son"></button>
 </header>
-<div class="defile" aria-hidden="true"><div><span>🎮 NOUVEAU : SÉRIE 3 « MANETTES &amp; CASSETTES »</span><span>🎯 OBJECTIFS DU JOUR ET DE LA SEMAINE</span><span>🏆 LIGUE : LES MEILLEURS GAGNENT DES BOOSTERS ET UN CADRE CHAQUE SEMAINE</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 DES CARTES SUPRÊMES CACHÉES DANS CHAQUE SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>✨ RECYCLE TES DOUBLONS EN POUSSIÈRE : 100 = 1 BOOSTER, 10 000 = 1 ÉTOILE DE SUPRÊME</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
+<div class="defile" aria-hidden="true"><div><span>🎮 NOUVEAU : SÉRIE 3 « MANETTES &amp; CASSETTES »</span><span>🎯 OBJECTIFS DU JOUR ET DE LA SEMAINE</span><span>🏆 LIGUE : LES MEILLEURS GAGNENT DES BOOSTERS ET UN CADRE CHAQUE SEMAINE</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 DES CARTES SUPRÊMES CACHÉES DANS CHAQUE SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>✨ RECYCLE TES DOUBLONS EN POUSSIÈRE : 100 = 1 BOOSTER, 50 000 = 1 ÉTOILE DE SUPRÊME</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
 
 
 <main>
@@ -6696,7 +6696,7 @@ function etoilesHTML(n) {
   n = Math.max(0, Math.min(ETOILES_MAX, n || 0));
   const palier = Math.ceil(n / 5) || 0, plein = n - Math.max(0, palier - 1) * 5;
   const cases = Array.from({ length: 5 }, (_, i) => `<i class="t${i < plein ? palier : Math.max(0, palier - 1)}">★</i>`).join("");
-  const titre = n ? `${n} étoile${n > 1 ? "s" : ""} : +${n * 2} % de puissance en duel` : "Aucune étoile : achète-lui des étoiles au Comptoir de Gégé (10 000 poussières)";
+  const titre = n ? `${n} étoile${n > 1 ? "s" : ""} : +${n * 2} % de puissance en duel` : "Aucune étoile : achète-lui des étoiles au Comptoir de Gégé (50 000 poussières)";
   return `<div class="c-etoiles p${palier}" title="${titre}">${cases}${n ? `<b>${n}</b>` : ""}</div>`;
 }
 function carteHTML(cle, o = {}) {
@@ -7435,7 +7435,7 @@ async function afficherDuel() {
       <div class="adversaires">${Object.entries(BOTS).map(([n, b]) => `<button class="adv" type="button" data-bot="${n}" aria-pressed="${adversaire.type === "bot" && adversaire.bot === Number(n)}"><span class="av">${b.av}</span><b>${b.nom}</b><small>${b.txt}</small></button>`).join("")}
       ${(joueursDuel || []).map((j) => `<button class="adv" type="button" data-adv="${esc(j.id)}" data-pseudo="${esc(j.pseudo)}" aria-pressed="${adversaire.id === j.id}"><span class="av">${j.avatar ? `<img src="${esc(j.avatar)}" alt="">` : "🃏"}</span><b>${esc(j.pseudo)}</b><small>${j.ami ? "Ami · " : ""}ses 5 meilleures cartes · victoire = 1 booster</small></button>`).join("")}</div>
       ${enLigne ? "" : `<p style="margin-top:10px">Connecte-toi sur le site pour défier tes amis et les autres joueurs.</p>`}
-      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Les étoiles s'achètent au Comptoir de Gégé, 10 000 poussières l'une (+2 % de puissance, 25 au maximum) : ★ blanches, puis <b>★ dorées</b>, <span class="c-et p3">★ diamant</span>, <span class="c-et p4">★ ambre</span> et <span class="c-et p5">★ noires</span>.</p>
+      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Les étoiles s'achètent au Comptoir de Gégé, 50 000 poussières l'une (+2 % de puissance, 25 au maximum) : ★ blanches, puis <b>★ dorées</b>, <span class="c-et p3">★ diamant</span>, <span class="c-et p4">★ ambre</span> et <span class="c-et p5">★ noires</span>.</p>
     </div>
     <div class="duel-bloc"><h3>2. Compose ta main</h3>
       <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Chaque victoire rapporte ses boosters, sans limite.</p>
@@ -7987,8 +7987,8 @@ function resumeLot(cartes, avant) {
   enCours = false; majLot();
 }
 
-// ---------- Poussière : elle s'accumule, puis on l'échange (100 = 1 booster, 10 000 = 1 étoile de Suprême) ----------
-const PRIX_BOOSTER = 100, PRIX_ETOILE = 10000;
+// ---------- Poussière : elle s'accumule, puis on l'échange (100 = 1 booster, 50 000 = 1 étoile de Suprême) ----------
+const PRIX_BOOSTER = 100, PRIX_ETOILE = 50000;
 const etoilesAchetees = (id) => Number((etat && etat.etoiles && etat.etoiles[id]) || 0);
 // Étoiles : uniquement celles achetées au Comptoir (25 au maximum, il faut posséder la carte)
 // Les doublons ne donnent que de la poussière : 5 000 pour une Suprême
@@ -8049,7 +8049,7 @@ blocPoussiere = function () {
   return `<div class="poussiere">
     <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${nf(q)}</b>
       <div class="obj-barre" title="Vers une étoile de Suprême"><i style="width:${pct}%"></i></div>
-      <small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 · Suprême +5 000 par doublon recyclé, le double pour une holo. Échange ta poussière chez Gégé : 100 = 1 booster, 10 000 = 1 étoile de Suprême.</small></div>
+      <small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 · Suprême +5 000 par doublon recyclé, le double pour une holo. Échange ta poussière chez Gégé : 100 = 1 booster, 50 000 = 1 étoile de Suprême.</small></div>
     <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${nf(gain)})` : "Aucun doublon à recycler"}</button>
     <button class="btn lien-comptoir" type="button" data-aller="comptoir">🛒 Le Comptoir de Gégé <small>dépenser</small></button>
   </div>`;
@@ -8208,7 +8208,7 @@ const GEGE_LIGNES = {
   ],
   booster: "Un booster tout neuf, presque pas irradié. 100 poussières.",
   lot: "Le lot de dix. Trouvé dans un supermarché effondré, scellés d'origine, juré.",
-  etoile: "Une étoile pour ta Suprême. J'en décroche une par an, à la jumelle. 10 000, pas moins.",
+  etoile: "Une étoile pour ta Suprême. J'en décroche une par an, à la jumelle. 50 000, pas moins.",
   vendre: "Tes doublons contre de la poussière. Je te laisse toujours un exemplaire de chaque, je suis pas un monstre.",
   merci: [
     "Marché conclu ! C'est rangé dans tes boosters.",

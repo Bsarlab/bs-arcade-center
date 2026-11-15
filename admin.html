@@ -835,7 +835,7 @@ alter table public.tcg_combats enable row level security;
 drop policy if exists "mes combats" on public.tcg_combats;
 create policy "mes combats" on public.tcg_combats for select using (auth.uid() = joueur);
 -- Étoiles d'une Suprême : chaque doublon (normal ou holo) en donne une, 25 au maximum ; +2 % de puissance par étoile
--- Étoiles achetées avec la poussière (10 000 poussières = 1 étoile sur la Suprême de son choix)
+-- Étoiles achetées avec la poussière (50 000 poussières = 1 étoile sur la Suprême de son choix)
 create table if not exists public.tcg_etoiles_bonus (
   joueur uuid not null references public.profils(id) on delete cascade,
   carte text not null,
@@ -1289,7 +1289,7 @@ begin
   delete from tcg_cartes where joueur = auth.uid() and nombre <= 0;
   insert into tcg_poussiere (joueur, quantite) values (auth.uid(), gain)
     on conflict (joueur) do update set quantite = tcg_poussiere.quantite + gain returning quantite into q;
-  -- La poussière s'accumule : on l'échange ensuite soi-même (100 = 1 booster, 10 000 = 1 étoile de Suprême)
+  -- La poussière s'accumule : on l'échange ensuite soi-même (100 = 1 booster, 50 000 = 1 étoile de Suprême)
   return json_build_object('cartes', nb, 'gain', gain, 'poussiere', q, 'boosters', b);
 end $$;
 revoke all on function public.tcg_recycler(text) from public, anon;
@@ -1307,7 +1307,7 @@ begin
 end $$;
 revoke all on function public.tcg_poussiere_booster(int) from public, anon;
 grant execute on function public.tcg_poussiere_booster(int) to authenticated;
--- 10 000 poussières = 1 étoile sur une Suprême qu'on possède (25 étoiles au maximum)
+-- 50 000 poussières = 1 étoile sur une Suprême qu'on possède (25 étoiles au maximum)
 create or replace function public.tcg_poussiere_etoile(p_carte text) returns json language plpgsql security definer set search_path = public as $$
 declare base text := replace(coalesce(p_carte, ''), '*', ''); q int; e int;
 begin
@@ -1316,7 +1316,7 @@ begin
   if coalesce((select rarete from tcg_valeurs where carte = base), '') <> 'S' then raise exception 'seulement pour une Suprême'; end if;
   if not exists (select 1 from tcg_cartes where joueur = auth.uid() and replace(carte, '*', '') = base and nombre > 0) then raise exception 'tu ne possèdes pas cette Suprême'; end if;
   if tcg_etoiles(auth.uid(), base) >= 25 then raise exception 'cette Suprême a déjà 25 étoiles'; end if;
-  update tcg_poussiere set quantite = quantite - 10000 where joueur = auth.uid() and quantite >= 10000 returning quantite into q;
+  update tcg_poussiere set quantite = quantite - 50000 where joueur = auth.uid() and quantite >= 50000 returning quantite into q;
   if q is null then raise exception 'pas assez de poussière'; end if;
   insert into tcg_etoiles_bonus (joueur, carte, nombre) values (auth.uid(), base, 1)
     on conflict (joueur, carte) do update set nombre = tcg_etoiles_bonus.nombre + 1;
