@@ -864,6 +864,20 @@ html { overflow-x: clip; }
 .paquet .carte::before, .paquet .carte .c-reflet, .paquet-vitrine::after { animation: none !important; }
 .paquet { will-change: transform; }
 .paquet-corps, .paquet .paquet-haut { animation-duration: 8s !important; }
+/* Mode léger : plus aucun flou d'arrière-plan (très coûteux quand le fond bouge, surtout sur Mac) */
+*, *::before, *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.barre { background: rgba(11,10,20,.94) !important; }
+.c-cout { background: rgba(8,6,18,.82) !important; }
+.c-hud span, .c-fin, .arene-fin { background-color: rgba(8,6,18,.88) !important; }
+.zoom { background: rgba(8,6,18,.95) !important; }
+.probas { background: rgba(12,9,28,.97) !important; }
+.ouverture { background-color: rgba(8,6,18,.92) !important; }
+/* Seul le décor de la série affichée tourne (les autres étaient juste invisibles, mais animés) */
+.decor { display: none; }
+body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, body[data-theme="3"] .d3 { display: block; opacity: 1; }
+/* Reflets des boosters : figés (ils étaient redessinés à chaque image) */
+.paquet-corps, .paquet .paquet-haut, .paquet .paquet-corps::before, .paquet .paquet-corps::after { animation: none !important; }
+.flottants i:nth-child(n+7) { display: none; }
 /* Collection : les cartes hors de l'écran ne sont pas dessinées, et les bordures arc-en-ciel ne tournent qu'au survol */
 .grille-classeur .case { content-visibility: auto; contain-intrinsic-size: auto 300px; }
 .grille-classeur .carte::before, .grille-classeur .carte .c-reflet { animation-play-state: paused !important; }

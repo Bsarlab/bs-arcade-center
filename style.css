@@ -1285,3 +1285,8 @@ form.carte-amis > .btn { justify-self: start; }
 @media (max-width: 700px) { .objectifs-jeu { grid-template-columns: 1fr; } }
 .objectifs-hebdo { grid-column: 1 / -1; padding-top: 18px; border-top: 1px solid rgba(127,127,127,.25); }
 .objectifs-hebdo li i { background: linear-gradient(90deg, #f59e0b var(--p), rgba(127,127,127,.25) var(--p)); }
+
+/* ---------- Pendant qu'un jeu est ouvert : le fond animé du site (caché derrière le jeu) s'arrête complètement ---------- */
+body:has(.lecteur[open]) .decor, body:has(.lecteur[open]) .tache, body:has(.lecteur[open]) .sphere-deco, body:has(.lecteur[open]) .deco { display: none !important; }
+body:has(.lecteur[open])::after { animation: none !important; display: none !important; }
+body:has(.lecteur[open]) > *:not(.lecteur):not(script) { visibility: hidden; }
