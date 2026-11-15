@@ -932,6 +932,29 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
   .probas:not([hidden]) { animation: ecran-entre .45s var(--glisse) backwards; --dx: 0; }
 }
 
+.btn-lot[hidden] { display: none !important; }
+.pile-lot { position: relative; width: min(220px, 48vw); cursor: pointer; outline: none; }
+.pile-paquet { position: relative; transform: translate(calc(var(--i) * 7px), calc(var(--i) * -6px)) rotate(calc((var(--i) - 2) * 2.5deg)); }
+.pile-paquet + .pile-paquet { position: absolute; inset: 0; }
+.pile-paquet:not(:last-of-type) .paquet { filter: brightness(.7); }
+.pile-nb { position: absolute; right: -14px; top: -14px; z-index: 5; font: 900 clamp(22px, 5vw, 34px)/1 var(--f-titre, sans-serif); color: #fff; background: #ff4fa3; padding: .2em .45em; border-radius: 999px; box-shadow: 0 0 0 3px #0b0820, 0 0 18px #ff4fa3; transform: rotate(8deg); }
+.tirage.lot { position: absolute; inset: 0; display: block; overflow-y: auto; padding: 8px clamp(8px, 2vw, 24px) 24px; --w: clamp(96px, 12.5vw, 150px); }
+.lot-bilan { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin: 4px auto 14px; }
+.lot-bilan > span { padding: 6px 12px; border-radius: 999px; background: rgba(255,255,255,.07); box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--c, #fff) 55%, transparent); color: var(--c, #fff); font-size: 14px; }
+.lot-bilan b { font-size: 17px; }
+.lot-total { --c: #fff; }
+.lot-neuf { --c: #34d399; }
+.lot-grille { display: grid; grid-template-columns: repeat(auto-fill, var(--w)); gap: clamp(8px, 1.4vw, 16px); justify-content: center; }
+.lot-carte { position: relative; cursor: zoom-in; border-radius: 1em; animation: lot-arrive .5s var(--ease, ease-out) backwards; animation-delay: calc(var(--k) * 35ms); transition: transform .2s; }
+.lot-carte:hover, .lot-carte:focus-visible { transform: translateY(-4px) scale(1.03); }
+.lot-carte:focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }
+.lot-x { position: absolute; right: -6px; top: -8px; z-index: 6; font: 900 15px/1 var(--f-titre, sans-serif); color: #0b0820; background: #ffd23f; padding: 5px 8px; border-radius: 999px; box-shadow: 0 0 0 2px #0b0820; }
+.lot-neuve { position: absolute; left: 50%; bottom: -8px; transform: translateX(-50%); z-index: 6; font: 800 11px/1 var(--f-titre, sans-serif); letter-spacing: .04em; color: #062b1e; background: #34d399; padding: 4px 8px; border-radius: 999px; box-shadow: 0 0 0 2px #0b0820, 0 0 12px rgba(52,211,153,.7); white-space: nowrap; }
+.lot-carte.r-S .carte, .lot-carte.r-L .carte { box-shadow: 0 0 18px color-mix(in srgb, var(--cr) 70%, transparent); }
+@keyframes lot-arrive { from { opacity: 0; transform: translateY(24px) scale(.9); } }
+@media (prefers-reduced-motion: reduce) { .lot-carte { animation: none; } }
+.lot-passer { position: fixed; right: 16px; bottom: 16px; z-index: 2147483000; }
+
 </style>
 </head>
 <body>
@@ -7719,6 +7742,134 @@ document.addEventListener("click", (e) => { if (e.target.closest(".serie-btn") &
     document.body.appendChild(v); setTimeout(() => v.remove(), 800);
   }, true);
 })();
+
+// ---------- Ouvrir les boosters 20 par 20 ----------
+const LOT_MAX = 20;
+const dispoBoosters = () => etat ? (etat.restants || 0) + (etat.bonus || 0) : 0;
+(function () {
+  const b = document.createElement("button");
+  b.className = "btn alerte btn-lot"; b.type = "button"; b.id = "btnLot";
+  b.innerHTML = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 2h12v15M5 5h12v15H5zM5 10h12"/></svg><span>Ouvrir ×20</span>`;
+  $("btnOuvrir").after(b);
+  b.onclick = ouvrirLot;
+})();
+function majLot() {
+  const b = $("btnLot"); if (!b) return;
+  const n = Math.min(LOT_MAX, dispoBoosters());
+  b.hidden = n < 2; b.disabled = enCours || n < 2;
+  b.lastChild.textContent = n >= LOT_MAX ? "Ouvrir ×20" : `Tout ouvrir ×${n}`;
+  b.title = n >= LOT_MAX ? "Ouvre 20 boosters d'un coup" : `Tu as ${n} boosters : ils s'ouvrent tous d'un coup (20 au maximum)`;
+}
+const _majEtatLot = majEtat;
+majEtat = async function (e) { await _majEtatLot(e); majLot(); };
+majLot();
+
+async function ouvrirLot() {
+  if (enCours) return;
+  const n = Math.min(LOT_MAX, dispoBoosters());
+  if (n < 2) return ouvrirBooster();
+  enCours = true; $("btnOuvrir").disabled = true; $("btnLot").disabled = true;
+  const avant = { ...collection }, se = serieActive, cartes = [];
+  let gods = 0, ouverts = 0, erreur = "";
+  toast(`Ouverture de ${n} boosters…`);
+  for (let i = 0; i < n; i++) {
+    const r = await Stock.ouvrir(se).catch((e) => ({ erreur: e.message }));
+    if (!r || r.erreur || !r.cartes) { erreur = (r && r.erreur) || "réessaie"; break; }
+    const ks = r.cartes.map(String); ouverts++;
+    if (ks.every((k) => ["E", "L", "S"].includes(PAR_ID[k.replace("*", "")]?.r))) gods++;
+    ks.forEach((k) => { collection[k] = (collection[k] || 0) + 1; cartes.push(k); });
+  }
+  if (!ouverts) {
+    enCours = false; majEtat();
+    toast(/plus de booster/i.test(erreur) ? "Plus de booster pour l'instant : attends le minuteur." : "Impossible d'ouvrir les boosters : " + erreur);
+    return;
+  }
+  majCompteurs(); majEtat(); setTimeout(majBoite, 1500);
+  montrerLot(cartes, avant, ouverts, gods, se);
+}
+
+function montrerLot(cartes, avant, ouverts, gods, se) {
+  const o = $("ouverture");
+  o.hidden = false; document.body.style.overflow = "hidden";
+  o.classList.remove("god");
+  godPack = false;
+  $("ouvTitre").textContent = `${ouverts} boosters · série ${se} « ${SERIES[se].nom} »`;
+  $("paquetOuverture").style.display = "";
+  $("paquetOuverture").innerHTML = `<div class="pile-lot" style="--n:${Math.min(ouverts, 6)}">${Array.from({ length: Math.min(ouverts, 6) }, (_, i) => `<div class="pile-paquet" style="--i:${i}">${paquetHTML("min(220px, 48vw)", se)}</div>`).join("")}<b class="pile-nb">×${ouverts}</b></div>`;
+  $("tirage").className = "tirage"; $("tirage").innerHTML = "";
+  $("ouvPied").innerHTML = "";
+  $("aide").hidden = false; $("aide").textContent = `Clique sur la pile pour déchirer les ${ouverts} boosters`;
+  const pile = $("paquetOuverture").querySelector(".pile-lot");
+  let ouvert = false;
+  const briser = async () => {
+    if (ouvert) return; ouvert = true; $("aide").hidden = true;
+    const paquets = [...pile.querySelectorAll(".paquet")];
+    paquets.forEach((p) => p.classList.add("secoue")); Son.secoue(); await pause(450);
+    paquets.forEach((p) => { p.classList.remove("secoue"); p.classList.add("ouvert"); }); Son.dechire(); await pause(650);
+    paquets.forEach((p) => p.classList.add("vide")); await pause(350);
+    $("paquetOuverture").style.display = "none";
+    if (gods) {
+      await annonceGod(o);
+      if (gods > 1) toast(`${gods} god packs dans le lot !`);
+    }
+    // Grande animation pour chaque Suprême et chaque Mythique NOUVELLE (les plus rares à la fin) ; un bouton permet de passer
+    const vues = new Set();
+    const fortes = cartes.filter((k) => {
+      const id = k.replace("*", ""), r = PAR_ID[id]?.r;
+      if (r === "S") return true;
+      if (r !== "L" || avant[id] || avant[id + "*"] || vues.has(id)) return false;
+      vues.add(id); return true;
+    }).sort((a, b) => ORDRE_RARETE[PAR_ID[b.replace("*", "")].r] - ORDRE_RARETE[PAR_ID[a.replace("*", "")].r]);
+    if (!reduit && fortes.length) {
+      let passer = false;
+      const bp = document.createElement("button");
+      bp.type = "button"; bp.className = "btn lot-passer"; bp.textContent = fortes.length > 1 ? `Passer les animations (${fortes.length})` : "Passer l'animation";
+      bp.onclick = (e) => { e.stopPropagation(); passer = true; bp.remove(); };
+      document.body.appendChild(bp);
+      for (const k of fortes) { if (o.hidden || passer) break; await cinema(k, PAR_ID[k.replace("*", "")].r); }
+      bp.remove();
+      if (o.hidden) return;
+    }
+    o.classList.remove("god");
+    resumeLot(cartes, avant);
+  };
+  pile.addEventListener("click", briser);
+  pile.setAttribute("role", "button"); pile.tabIndex = 0;
+  pile.addEventListener("keydown", (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); briser(); } });
+  pile.focus({ preventScroll: true });
+}
+
+// Récapitulatif : chaque carte une seule fois, avec le nombre d'exemplaires tirés, de la plus rare à la plus commune
+function resumeLot(cartes, avant) {
+  const compte = {};
+  cartes.forEach((k) => (compte[k] = (compte[k] || 0) + 1));
+  const rangs = { S: 0, L: 1, E: 2, R: 3, C: 4 };
+  const liste = Object.keys(compte).map((k) => ({ k, c: PAR_ID[k.replace("*", "")], n: compte[k], neuve: !(avant[k.replace("*", "")] || avant[k.replace("*", "") + "*"]) }))
+    .sort((a, b) => rangs[a.c.r] - rangs[b.c.r] || b.neuve - a.neuve || (b.k.endsWith("*") - a.k.endsWith("*")) || b.n - a.n);
+  const nb = (r) => cartes.filter((k) => PAR_ID[k.replace("*", "")].r === r).length;
+  const neuves = new Set(liste.filter((x) => x.neuve).map((x) => x.k.replace("*", ""))).size;
+  const holos = cartes.filter((k) => k.endsWith("*")).length;
+  const bilan = [["S", "Suprême"], ["L", "Mythique"], ["E", "Épique"], ["R", "Rare"], ["C", "Commune"]]
+    .map(([r, nom]) => [r, nom, nb(r)]).filter((x) => x[2])
+    .map(([r, nom, x]) => `<span class="lot-r" style="--c:var(--r${r})"><b>${x}</b> ${nom}${x > 1 ? "s" : ""}</span>`).join("");
+  const t = $("tirage");
+  t.className = "tirage lot";
+  t.innerHTML = `<div class="lot-bilan"><span class="lot-total"><b>${cartes.length}</b> cartes</span>${bilan}${holos ? `<span class="lot-r" style="--c:#7df9ff"><b>${holos}</b> holo${holos > 1 ? "s" : ""}</span>` : ""}<span class="lot-r lot-neuf"><b>${neuves}</b> nouvelle${neuves > 1 ? "s" : ""}</span></div>
+    <div class="lot-grille">${liste.map(({ k, c, n, neuve }, i) => `<div class="lot-carte r-${c.r}" style="--k:${Math.min(i, 40)}" data-cle="${esc(k)}" tabindex="0" role="button" aria-label="${esc(c.n)}${n > 1 ? `, ${n} exemplaires` : ""}">
+      ${carteHTML(k)}${n > 1 ? `<span class="lot-x">×${n}</span>` : ""}${neuve ? `<span class="lot-neuve">NOUVEAU</span>` : ""}</div>`).join("")}</div>`;
+  t.querySelectorAll(".lot-carte").forEach((el) => {
+    el.onclick = () => zoomer(el.dataset.cle);
+    el.onkeydown = (e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); zoomer(el.dataset.cle); } };
+  });
+  Son.retourne();
+  const reste = dispoBoosters();
+  $("ouvPied").innerHTML = `${reste >= 2 ? `<button class="btn alerte" type="button" id="btnEncoreLot">${reste >= LOT_MAX ? "Encore ×20" : `Tout ouvrir ×${reste}`}</button>` : reste === 1 ? `<button class="btn alerte" type="button" id="btnEncore">Ouvrir le dernier</button>` : ""}
+    <button class="btn" type="button" id="btnVersClasseur">Voir ma collection</button>`;
+  $("btnVersClasseur").onclick = () => { fermerOuverture(); aller("classeur"); };
+  const a = $("btnEncoreLot"); if (a) a.onclick = () => { enCours = false; ouvrirLot(); };
+  const e1 = $("btnEncore"); if (e1) e1.onclick = () => { enCours = false; ouvrirBooster(); };
+  enCours = false; majLot();
+}
 
 // =========================================================
 // CARTE GRISE : la course (pseudo-3D façon arcade) et les échanges
