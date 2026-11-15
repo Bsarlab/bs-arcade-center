@@ -227,7 +227,7 @@
       ligue("argent", "Couronne d'argent", "Finir 2e de la ligue CARDS CENTER de la semaine."),
       ligue("bronze", "Couronne de bronze", "Finir 3e de la ligue CARDS CENTER de la semaine."),
       ligue("top10", "Top 10 de la ligue", "Finir entre la 4e et la 10e place de la ligue."),
-      ligue("assidu", "Assidu", "Réussir 15 objectifs du jour de CARDS CENTER dans la même semaine."),
+      ligue("assidu", "Assidu", "Réussir 25 objectifs du jour de CARDS CENTER dans la même semaine."),
       ligue("supreme", "Suprême", "Tirer une carte Suprême dans un booster."),
       ligue("god", "Béni des dieux", "Ouvrir un god pack."),
     ] },

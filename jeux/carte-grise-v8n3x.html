@@ -7175,9 +7175,9 @@ Local.combat = async function (main, bot) {
   // Le Roi des Suprêmes : surtout des Suprêmes, parfois 1 ou 2 Mythiques (40 % aucune, 40 % une, 20 % deux)
   if (bot === 4) { const t = Math.random(), nl = t < .4 ? 0 : t < .8 ? 1 : 2, de = (r) => melange(CARTES.filter((c) => c.r === r).map((c) => c.id));
     pool = melange([...de("S").slice(0, 5 - nl), ...de("L").slice(0, nl)]); }
-  // Ses Suprêmes ont parfois des étoiles : 25 % aucune, 40 % de 1 à 8, 28 % de 9 à 15, 7 % de 16 à 22
+  // Ses Suprêmes ont parfois des étoiles : 50 % aucune, 32 % de 1 à 5, 14 % de 6 à 10, 4 % de 11 à 15
   const eb = pool.map((k) => { if (bot !== 4 || PAR_ID[k].r !== "S") return 0; const t = Math.random(), x = Math.random();
-    return t < .25 ? 0 : t < .65 ? 1 + Math.floor(x * 8) : t < .93 ? 9 + Math.floor(x * 7) : 16 + Math.floor(x * 7); });
+    return t < .5 ? 0 : t < .82 ? 1 + Math.floor(x * 5) : t < .96 ? 6 + Math.floor(x * 5) : 11 + Math.floor(x * 5); });
   const manches = main.map((a, i) => ({ a, b: pool[i], eb: eb[i], pa: Math.round(puissance(a) * (.85 + Math.random() * .3)), pb: Math.round(puissance(pool[i], eb[i]) * (.85 + Math.random() * .3)) }));
   const ga = manches.filter((m) => m.pa >= m.pb).length, victoire = ga >= 3;
   const gain = victoire ? B.prix : 0;
