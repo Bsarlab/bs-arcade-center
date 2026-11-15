@@ -844,6 +844,67 @@ img[src$="#c=god"], :is(.profil-avatar, .profil-public-avatar, .invitation-avata
 .probas .n { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
 .probas .rC { color: var(--rC); } .probas .rR { color: var(--rR); } .probas .rE { color: var(--rE); } .probas .rL { color: var(--rL); } .probas .rS { color: var(--rS); font-weight: 800; }
 .probas .p-note { margin: 10px 0 0; font-size: 12.5px; color: var(--pale); line-height: 1.5; }
+/* ==================== Fluidité : moins de calculs lourds, des mouvements glissés ==================== */
+html { overflow-x: clip; }
+:root { --glisse: cubic-bezier(.22, 1, .36, 1); --ressort: cubic-bezier(.34, 1.56, .64, 1); --doux: cubic-bezier(.4, 0, .2, 1); }
+/* Allègements : on n'anime plus de grands flous ni du bruit plein écran (c'est ce qui faisait saccader) */
+.aurores i { filter: none !important; opacity: .42; will-change: transform; }
+.aurores i:nth-child(1) { background: radial-gradient(closest-side, var(--violet), transparent) !important; }
+.aurores i:nth-child(2) { background: radial-gradient(closest-side, var(--rose), transparent) !important; }
+.aurores i:nth-child(3) { background: radial-gradient(closest-side, var(--cyan), transparent) !important; }
+.grain { animation: none !important; }
+/* Route néon de Châssis : on fait défiler un calque (calculé par la carte graphique) au lieu de redessiner le quadrillage */
+.d1 .route { background: none !important; animation: none !important; overflow: hidden; -webkit-mask-image: none !important; mask-image: none !important; }
+.d1 .route::after { content: ""; position: absolute; inset: 0; background: linear-gradient(#0b0a14, rgba(11,10,20,.85) 15%, rgba(11,10,20,0) 45%); }
+.d1 .route::before { content: ""; position: absolute; left: 0; right: 0; top: -70px; bottom: 0; will-change: transform;
+  background: linear-gradient(90deg, rgba(139,92,246,.55) 1px, transparent 1px) 0 0 / 70px 70px, linear-gradient(180deg, rgba(34,211,238,.5) 1px, transparent 1px) 0 0 / 70px 70px;
+  animation: route-glisse 1.1s linear infinite; }
+@keyframes route-glisse { to { transform: translateY(70px); } }
+/* Boosters (accueil, boutons de série, ouverture) : les cartes de la vitrine et les reflets ne sont plus redessinés en boucle */
+.paquet .carte::before, .paquet .carte .c-reflet, .paquet-vitrine::after { animation: none !important; }
+.paquet { will-change: transform; }
+.paquet-corps, .paquet .paquet-haut { animation-duration: 8s !important; }
+/* Collection : les cartes hors de l'écran ne sont pas dessinées, et les bordures arc-en-ciel ne tournent qu'au survol */
+.grille-classeur .case { content-visibility: auto; contain-intrinsic-size: auto 300px; }
+.grille-classeur .carte::before, .grille-classeur .carte .c-reflet { animation-play-state: paused !important; }
+.grille-classeur .case:hover .carte::before, .grille-classeur .case:hover .carte .c-reflet { animation-play-state: running !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Changement d'écran : le nouvel écran glisse depuis le côté où on va */
+  .e-anim.entre { animation: ecran-entre .55s var(--glisse) both; }
+  @keyframes ecran-entre { from { opacity: 0; transform: translateX(var(--dx, 40px)) scale(.985); filter: blur(4px); } to { opacity: 1; transform: none; filter: none; } }
+  /* Collection : les cartes arrivent en cascade quand on change de série ou de filtre */
+  .grille-classeur.cascade .case { animation: case-entre .6s var(--glisse) both; animation-delay: calc(min(var(--i, 0), 28) * 22ms); }
+  @keyframes case-entre { from { opacity: 0; transform: translateY(26px) scale(.94) rotate(-1.5deg); } to { opacity: 1; transform: none; } }
+  /* Cartes de la collection : elles se soulèvent et s'inclinent en douceur */
+  .grille-classeur .carte { transition: transform .5s var(--glisse), box-shadow .5s var(--glisse); }
+  .grille-classeur .carte.incline { transition: transform .12s linear, box-shadow .3s; }
+  .grille-classeur .case:hover .carte:not(.incline) { transform: translateY(-8px) scale(1.03); }
+  /* Boutons : ils répondent au doigt avec un petit rebond */
+  .btn, .onglet, .serie-btn, .btn-proba, button.choix, .choix-bot, [data-bot] { transition: transform .35s var(--ressort), box-shadow .3s var(--glisse), background-color .3s, border-color .3s, color .3s, filter .3s; }
+  .btn:hover:not(:disabled), .serie-btn:hover, [data-bot]:hover { transform: translateY(-2px); }
+  .btn:active:not(:disabled), .onglet:active, .serie-btn:active, .btn-proba:active, [data-bot]:active { transform: scale(.95); transition-duration: .08s; }
+  /* Booster : les cartes s'envolent du paquet vers leur place, une par une */
+  .tirage .slot { transform: translate(var(--dx, 0), var(--dy, 40vh)) scale(.32) rotate(calc(var(--rot, 0deg) * 5)); opacity: 0;
+    transition: transform .95s var(--glisse), opacity .35s var(--doux); transition-delay: calc(var(--k, 0) * 110ms); }
+  .tirage.distribue .slot { transform: none; opacity: 1; }
+  .retourne { transition: transform .8s cubic-bezier(.3, 1.3, .45, 1); }
+  .slot.vue { animation: slot-pop .55s var(--ressort) .35s both; }
+  @keyframes slot-pop { 0% { transform: none; } 45% { transform: translateY(-10px) scale(1.06); } 100% { transform: none; } }
+  /* Écran d'ouverture : il s'ouvre en fondu zoomé */
+  .ouverture:not([hidden]) { animation: ouverture-entre .45s var(--glisse) both; }
+  @keyframes ouverture-entre { from { opacity: 0; } to { opacity: 1; } }
+  .ouverture:not([hidden]) #paquetOuverture .paquet { animation: paquet-arrive .8s var(--ressort) both; }
+  @keyframes paquet-arrive { from { opacity: 0; transform: translateY(60px) scale(.7) rotate(-12deg); } to { opacity: 1; transform: none; } }
+  /* Messages : ils montent avec un rebond */
+  .toast { transition: transform .55s var(--ressort), opacity .3s var(--doux) !important; }
+  /* Changement de série : un balayage de couleur glisse sur l'écran */
+  .balayage { position: fixed; inset: 0; z-index: 40; pointer-events: none; background: radial-gradient(circle at var(--bx, 50%) var(--by, 30%), var(--bc, rgba(255,79,163,.35)) 0, transparent 60%); animation: balayage .7s var(--glisse) forwards; }
+  @keyframes balayage { from { opacity: 0; transform: scale(.4); } 35% { opacity: 1; } to { opacity: 0; transform: scale(1.6); } }
+  /* Panneau des probabilités et autres panneaux qui s'ouvrent */
+  .probas:not([hidden]) { animation: ecran-entre .45s var(--glisse) both; --dx: 0; }
+}
+
 </style>
 </head>
 <body>
@@ -7574,6 +7635,75 @@ function dessinerProbas() {
 }
 $("btnProba").onclick = () => { const p = $("probas"), o = p.hidden; p.hidden = !o; $("btnProba").setAttribute("aria-expanded", String(o)); if (o) { dessinerProbas(); p.scrollIntoView({ behavior: "smooth", block: "nearest" }); } };
 document.addEventListener("click", (e) => { if (e.target.closest(".serie-btn") && !$("probas").hidden) setTimeout(dessinerProbas, 50); });
+
+// ==================== Fluidité : transitions d'écran, cascade, envol des cartes, compteurs ====================
+(() => {
+  const calme = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  const ORDRE = ["accueil", "classeur", "duel", "echanges", "objectifs", "ligue", "boite", "credits", "course"];
+  let ecranActuel = "accueil";
+  // 1) Changer d'écran : le nouvel écran glisse depuis la droite (on avance) ou la gauche (on revient)
+  const allerBase = aller;
+  aller = function (ecran) {
+    const avant = ecranActuel; allerBase(ecran); ecranActuel = ecran;
+    if (calme || avant === ecran) return;
+    const el = $("e-" + ecran); if (!el) return;
+    el.classList.add("e-anim");
+    el.style.setProperty("--dx", (ORDRE.indexOf(ecran) >= ORDRE.indexOf(avant) ? 46 : -46) + "px");
+    el.classList.remove("entre"); void el.offsetWidth; el.classList.add("entre");
+  };
+  // 2) Collection : cascade seulement quand on change de série ou de filtre (pas à chaque petite mise à jour)
+  const classeurBase = afficherClasseur;
+  let derniereVue = "";
+  afficherClasseur = function (...a) {
+    const r = classeurBase.apply(this, a);
+    const g = document.querySelector(".grille-classeur"); if (!g || calme) return r;
+    const cle = serieVue + "|" + filtre;
+    if (cle !== derniereVue) {
+      derniereVue = cle;
+      g.querySelectorAll(".case").forEach((c, i) => c.style.setProperty("--i", i));
+      g.classList.remove("cascade"); void g.offsetWidth; g.classList.add("cascade");
+    }
+    return r;
+  };
+  // 3) Booster : chaque carte part du centre (là où était le paquet) avant de filer à sa place
+  const distribuerBase = distribuer;
+  distribuer = function (...a) {
+    const r = distribuerBase.apply(this, a);
+    const t = $("tirage"); if (calme || !t) return r;
+    const rt = t.getBoundingClientRect(), cx = rt.left + rt.width / 2, cy = rt.top + rt.height / 2;
+    const slots = [...t.querySelectorAll(".slot")], pos = slots.map((s) => s.getBoundingClientRect());
+    slots.forEach((s, i) => { const q = pos[i]; s.style.transition = "none";
+      s.style.setProperty("--dx", Math.round(cx - (q.left + q.width / 2)) + "px"); s.style.setProperty("--dy", Math.round(cy - (q.top + q.height / 2)) + "px"); });
+    void t.offsetWidth; slots.forEach((s) => s.style.removeProperty("transition"));
+    return r;
+  };
+  // 4) Compteurs : les nombres défilent au lieu de sauter
+  const animer = (el) => {
+    let affiche = el.textContent, verrou = false;
+    new MutationObserver(() => {
+      if (verrou) return;
+      const neuf = el.textContent, a = parseInt(affiche.replace(/\D/g, ""), 10), b = parseInt(neuf.replace(/\D/g, ""), 10);
+      if (calme || isNaN(a) || isNaN(b) || a === b || !/^\s*[\d\s]+\s*$/.test(neuf)) { affiche = neuf; return; }
+      const t0 = performance.now(), d = Math.min(900, 300 + Math.abs(b - a) * 4);
+      const pas = (t) => { const p = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - p, 3);
+        verrou = true; el.textContent = Math.round(a + (b - a) * e).toLocaleString("fr-FR"); verrou = false;
+        if (p < 1) requestAnimationFrame(pas); else { verrou = true; el.textContent = neuf; verrou = false; affiche = neuf; } };
+      requestAnimationFrame(pas);
+    }).observe(el, { childList: true, characterData: true, subtree: true });
+  };
+  ["pointsAccueil", "godDans", "bonus"].forEach((id) => { const el = $(id); if (el) animer(el); });
+  // 5) Changement de série : un balayage de couleur part du bouton cliqué
+  const COUL = { 1: "rgba(255,79,163,.32)", 2: "rgba(255,210,63,.3)", 3: "rgba(34,211,238,.32)" };
+  document.addEventListener("click", (e) => {
+    const b = e.target.closest(".serie-btn[data-serie]"); if (!b || calme) return;
+    const r = b.getBoundingClientRect(), v = document.createElement("div");
+    v.className = "balayage";
+    v.style.setProperty("--bx", ((r.left + r.width / 2) / innerWidth * 100) + "%");
+    v.style.setProperty("--by", ((r.top + r.height / 2) / innerHeight * 100) + "%");
+    v.style.setProperty("--bc", COUL[b.dataset.serie] || COUL[1]);
+    document.body.appendChild(v); setTimeout(() => v.remove(), 800);
+  }, true);
+})();
 
 // =========================================================
 // CARTE GRISE : la course (pseudo-3D façon arcade) et les échanges
