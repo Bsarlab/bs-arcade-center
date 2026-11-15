@@ -954,19 +954,115 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
 @keyframes lot-arrive { from { opacity: 0; transform: translateY(24px) scale(.9); } }
 @media (prefers-reduced-motion: reduce) { .lot-carte { animation: none; } }
 .lot-passer { position: fixed; right: 16px; bottom: 16px; z-index: 2147483000; }
-.poussiere-echanges { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 10px; }
-.poussiere-echanges .btn small { opacity: .75; margin-left: .4em; }
-.poussiere .poussiere-echanges .btn.btn-etoile:not(:disabled) { background: linear-gradient(90deg, #ff4fa3, #8b5cf6); color: #fff; border-color: transparent; }
-.choix-etoile { flex-basis: 100%; }
-.choix-etoile p { margin: 0 0 10px; color: var(--pale); font-size: 14px; }
-.choix-etoile p b { color: #ffd23f; }
-.choix-etoile-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 12px; }
-.choix-sup { --w: 100%; display: grid; gap: 6px; padding: 0; border: 0; background: none; color: #fff; cursor: pointer; text-align: center; font: 800 13px/1.2 var(--f-titre, sans-serif); border-radius: 1em; transition: transform .2s; }
-.choix-sup .carte { width: 100%; --w: 100%; font-size: clamp(5px, 1vw, 7px); pointer-events: none; }
+
+.gege { display: block; width: 100%; height: auto; overflow: visible; }
+.gege .gg-corps { transform-origin: 160px 360px; animation: gg-souffle 3.6s ease-in-out infinite; }
+.gege .gg-tete { transform-box: view-box; transform-origin: 160px 200px; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
+.gege .gg-pupille { transition: transform .12s ease-out; }
+.gege .gg-paupiere { transform-box: fill-box; transform-origin: 50% 0; transform: scaleY(0); }
+.gege.cligne .gg-paupiere { transform: scaleY(1); }
+.gege .gg-sourcil { transform-box: fill-box; transform-origin: 50% 50%; transition: transform .25s; }
+.gege .gg-bouche > * { display: none; }
+.gege .gg-bouche .b-fermee { display: inline; }
+.gege.b-o .gg-bouche > *, .gege.b-m .gg-bouche > *, .gege.content .gg-bouche > *, .gege.triste .gg-bouche > * { display: none; }
+.gege.b-o .gg-bouche .b-ouverte { display: inline; }
+.gege.b-m .gg-bouche .b-mi { display: inline; }
+.gege.content:not(.b-o):not(.b-m) .gg-bouche .b-sourire { display: inline; }
+.gege.triste:not(.b-o):not(.b-m) .gg-bouche .b-triste { display: inline; }
+.gege.content .gg-sourcil.g { transform: translateY(-4px) rotate(-6deg); }
+.gege.content .gg-sourcil.d { transform: translateY(-4px) rotate(6deg); }
+.gege.epate .gg-sourcil { transform: translateY(-7px); }
+.gege.epate .gg-tete { transform: translateY(-6px) scale(1.03); }
+.gege.triste .gg-sourcil.g { transform: rotate(14deg) translateY(1px); }
+.gege.triste .gg-sourcil.d { transform: rotate(-14deg) translateY(1px); }
+.gege.triste .gg-tete { transform: rotate(-3deg) translateY(4px); }
+.gege.parle .gg-tete { animation: gg-hoche .5s ease-in-out infinite alternate; }
+.gege .gg-led { animation: gg-led 1.3s steps(1) infinite; }
+.gege .gg-aiguille { transform-box: view-box; transform-origin: 44px 283px; animation: gg-aiguille 2.2s ease-in-out infinite; }
+.gege .gg-halo { animation: gg-halo 2.6s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+.gege .gg-grains circle { animation: gg-grain 3s ease-in-out infinite; }
+.gege .gg-grains circle:nth-child(2) { animation-delay: -.7s; } .gege .gg-grains circle:nth-child(3) { animation-delay: -1.4s; }
+.gege .gg-grains circle:nth-child(4) { animation-delay: -2.1s; } .gege .gg-grains circle:nth-child(5) { animation-delay: -2.6s; }
+.gege .gg-lunettes circle[fill^="url"] { animation: gg-lentille 4s ease-in-out infinite; }
+@keyframes gg-souffle { 50% { transform: translateY(2px) scaleY(.993); } }
+@keyframes gg-hoche { from { transform: rotate(-1.2deg); } to { transform: rotate(1.2deg) translateY(1px); } }
+@keyframes gg-led { 0%, 60% { opacity: 1; } 61%, 100% { opacity: .15; } }
+@keyframes gg-aiguille { 0%, 100% { transform: rotate(-30deg); } 40% { transform: rotate(10deg); } 45% { transform: rotate(-5deg); } 70% { transform: rotate(25deg); } }
+@keyframes gg-halo { 50% { opacity: .55; transform: scale(.9); } }
+@keyframes gg-grain { 0% { transform: translateY(0); opacity: .2; } 50% { opacity: 1; } 100% { transform: translateY(-26px); opacity: 0; } }
+@keyframes gg-lentille { 0%, 100% { filter: brightness(1); } 50% { filter: brightness(1.35); } }
+@media (prefers-reduced-motion: reduce) { .gege *, .gege { animation: none !important; } }
+/* ---------- Le Comptoir de Gégé ---------- */
+.cpt-scene { position: relative; display: grid; grid-template-columns: minmax(230px, 380px) 1fr; align-items: end; gap: 0 18px; min-height: 400px; padding: 0 clamp(12px, 3vw, 36px); border-radius: 22px; overflow: hidden; isolation: isolate;
+  background: linear-gradient(180deg, #0d0820 0%, #24113a 38%, #5a2234 66%, #a7471f 88%, #d9772a 100%); box-shadow: inset 0 0 0 1px rgba(255,255,255,.08), 0 18px 40px rgba(0,0,0,.45); }
+.cpt-soleil { position: absolute; z-index: -2; right: 18%; bottom: 24%; width: 170px; aspect-ratio: 1; border-radius: 50%; background: radial-gradient(circle, #ffcf7a 0%, #ff8a3d 45%, rgba(255,90,40,0) 70%); filter: blur(1px); opacity: .85; }
+.cpt-ville { position: absolute; z-index: -1; left: 0; right: 0; bottom: 0; width: 100%; height: 55%; }
+.cpt-grains { position: absolute; inset: 0; z-index: 0; pointer-events: none; }
+.cpt-grains i { position: absolute; left: var(--x); top: var(--y); width: var(--t); height: var(--t); border-radius: 50%; background: #ffe2b0; opacity: .0; animation: cpt-vent var(--d) linear var(--k) infinite; }
+@keyframes cpt-vent { 0% { transform: translate(-40px, 0); opacity: 0; } 15% { opacity: .7; } 85% { opacity: .5; } 100% { transform: translate(220px, -30px); opacity: 0; } }
+.cpt-enseigne { position: absolute; z-index: 1; left: clamp(12px, 3vw, 36px); top: 16px; display: grid; gap: 2px; padding: 8px 14px 9px; border: 3px solid #2a2f35; border-radius: 6px; background: #0b0710; transform: rotate(-2deg); box-shadow: 0 6px 18px rgba(0,0,0,.6); }
+.cpt-enseigne span { font: 400 clamp(20px, 3vw, 30px)/1 var(--f-tampon); color: #7df9ff; letter-spacing: .04em; text-shadow: 0 0 6px #22d3ee, 0 0 18px #22d3ee; }
+.cpt-enseigne em { font-style: normal; animation: cpt-panne 4s steps(1) infinite; }
+.cpt-enseigne small { font: 800 12px/1 var(--f-titre); letter-spacing: .14em; color: #ff7ac2; text-shadow: 0 0 8px #ff4fa3; }
+@keyframes cpt-panne { 0%, 41%, 45%, 47%, 100% { opacity: 1; } 42%, 46% { opacity: .15; text-shadow: none; } }
+.cpt-gege { position: relative; z-index: 2; align-self: end; padding: 0; margin: 64px 0 0; border: 0; background: none; cursor: pointer; filter: drop-shadow(0 -6px 30px rgba(255,140,60,.25)); -webkit-tap-highlight-color: transparent; }
+.cpt-gege:focus-visible { outline: 3px solid #ffd23f; outline-offset: -3px; border-radius: 16px; }
+.cpt-bulle { position: relative; z-index: 3; align-self: center; max-width: 520px; margin: 70px 0 40px; padding: 16px 20px 18px; border: 3px solid #2a1a10; border-radius: 18px 18px 18px 4px; background: #f4ecd8; color: #2a1a10; box-shadow: 6px 6px 0 rgba(0,0,0,.35); }
+.cpt-bulle::before { content: ""; position: absolute; left: -22px; bottom: 14px; border: 11px solid transparent; border-right: 18px solid #2a1a10; }
+.cpt-bulle::after { content: ""; position: absolute; left: -15px; bottom: 17px; border: 8px solid transparent; border-right: 13px solid #f4ecd8; }
+.cpt-bulle b { display: block; margin-bottom: 4px; font: 400 13px/1 var(--f-tampon); letter-spacing: .06em; color: #a8402f; }
+.cpt-bulle p { margin: 0; min-height: 3.1em; font: 600 clamp(16px, 1.8vw, 19px)/1.45 var(--f-corps); }
+.cpt-bourse { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 6px 16px; margin: 18px 0 8px; padding: 14px 18px; border-radius: 16px; background: linear-gradient(100deg, rgba(34,211,238,.14), rgba(139,92,246,.12)); border: 1px solid rgba(125,249,255,.25); }
+.cpt-bourse small { display: block; color: var(--pale); font-size: 13px; }
+.cpt-bourse b { font: 400 clamp(26px, 4vw, 38px)/1 var(--f-tampon); color: #7df9ff; text-shadow: 0 0 12px rgba(34,211,238,.6); }
+.cpt-bourse p { margin: 0; color: var(--doux); font-size: 14px; }
+.cpt-bocal { position: relative; width: 34px; height: 46px; border: 2.5px solid rgba(200,250,255,.75); border-top-width: 6px; border-top-color: #8c5634; border-radius: 6px 6px 10px 10px; overflow: hidden; background: rgba(180,240,255,.08); }
+.cpt-bocal i { position: absolute; left: 0; right: 0; bottom: 0; background: linear-gradient(180deg, #7df9ff, #22d3ee); box-shadow: 0 0 12px #22d3ee; transition: height .6s var(--ease); }
+.cpt-rayon { margin: 22px 0 10px; font: 400 18px/1 var(--f-tampon); letter-spacing: .05em; color: #ffb347; }
+.cpt-articles { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 14px; }
+.cpt-article { position: relative; display: grid; grid-template-rows: auto auto 1fr auto; gap: 6px; padding: 14px 16px 16px; border-radius: 14px; background: linear-gradient(180deg, #2a2420, #1a1614); border: 2px dashed rgba(255,179,71,.35); transition: transform .2s var(--ease), border-color .2s; }
+.cpt-article:hover { transform: translateY(-3px); border-color: rgba(255,179,71,.8); }
+.cpt-article h4 { margin: 4px 0 0; font: 800 20px/1.1 var(--f-titre); letter-spacing: .02em; color: #f4ecd8; }
+.cpt-article p { margin: 0; color: #c9bba3; font-size: 14px; line-height: 1.4; }
+.cpt-visuel { display: grid; place-items: center; height: 120px; }
+.cpt-paquet { display: grid; place-items: center; }
+.cpt-paquet.pile { position: relative; width: 120px; height: 110px; }
+.cpt-paquet.pile span { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%) translateX(calc((var(--i) - 1) * 26px)) rotate(calc((var(--i) - 1) * 9deg)); }
+.cpt-etoile { width: 92px; filter: drop-shadow(0 0 14px rgba(255,210,63,.75)); animation: cpt-etoile 3s ease-in-out infinite; }
+@keyframes cpt-etoile { 50% { transform: rotate(8deg) scale(1.06); } }
+.cpt-recyc { font-size: 64px; line-height: 1; color: #34d399; text-shadow: 0 0 18px rgba(52,211,153,.6); }
+.cpt-achat { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 6px; }
+.cpt-prix { position: relative; white-space: nowrap; flex-shrink: 0; padding: 6px 12px 6px 22px; background: #e9d7a8; color: #3a2412; font: 400 16px/1 var(--f-tampon); clip-path: polygon(12px 0, 100% 0, 100% 100%, 12px 100%, 0 50%); transform: rotate(-3deg); }
+.cpt-prix::before { content: ""; position: absolute; left: 9px; top: 50%; width: 6px; height: 6px; margin-top: -3px; border-radius: 50%; background: #1a1614; }
+.cpt-prix i { font-style: normal; }
+.cpt-prix.gain { background: #b7f0d6; color: #0d3b2a; }
+.cpt-manque { color: #ff8a7a; font-size: 13px; font-weight: 700; }
+.cpt-article.cher .cpt-visuel { filter: saturate(.55) brightness(.8); }
+#cptVendre.confirmer { background: linear-gradient(90deg, #ff3b5c, #ff8a3d); color: #fff; }
+.cpt-choix { margin-top: 18px; padding: 16px; border-radius: 16px; background: rgba(255,255,255,.04); border: 1px solid rgba(255,210,63,.3); }
+.cpt-choix-tete { display: flex; align-items: center; justify-content: space-between; gap: 12px; margin-bottom: 12px; }
+.cpt-choix-tete h3 { margin: 0; font: 800 20px/1.1 var(--f-titre); }
+.choix-etoile-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(128px, 1fr)); gap: 14px; }
+.choix-sup { --w: 100%; display: grid; gap: 6px; padding: 0; border: 0; background: none; color: #fff; cursor: pointer; text-align: center; font: 800 14px/1.2 var(--f-titre, sans-serif); border-radius: 1em; transition: transform .2s; }
+.choix-sup .carte { width: 100%; font-size: clamp(5px, 1vw, 7px); pointer-events: none; }
 .choix-sup span { color: #ffd23f; }
 .choix-sup:hover:not(:disabled), .choix-sup:focus-visible { transform: translateY(-4px); }
 .choix-sup:focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }
-.choix-sup:disabled { cursor: not-allowed; opacity: .5; filter: grayscale(.4); }
+.choix-sup:disabled { cursor: not-allowed; opacity: .5; }
+.choix-sup.brille .carte { animation: cpt-brille 1.2s var(--ease); }
+@keyframes cpt-brille { 0% { filter: brightness(2.4) drop-shadow(0 0 30px #ffd23f); transform: scale(1.08); } 100% { filter: none; transform: none; } }
+.cpt-flotte { position: fixed; z-index: 2147483000; transform: translate(-50%, -100%); font: 400 20px/1 var(--f-tampon); text-shadow: 0 2px 8px rgba(0,0,0,.7); pointer-events: none; animation: cpt-flotte 1.2s ease-out forwards; }
+@keyframes cpt-flotte { to { transform: translate(-50%, -190%); opacity: 0; } }
+.lien-comptoir small { opacity: .75; }
+@media (max-width: 680px) {
+  .cpt-scene { grid-template-columns: 1fr; min-height: 0; padding-top: 70px; }
+  .cpt-bulle { order: -1; margin: 6px 0 10px; border-radius: 18px 18px 4px 18px; }
+  .cpt-bulle::before { left: auto; right: 40px; bottom: -22px; border: 11px solid transparent; border-top: 18px solid #2a1a10; }
+  .cpt-bulle::after { left: auto; right: 43px; bottom: -15px; border: 8px solid transparent; border-top: 13px solid #f4ecd8; }
+  .cpt-gege { width: min(300px, 86%); margin: 0 auto; }
+  .cpt-bourse { grid-template-columns: auto 1fr; } .cpt-bourse p { grid-column: 1 / -1; }
+}
+@media (prefers-reduced-motion: reduce) { .cpt-grains, .cpt-etoile, .cpt-enseigne em { animation: none !important; } .cpt-grains { display: none; } }
 
 </style>
 </head>
@@ -981,6 +1077,7 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
   <nav class="menu-ecrans">
     <button class="onglet" type="button" data-aller="classeur"><span class="long">Collection </span><span id="compteurBarre">0</span></button>
     <button class="onglet" type="button" data-aller="duel">⚔<span class="court"> Duel</span></button>
+    <button class="onglet" type="button" data-aller="comptoir" title="Le Comptoir">🛒<span class="court"> Comptoir</span></button>
     <button class="onglet" type="button" data-aller="objectifs" title="Objectifs">🎯<span class="court"> Objectifs</span></button>
     <button class="onglet" type="button" data-aller="ligue" title="Ligue">🏆<span class="court"> Ligue</span></button>
     <button class="onglet boite-btn" type="button" data-aller="boite" title="Messagerie">✉️<span class="court"> Messagerie</span><b id="badgeBoite" hidden>0</b></button>
@@ -1015,6 +1112,7 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
           <button class="btn alerte" type="button" id="btnOuvrir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M5 4h14v16H5zM5 9h14M12 13v4M10 15h4"/></svg>Ouvrir un booster</button>
           <button class="btn-proba" type="button" id="btnProba" aria-expanded="false" aria-controls="probas" title="Ce qu’il y a dans les boosters (probabilités)">?</button>
           <button class="btn" type="button" data-aller="classeur"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h6v16H4zM10 4h4v16h-4zM15 5l4 1-3 14-4-1"/></svg>Collection</button>
+          <button class="btn" type="button" data-aller="comptoir"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 10h18M5 10V20h14V10M4 10l2-6h12l2 6M10 20v-5h4v5"/></svg>Comptoir <small>poussière</small></button>
           <button class="btn" type="button" data-aller="duel"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20l9-9M13 11l4-7 3 3-7 4M20 20l-9-9M11 11L7 4 4 7l7 4"/></svg>Duel <small>+ boosters</small></button>
           <button class="btn" type="button" data-aller="echanges"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 7h11l-3-3M17 17H6l3 3"/></svg>Amis &amp; échanges <small id="badgeEchanges"></small></button>
         </div>
@@ -1082,6 +1180,11 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
   </section>
 
   <!-- Crédits -->
+  <section class="ecran" id="e-comptoir" hidden>
+    <div class="titre-ecran"><div><h2>Le Comptoir</h2><p>Échange ta poussière de booster avec Gégé, ferrailleur depuis la Grande Panne de 2089.</p></div></div>
+    <div id="zoneComptoir"></div>
+  </section>
+
   <section class="ecran" id="e-credits" hidden>
     <div class="titre-ecran"><div><h2>Crédits</h2><p>Photographes, marques et sportifs</p></div></div>
     <div class="credits" id="credits"></div>
@@ -7591,7 +7694,7 @@ async function recycler(id) {
 
 // ---------- Navigation ----------
 function aller(ecran) {
-  ["accueil", "classeur", "credits", "course", "echanges", "duel", "objectifs", "ligue", "boite"].forEach((e) => ($("e-" + e).hidden = e !== ecran));
+  ["accueil", "classeur", "credits", "course", "echanges", "duel", "objectifs", "ligue", "boite", "comptoir"].forEach((e) => ($("e-" + e).hidden = e !== ecran));
   document.querySelectorAll("[data-aller]").forEach((b) => b.classList.contains("onglet") && b.toggleAttribute("aria-current", b.dataset.aller === ecran));
   if (ecran === "classeur") afficherClasseur();
   if (ecran === "credits") afficherCredits();
@@ -7601,7 +7704,8 @@ function aller(ecran) {
   if (ecran === "objectifs") afficherObjectifs();
   if (ecran === "ligue") afficherLigue();
   if (ecran === "boite") afficherBoite();
-  if (["accueil", "duel", "echanges", "objectifs", "ligue", "boite"].includes(ecran)) appliquerTheme(serieActive);
+  if (ecran === "comptoir") afficherComptoir(); else if (typeof Gege !== "undefined") Gege.arreter();
+  if (["accueil", "duel", "echanges", "objectifs", "ligue", "boite", "comptoir"].includes(ecran)) appliquerTheme(serieActive);
   if (ecran === "classeur") appliquerTheme(serieVue);
   if (ecran === "course") appliquerTheme(1);
   scrollTo({ top: 0, behavior: "instant" });
@@ -7930,54 +8034,17 @@ Serveur.poussiereBooster = function (n) { return this.appel("poussiere_booster",
 Serveur.poussiereEtoile = function (carte) { return this.appel("poussiere_etoile", { carte }); };
 
 const nf = (n) => Number(n || 0).toLocaleString("fr-FR");
-let choixEtoileOuvert = false;
 blocPoussiere = function () {
   const q = (etat && etat.poussiere) || 0, { cartes, gain } = doublons();
-  const nbB = Math.floor(q / PRIX_BOOSTER);
-  const sup = CARTES.filter((c) => c.r === "S" && possede(c.id));
   const pct = Math.min(100, q / PRIX_ETOILE * 100);
   return `<div class="poussiere">
     <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${nf(q)}</b>
       <div class="obj-barre" title="Vers une étoile de Suprême"><i style="width:${pct}%"></i></div>
-      <small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 par doublon recyclé, le double pour une holo. Ta poussière s'accumule : échange-la quand tu veux. ${q < PRIX_ETOILE ? `Encore ${nf(PRIX_ETOILE - q)} pour une étoile de Suprême.` : "Tu peux acheter une étoile de Suprême !"}</small></div>
+      <small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 par doublon recyclé, le double pour une holo. Échange ta poussière chez Gégé : 100 = 1 booster, 10 000 = 1 étoile de Suprême.</small></div>
     <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${nf(gain)})` : "Aucun doublon à recycler"}</button>
-    <div class="poussiere-echanges">
-      <button class="btn" type="button" id="btnPoussBooster" ${nbB ? "" : "disabled"}>📦 1 booster <small>100</small></button>
-      ${nbB >= 10 ? `<button class="btn" type="button" id="btnPoussBooster10">📦 10 boosters <small>1 000</small></button>` : ""}
-      <button class="btn btn-etoile" type="button" id="btnPoussEtoile" aria-expanded="${choixEtoileOuvert}" ${sup.length ? "" : "disabled"} title="${sup.length ? "Choisis la Suprême qui reçoit l'étoile" : "Il faut d'abord posséder une Suprême"}">★ 1 étoile de Suprême <small>10 000</small></button>
-    </div>
-    ${choixEtoileOuvert && sup.length ? `<div class="choix-etoile">
-      <p>Choisis la Suprême qui gagne une étoile (+2 % de puissance en duel). ${q < PRIX_ETOILE ? `<b>Il te manque ${nf(PRIX_ETOILE - q)} poussières.</b>` : ""}</p>
-      <div class="choix-etoile-grille">${sup.map((c) => { const e = etoilesDe(c), plein = e >= ETOILES_MAX;
-        return `<button type="button" class="choix-sup" data-etoile="${c.id}" ${plein || q < PRIX_ETOILE ? "disabled" : ""} aria-label="${esc(c.n)}, ${e} étoile${e > 1 ? "s" : ""}">${carteHTML(c.id)}<span>${plein ? "25 étoiles : maximum" : `${e} → ${e + 1} ★`}</span></button>`; }).join("")}</div>
-    </div>` : ""}
+    <button class="btn lien-comptoir" type="button" data-aller="comptoir">🛒 Le Comptoir de Gégé <small>dépenser</small></button>
   </div>`;
 };
-async function echangerBooster(n) {
-  const r = await (Stock.poussiereBooster ? Stock.poussiereBooster(n) : null)?.catch?.((e) => ({ erreur: e.message }));
-  if (!r || r.erreur) { toast("Échange impossible : " + ((r && r.erreur) || "réessaie")); return; }
-  Son.dechire(); flash();
-  toast(`+${r.boosters} booster${r.boosters > 1 ? "s" : ""} ! Il${r.boosters > 1 ? "s sont" : " est"} prêt${r.boosters > 1 ? "s" : ""} à ouvrir.`);
-  await majEtat(); afficherClasseur();
-}
-let achatEtoileEnCours = false;
-async function acheterEtoile(id) {
-  if (achatEtoileEnCours) return; achatEtoileEnCours = true;
-  const r = await Stock.poussiereEtoile(id).catch((e) => ({ erreur: e.message }));
-  achatEtoileEnCours = false;
-  if (!r || r.erreur) { toast("Impossible : " + ((r && r.erreur) || "réessaie")); return; }
-  Son.rare("S"); flash();
-  await majEtat();
-  toast(`★ ${PAR_ID[id].n} passe à ${r.etoiles} étoile${r.etoiles > 1 ? "s" : ""} !`);
-  choixEtoileOuvert = false; afficherClasseur(); zoomer(id);
-}
-document.addEventListener("click", (e) => {
-  const t = e.target;
-  if (t.closest("#btnPoussBooster")) return echangerBooster(1);
-  if (t.closest("#btnPoussBooster10")) return echangerBooster(10);
-  if (t.closest("#btnPoussEtoile")) { choixEtoileOuvert = !choixEtoileOuvert; $("zonePoussiere").innerHTML = blocPoussiere(); $("btnRecyclerTout").onclick = () => recycler(null); if (choixEtoileOuvert) $("zonePoussiere").querySelector(".choix-etoile")?.scrollIntoView({ block: "nearest", behavior: "smooth" }); return; }
-  const s = t.closest("[data-etoile]"); if (s && !s.disabled) { e.stopPropagation(); acheterEtoile(s.dataset.etoile); }
-}, true);
 // Recyclage : la poussière s'accumule (plus de booster automatique)
 recycler = async function (id) {
   if (!id && !confirmeRecyclage) {
@@ -7995,6 +8062,400 @@ recycler = async function (id) {
   await Promise.all([chargerCollection(), majEtat()]);
   afficherClasseur(); majBoite(true);
 };
+
+// Gégé, ferrailleur de l'après-Grande Panne (dessin original en SVG, chaque partie s'anime séparément)
+const MARCHAND_SVG = `<svg class="gege" viewBox="0 0 320 360" role="img" aria-label="Gégé, le marchand du Comptoir">
+<defs>
+  <radialGradient id="gg-lentille" cx="35%" cy="30%" r="75%"><stop offset="0" stop-color="#d9ffe9"/><stop offset=".35" stop-color="#39ff88"/><stop offset="1" stop-color="#0b5a33"/></radialGradient>
+  <linearGradient id="gg-peau" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#e2ad82"/><stop offset="1" stop-color="#c58a5e"/></linearGradient>
+  <linearGradient id="gg-cape" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#6b5a40"/><stop offset="1" stop-color="#3f3426"/></linearGradient>
+  <linearGradient id="gg-capuche" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#5c4c35"/><stop offset="1" stop-color="#3a2f22"/></linearGradient>
+  <linearGradient id="gg-tole" x1="0" y1="0" x2="1" y2="0">
+    <stop offset="0" stop-color="#4a5560"/><stop offset=".5" stop-color="#6d7a86"/><stop offset="1" stop-color="#3b444d"/></linearGradient>
+  <pattern id="gg-ondule" width="16" height="10" patternUnits="userSpaceOnUse"><rect width="16" height="10" fill="url(#gg-tole)"/><rect width="3" height="10" x="6" fill="rgba(255,255,255,.12)"/><rect width="2" height="10" x="13" fill="rgba(0,0,0,.25)"/></pattern>
+  <pattern id="gg-danger" width="20" height="20" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="20" height="20" fill="#ffd23f"/><rect width="10" height="20" fill="#1b1b1b"/></pattern>
+  <radialGradient id="gg-lueur" cx="50%" cy="60%" r="60%"><stop offset="0" stop-color="#7df9ff" stop-opacity=".95"/><stop offset="1" stop-color="#22d3ee" stop-opacity="0"/></radialGradient>
+</defs>
+<g class="gg-corps">
+  <!-- cape -->
+  <path d="M28 360 L58 262 Q78 214 160 206 Q242 214 262 262 L292 360 Z" fill="url(#gg-cape)"/>
+  <path d="M58 262 L50 300 M262 262 L272 304 M120 230 L112 300 M205 228 L214 296" stroke="rgba(0,0,0,.25)" stroke-width="3" fill="none"/>
+  <path d="M150 300 l8 -14 l6 12 z M96 290 l10 -10 l2 13z" fill="#7a6a4c"/>
+  <!-- épaulière rouillée -->
+  <path d="M56 262 Q70 226 116 222 L124 254 Q94 262 64 272 Z" fill="#8c5634"/>
+  <path d="M62 258 Q76 234 112 230" stroke="#b9774a" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <path d="M70 262 q10 -4 14 4 q-8 6 -14 -4z" fill="#5d3620" opacity=".7"/>
+  <circle cx="74" cy="255" r="3" fill="#d9a06a"/><circle cx="96" cy="244" r="3" fill="#d9a06a"/><circle cx="112" cy="248" r="3" fill="#d9a06a"/>
+  <!-- sangle + masque à gaz pendu -->
+  <path d="M120 222 Q170 250 214 286" stroke="#2a221a" stroke-width="7" fill="none"/>
+  <g class="gg-masque">
+    <ellipse cx="214" cy="292" rx="28" ry="30" fill="#3a4148"/>
+    <ellipse cx="214" cy="292" rx="28" ry="30" fill="none" stroke="#1d2226" stroke-width="3"/>
+    <circle cx="202" cy="282" r="9" fill="#11171b" stroke="#6d7a86" stroke-width="3"/><circle cx="226" cy="282" r="9" fill="#11171b" stroke="#6d7a86" stroke-width="3"/>
+    <circle cx="200" cy="279" r="3" fill="rgba(125,249,255,.5)"/><circle cx="224" cy="279" r="3" fill="rgba(125,249,255,.5)"/>
+    <circle cx="214" cy="310" r="13" fill="#545e68" stroke="#1d2226" stroke-width="3"/>
+    <path d="M206 306 h16 M206 310 h16 M206 314 h16" stroke="#1d2226" stroke-width="2"/>
+  </g>
+  <!-- foulard -->
+  <path d="M112 206 Q160 236 208 206 L214 226 Q160 258 106 226 Z" fill="#a8402f"/>
+  <path d="M118 216 Q160 242 202 216" stroke="#d0644c" stroke-width="3" fill="none"/>
+  <path d="M188 228 l18 34 l-14 -2 l-8 12 z" fill="#8f3426"/>
+  <g class="gg-tete">
+    <!-- cou -->
+    <rect x="140" y="182" width="40" height="30" fill="#b97f55"/>
+    <!-- capuche (arrière) -->
+    <path d="M96 168 Q86 54 160 42 Q234 54 224 168 Q212 196 196 202 L198 120 Q160 92 122 120 L124 202 Q108 196 96 168 Z" fill="url(#gg-capuche)"/>
+    <!-- oreilles -->
+    <ellipse cx="119" cy="140" rx="8" ry="13" fill="#c58a5e"/><ellipse cx="201" cy="140" rx="8" ry="13" fill="#c58a5e"/>
+    <!-- visage -->
+    <path d="M122 118 Q122 76 160 74 Q198 76 198 118 L197 156 Q192 192 160 198 Q128 192 123 156 Z" fill="url(#gg-peau)"/>
+    <!-- barbe de trois jours -->
+    <path d="M124 150 Q128 190 160 197 Q192 190 196 150 Q186 170 160 172 Q134 170 124 150 Z" fill="#5a4030" opacity=".38"/>
+    <!-- cicatrice -->
+    <path d="M131 132 l14 22 M134 140 l6 -2 M138 147 l6 -2" stroke="#a65f4c" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    <!-- crasse -->
+    <ellipse cx="186" cy="156" rx="7" ry="4" fill="#6b4a36" opacity=".3"/>
+    <!-- sourcils -->
+    <path class="gg-sourcil g" d="M131 113 Q142 106 153 112" stroke="#4a3526" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <path class="gg-sourcil d" d="M167 112 Q178 106 189 113" stroke="#4a3526" stroke-width="5" stroke-linecap="round" fill="none"/>
+    <!-- yeux -->
+    <g class="gg-oeil g"><ellipse cx="142" cy="127" rx="9" ry="7" fill="#f3ead8"/><g class="gg-pupille"><circle cx="142" cy="127" r="4.4" fill="#3b2a1d"/><circle cx="143.6" cy="125.4" r="1.4" fill="#fff"/></g>
+      <rect class="gg-paupiere" x="131" y="118" width="22" height="17" fill="#d29a6d"/></g>
+    <g class="gg-oeil d"><ellipse cx="178" cy="127" rx="9" ry="7" fill="#f3ead8"/><g class="gg-pupille"><circle cx="178" cy="127" r="4.4" fill="#3b2a1d"/><circle cx="179.6" cy="125.4" r="1.4" fill="#fff"/></g>
+      <rect class="gg-paupiere" x="167" y="118" width="22" height="17" fill="#d29a6d"/></g>
+    <path d="M131 136 q11 5 22 0 M167 136 q11 5 22 0" stroke="#a8714c" stroke-width="1.6" fill="none" opacity=".7"/>
+    <!-- nez -->
+    <path d="M160 128 Q157 146 151 152 Q158 158 166 153" stroke="#9c6744" stroke-width="3" fill="none" stroke-linecap="round"/>
+    <!-- bouche (plusieurs formes, une seule visible) -->
+    <g class="gg-bouche">
+      <path class="b-fermee" d="M147 172 Q160 175 173 172" stroke="#5a2e22" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+      <g class="b-ouverte"><path d="M146 169 Q160 166 174 169 Q172 184 160 185 Q148 184 146 169 Z" fill="#3a1410"/><path d="M151 180 Q160 176 169 180 Q165 184 160 184 Q155 184 151 180Z" fill="#c4544a"/><path d="M149 170 h22 v3 h-22z" fill="#efe6cf"/></g>
+      <g class="b-mi"><path d="M148 170 Q160 168 172 170 Q170 177 160 178 Q150 177 148 170 Z" fill="#3a1410"/><rect x="151" y="169.5" width="18" height="2.4" fill="#efe6cf"/></g>
+      <path class="b-sourire" d="M144 168 Q160 184 176 168 Q160 178 144 168 Z" fill="#3a1410" stroke="#5a2e22" stroke-width="2.4" stroke-linejoin="round"/>
+      <path class="b-triste" d="M148 177 Q160 169 172 177" stroke="#5a2e22" stroke-width="3.2" fill="none" stroke-linecap="round"/>
+    </g>
+    <!-- moustache -->
+    <path d="M140 166 Q150 158 160 163 Q170 158 180 166 Q176 172 168 168 Q162 166 160 168 Q158 166 152 168 Q144 172 140 166 Z" fill="#6b5240"/>
+    <!-- capuche (bord avant) -->
+    <path d="M100 160 Q96 70 160 56 Q224 70 220 160 Q214 110 196 96 Q160 76 124 96 Q106 110 100 160 Z" fill="#4d3f2c"/>
+    <path d="M110 120 Q120 86 160 74 Q200 86 210 120" stroke="#2c241a" stroke-width="3" fill="none" opacity=".6"/>
+    <!-- mèches -->
+    <path d="M128 92 q6 12 2 22 q8 -10 14 -2 q2 -12 10 -16 q6 8 4 18 q8 -10 18 -6 q-2 -10 6 -14 q4 10 0 20 q6 -8 10 2" fill="none" stroke="#7a6a58" stroke-width="4" opacity=".8" stroke-linecap="round" stroke-linejoin="round"/>
+    <!-- lunettes de soudeur sur le front -->
+    <path d="M114 98 Q160 84 206 98" stroke="#2a221a" stroke-width="8" fill="none"/>
+    <g class="gg-lunettes">
+      <circle cx="141" cy="94" r="16" fill="#c99a3c"/><circle cx="179" cy="94" r="16" fill="#c99a3c"/>
+      <circle cx="141" cy="94" r="11.5" fill="url(#gg-lentille)"/><circle cx="179" cy="94" r="11.5" fill="url(#gg-lentille)"/>
+      <rect x="155" y="90" width="10" height="7" rx="2" fill="#8a6a2a"/>
+      <path d="M134 88 q4 -4 9 -3 M172 88 q4 -4 9 -3" stroke="#fff" stroke-width="2.2" stroke-linecap="round" opacity=".85"/>
+      <circle cx="129" cy="88" r="1.8" fill="#6e521c"/><circle cx="153" cy="88" r="1.8" fill="#6e521c"/><circle cx="167" cy="88" r="1.8" fill="#6e521c"/><circle cx="191" cy="88" r="1.8" fill="#6e521c"/>
+    </g>
+  </g>
+  <!-- mains sur le comptoir -->
+  <g class="gg-mains">
+    <path d="M70 300 q-6 -18 10 -22 h26 q12 2 10 22 z" fill="#3b2f25"/>
+    <path d="M78 284 q2 -8 7 -8 q4 0 4 8 M90 282 q2 -8 7 -8 q4 0 4 8 M102 284 q2 -7 6 -7 q4 0 4 9" fill="#d29a6d" stroke="#9c6744" stroke-width="1.5"/>
+    <path d="M204 300 q-2 -20 12 -22 h22 q14 4 10 22 z" fill="#3b2f25"/>
+    <path d="M212 283 q2 -8 7 -8 q4 0 4 8 M224 281 q2 -8 7 -8 q4 0 4 8 M236 283 q2 -7 6 -7 q4 0 4 9" fill="#d29a6d" stroke="#9c6744" stroke-width="1.5"/>
+  </g>
+</g>
+<!-- bocal de poussière -->
+<g class="gg-bocal">
+  <ellipse cx="270" cy="270" rx="34" ry="34" fill="url(#gg-lueur)" class="gg-halo"/>
+  <rect x="250" y="236" width="40" height="60" rx="10" fill="rgba(180,240,255,.16)" stroke="rgba(200,250,255,.7)" stroke-width="2.5"/>
+  <rect x="248" y="228" width="44" height="10" rx="3" fill="#8c5634"/>
+  <path d="M254 262 Q270 256 286 262 V286 Q286 292 280 292 H260 Q254 292 254 286 Z" fill="#22d3ee" opacity=".55"/>
+  <g class="gg-grains" fill="#d9fdff"><circle cx="262" cy="276" r="1.8"/><circle cx="272" cy="270" r="1.4"/><circle cx="280" cy="280" r="1.6"/><circle cx="266" cy="284" r="1.2"/><circle cx="276" cy="286" r="1.5"/></g>
+  <path d="M256 244 v34" stroke="#fff" stroke-width="3" stroke-linecap="round" opacity=".45"/>
+</g>
+<!-- compteur Geiger -->
+<g class="gg-geiger">
+  <rect x="22" y="262" width="44" height="36" rx="5" fill="#d9b24a" stroke="#6e521c" stroke-width="2"/>
+  <rect x="28" y="268" width="32" height="16" rx="2" fill="#f5f0dc"/>
+  <path d="M31 282 A13 13 0 0 1 57 282" fill="none" stroke="#888" stroke-width="1.2"/>
+  <path class="gg-aiguille" d="M44 283 L52 271" stroke="#d33" stroke-width="2" stroke-linecap="round"/>
+  <circle class="gg-led" cx="58" cy="291" r="3" fill="#ff3b3b"/>
+  <path d="M30 262 q-6 -12 4 -20" stroke="#2a221a" stroke-width="3" fill="none"/>
+</g>
+<!-- comptoir en tôle -->
+<g class="gg-comptoir">
+  <rect x="0" y="296" width="320" height="64" fill="url(#gg-ondule)"/>
+  <rect x="0" y="292" width="320" height="10" fill="url(#gg-danger)"/>
+  <rect x="0" y="292" width="320" height="10" fill="none" stroke="#1b1b1b" stroke-width="2"/>
+  <path d="M30 318 q20 -6 40 4 q-6 18 -30 14 z M230 330 q24 -10 50 2 q-10 20 -46 10z" fill="#8c4a26" opacity=".55"/>
+  <g transform="rotate(-4 160 330)"><rect x="112" y="314" width="96" height="30" rx="2" fill="#efe6cf"/><text x="160" y="334" text-anchor="middle" font-family="Bungee, Arial Black, sans-serif" font-size="12" fill="#a8402f">PAS DE CRÉDIT</text></g>
+  <circle cx="8" cy="310" r="2.5" fill="#2a3036"/><circle cx="312" cy="310" r="2.5" fill="#2a3036"/>
+</g>
+</svg>`;
+
+// ---------- Le Comptoir de Gégé : on échange sa poussière de booster ----------
+const GEGE_LIGNES = {
+  salut: [
+    "Salut l'ami. Approche : ici, la poussière vaut de l'or.",
+    "Depuis la Grande Panne de 2089, plus personne n'a de billets. Moi, je prends que la poussière.",
+    "Bienvenue au Comptoir. Fais pas attention au compteur Geiger, il clique tout seul.",
+    "T'as des doublons ? Je les rachète. Tout se recycle, même la fin du monde.",
+    "Ah, un client ! Ça faisait trois jours. Enfin, je crois. J'ai plus de calendrier.",
+  ],
+  booster: "Un booster tout neuf, presque pas irradié. 100 poussières.",
+  lot: "Le lot de dix. Trouvé dans un supermarché effondré, scellés d'origine, juré.",
+  etoile: "Une étoile pour ta Suprême. J'en décroche une par an, à la jumelle. 10 000, pas moins.",
+  vendre: "Tes doublons contre de la poussière. Je te laisse toujours un exemplaire de chaque, je suis pas un monstre.",
+  merci: [
+    "Marché conclu ! C'est rangé dans tes boosters.",
+    "Plaisir de faire affaire. Je bouge pas d'ici, de toute façon.",
+    "Vendu ! Fais-en bon usage, y en a plus beaucoup des comme ça.",
+    "Tope là. Enfin, pas trop fort, j'ai le poignet rouillé.",
+  ],
+  manque: (n) => `Il te manque ${nf(n)} poussières, l'ami. Ici on fait pas crédit : la banque a fondu en 2089.`,
+  choix: "Laquelle on fait briller ? Clique sur ta Suprême.",
+  sansSupreme: "T'as pas encore de Suprême. Reviens quand t'en auras dégoté une, je te ferai un prix… enfin non, le même prix.",
+  brille: (nom, n) => `Regarde-moi ça… ${nom} passe à ${n} étoile${n > 1 ? "s" : ""} ! Même mes lunettes en pleurent.`,
+  max: "Elle a déjà 25 étoiles. J'ai rien de plus brillant en stock, même au fond du bocal.",
+  vendu: (g, n) => `${n} doublon${n > 1 ? "s" : ""} contre ${nf(g)} poussières. Merci pour la ferraille !`,
+  rienAVendre: "T'as aucun doublon à me vendre. Ouvre quelques boosters et repasse.",
+  confirmer: "Sûr ? Je garde un exemplaire de chaque carte pour toi. Reclique pour vendre.",
+  erreur: (e) => `Aïe, la machine a grillé : ${e}. Réessaie dans un instant.`,
+  clic: [
+    "Hé, on touche pas la marchandise. Ni le marchand.",
+    "Ce masque à gaz ? Souvenir de la Grande Tempête de poussière de 2091.",
+    "Mes lunettes voient dans le noir. Enfin, elles voyaient.",
+    "Avant la fin du monde, j'étais comptable. Ça aide pour les prix.",
+    "Le bocal, c'est mes économies. Pas touche.",
+    "Tu veux savoir comment j'ai eu ma cicatrice ? Un booster mal ouvert. Véridique.",
+    "Gégé, c'est pour Gérard. Mais plus personne m'appelle comme ça depuis 2089.",
+  ],
+  attente: [
+    "Tu comptes acheter ou t'admires mes lunettes ?",
+    "Prends ton temps. Le monde est déjà fini, on n'est plus pressés.",
+    "Psst… Le lot de dix, c'est le meilleur rapport poussière-bonheur.",
+  ],
+};
+const hasardDe = (t) => t[Math.floor(Math.random() * t.length)];
+
+// Voix de Gégé : petits grognements carrés, un par syllabe
+let gegeCtx = null;
+function gegeBip() {
+  if (!Son.actif) return;
+  try {
+    gegeCtx ||= new (window.AudioContext || window.webkitAudioContext)();
+    if (gegeCtx.state === "suspended") gegeCtx.resume();
+    const c = gegeCtx, o = c.createOscillator(), f = c.createBiquadFilter(), g = c.createGain(), t = c.currentTime;
+    o.type = "square"; o.frequency.setValueAtTime(90 + Math.random() * 70, t); o.frequency.exponentialRampToValueAtTime(70 + Math.random() * 30, t + .08);
+    f.type = "lowpass"; f.frequency.value = 900;
+    g.gain.setValueAtTime(0, t); g.gain.linearRampToValueAtTime(.06, t + .01); g.gain.exponentialRampToValueAtTime(.001, t + .08);
+    o.connect(f).connect(g).connect(c.destination); o.start(t); o.stop(t + .1);
+  } catch {}
+}
+
+const Gege = {
+  jeton: 0, humeurT: null, minuteurs: [], derniere: Date.now(),
+  get svg() { return document.querySelector("#e-comptoir .gege"); },
+  visible() { return !$("e-comptoir").hidden && !document.hidden; },
+  humeur(h, ms = 2600) {
+    const s = this.svg; if (!s) return;
+    s.classList.remove("content", "triste", "epate");
+    if (h) s.classList.add(...h.split(" "));
+    clearTimeout(this.humeurT);
+    if (h && ms) this.humeurT = setTimeout(() => this.svg?.classList.remove("content", "triste", "epate"), ms);
+  },
+  async dire(texte, humeur = "", ms = 3200) {
+    const j = ++this.jeton, s = this.svg, p = $("gegeTexte"); if (!s || !p) return;
+    this.derniere = Date.now();
+    if (humeur) this.calme = Date.now() + texte.length * 26 + 2500;
+    this.humeur(humeur, 0);
+    p.textContent = ""; s.classList.add("parle");
+    const vitesse = reduit ? 0 : 26;
+    if (!vitesse) p.textContent = texte;
+    else for (let i = 0; i < texte.length; i++) {
+      if (j !== this.jeton) return;
+      const ch = texte[i]; p.textContent += ch;
+      s.classList.remove("b-o", "b-m");
+      if (/[a-zàâéèêëîïôöùûüç]/i.test(ch)) { s.classList.add(i % 3 === 0 ? "b-o" : "b-m"); if (i % 3 === 0) gegeBip(); }
+      await pause(/[.,!?…:]/.test(ch) ? vitesse * 5 : vitesse);
+    }
+    if (j !== this.jeton) return;
+    s.classList.remove("parle", "b-o", "b-m");
+    if (humeur) this.humeur(humeur, ms);
+  },
+  demarrer() {
+    this.arreter();
+    // clignement des yeux
+    const cligne = () => {
+      if (!this.visible()) return;
+      const s = this.svg; if (!s) return;
+      s.classList.add("cligne"); setTimeout(() => s.classList.remove("cligne"), 130);
+      if (Math.random() < .25) setTimeout(() => { s.classList.add("cligne"); setTimeout(() => s.classList.remove("cligne"), 120); }, 260);
+    };
+    const boucle = () => { cligne(); this.minuteurs.push(setTimeout(boucle, 2200 + Math.random() * 3200)); };
+    this.minuteurs.push(setTimeout(boucle, 1500));
+    // il s'impatiente si on ne fait rien
+    this.minuteurs.push(setInterval(() => {
+      if (this.visible() && Date.now() - this.derniere > 28000) this.dire(hasardDe(GEGE_LIGNES.attente));
+    }, 5000));
+  },
+  arreter() { this.minuteurs.forEach((t) => { clearTimeout(t); clearInterval(t); }); this.minuteurs = []; },
+};
+// Ses yeux suivent le pointeur
+document.addEventListener("pointermove", (e) => {
+  if ($("e-comptoir").hidden) return;
+  const s = Gege.svg; if (!s) return;
+  const r = s.getBoundingClientRect(), cx = r.left + r.width * .5, cy = r.top + r.height * .35;
+  const dx = e.clientX - cx, dy = e.clientY - cy, d = Math.hypot(dx, dy) || 1, k = Math.min(1, d / 300);
+  const tx = (dx / d) * 3.6 * k, ty = (dy / d) * 2.6 * k;
+  s.querySelectorAll(".gg-pupille").forEach((p) => (p.style.transform = `translate(${tx}px, ${ty}px)`));
+}, { passive: true });
+
+const PRIX = { booster: PRIX_BOOSTER, lot: PRIX_BOOSTER * 10, etoile: PRIX_ETOILE };
+const maPoussiere = () => (etat && etat.poussiere) || 0;
+
+function afficherComptoir() {
+  const z = $("zoneComptoir");
+  const grains = Array.from({ length: 16 }, (_, i) => `<i style="--x:${Math.round(Math.random() * 100)}%;--y:${Math.round(10 + Math.random() * 80)}%;--d:${(6 + Math.random() * 8).toFixed(1)}s;--k:${(-Math.random() * 10).toFixed(1)}s;--t:${(1 + Math.random() * 2.5).toFixed(1)}px"></i>`).join("");
+  z.innerHTML = `
+  <div class="cpt-scene">
+    <div class="cpt-soleil"></div>
+    <svg class="cpt-ville" viewBox="0 0 1000 220" preserveAspectRatio="none" aria-hidden="true">
+      <path d="M0 220 V150 h40 v-30 h30 v40 h20 V95 l20 -12 l18 20 V170 h40 v-60 h26 l8 -18 l10 26 v52 h34 V60 h12 v-14 h8 v14 h14 V170 h30 v-40 h44 v-24 l14 12 v52 h26 V120 l30 -26 l6 20 l14 -8 V170 h40 v-90 h20 l12 22 h8 V170 h36 v-30 h50 V100 l-10 -16 h46 V170 h30 v-50 h40 v-36 l16 -20 l10 30 V170 h48 v-20 h40 V220 Z" fill="#1a0f1f"/>
+      <path d="M0 220 V185 h80 v-14 h60 v20 h90 v-26 h70 v18 h120 v-12 h90 v22 h110 v-16 h100 v12 h130 v-20 h150 V220Z" fill="#0f0913"/>
+      <g fill="#ffb347" opacity=".75"><rect x="254" y="80" width="5" height="7"/><rect x="266" y="110" width="5" height="7"/><rect x="560" y="120" width="5" height="7"/><rect x="742" y="104" width="5" height="7"/><rect x="384" y="140" width="5" height="7"/></g>
+      <path d="M262 46 V30 M262 30 l-8 -6 M262 30 l8 -6" stroke="#1a0f1f" stroke-width="3"/>
+    </svg>
+    <div class="cpt-grains" aria-hidden="true">${grains}</div>
+    <div class="cpt-enseigne" aria-hidden="true"><span>LE C<em>O</em>MPTOIR</span><small>DE GÉGÉ · DEPUIS 2089</small></div>
+    <button class="cpt-gege" type="button" id="cptGege" aria-label="Parler à Gégé">${MARCHAND_SVG}</button>
+    <div class="cpt-bulle"><b>Gégé</b><p id="gegeTexte" aria-live="polite"></p></div>
+  </div>
+  <div id="cptBoutique"></div>
+  <div id="cptChoix"></div>`;
+  majComptoir();
+  $("cptGege").onclick = () => { Gege.humeur("epate", 900); Gege.dire(hasardDe(GEGE_LIGNES.clic)); };
+  Gege.demarrer();
+  Gege.dire(hasardDe(GEGE_LIGNES.salut));
+}
+
+function majComptoir() {
+  const b = $("cptBoutique"); if (!b) return;
+  const q = maPoussiere(), { cartes, gain } = doublons();
+  const article = (cle, visuel, titre, texte, prix) => {
+    const manque = Math.max(0, prix - q);
+    return `<article class="cpt-article${manque ? " cher" : ""}" data-article="${cle}">
+      <div class="cpt-visuel">${visuel}</div>
+      <h4>${titre}</h4><p>${texte}</p>
+      <div class="cpt-achat"><span class="cpt-prix">${nf(prix)} <i>✨</i></span>
+        <button class="btn${manque ? "" : " alerte"}" type="button" data-acheter="${cle}">Acheter</button></div>
+      ${manque ? `<small class="cpt-manque">Il manque ${nf(manque)}</small>` : ""}
+    </article>`;
+  };
+  const etoile = `<svg viewBox="0 0 100 100" class="cpt-etoile" aria-hidden="true"><path d="M50 6 L62 38 L96 40 L69 61 L79 94 L50 75 L21 94 L31 61 L4 40 L38 38 Z" fill="#ffd23f" stroke="#fff6c8" stroke-width="3" stroke-linejoin="round"/></svg>`;
+  b.innerHTML = `
+    <div class="cpt-bourse">
+      <div class="cpt-bocal" aria-hidden="true"><i style="height:${Math.min(100, 8 + q / PRIX_ETOILE * 92)}%"></i></div>
+      <div><small>Ta poussière de booster</small><b id="cptPoussiere">${nf(q)}</b></div>
+      <p>${q >= PRIX_ETOILE ? "De quoi t'offrir une étoile de Suprême !" : `Encore ${nf(PRIX_ETOILE - q)} pour une étoile de Suprême.`}</p>
+    </div>
+    <h3 class="cpt-rayon">Acheter</h3>
+    <div class="cpt-articles">
+      ${article("booster", `<div class="cpt-paquet">${paquetHTML("78px", serieActive)}</div>`, "Un booster", "Il rejoint tes boosters disponibles : ouvre-le dans la série de ton choix.", PRIX.booster)}
+      ${article("lot", `<div class="cpt-paquet pile">${[0, 1, 2].map((i) => `<span style="--i:${i}">${paquetHTML("70px", serieActive)}</span>`).join("")}</div>`, "Le lot de dix", "Dix boosters d'un coup. Parfait pour enchaîner avec « Ouvrir ×20 ».", PRIX.lot)}
+      ${article("etoile", etoile, "Une étoile de Suprême", "+1 étoile sur la Suprême de ton choix : +2 % de puissance en duel (25 au maximum).", PRIX.etoile)}
+    </div>
+    <h3 class="cpt-rayon">Vendre</h3>
+    <div class="cpt-articles">
+      <article class="cpt-article vente" data-article="vendre">
+        <div class="cpt-visuel"><span class="cpt-recyc">♻</span></div>
+        <h4>Tes doublons</h4><p>${cartes ? `${cartes} doublon${cartes > 1 ? "s" : ""} à vendre. Gégé garde jamais ton dernier exemplaire, et les doublons de Suprêmes restent des étoiles.` : "Aucun doublon pour l'instant."}</p>
+        <div class="cpt-achat"><span class="cpt-prix gain">+${nf(gain)} <i>✨</i></span>
+          <button class="btn${cartes ? " alerte" : ""}" type="button" id="cptVendre" ${cartes ? "" : "disabled"}>Vendre</button></div>
+      </article>
+    </div>`;
+}
+
+function flotte(el, texte, couleur) {
+  if (!el) return;
+  const r = el.getBoundingClientRect(), f = document.createElement("div");
+  f.className = "cpt-flotte"; f.textContent = texte; f.style.color = couleur || "";
+  f.style.left = r.left + r.width / 2 + "px"; f.style.top = r.top + "px";
+  document.body.appendChild(f); setTimeout(() => f.remove(), 1300);
+}
+
+let cptOccupe = false;
+async function cptAcheter(cle, bouton) {
+  if (cptOccupe) return;
+  const q = maPoussiere();
+  if (cle === "etoile") return cptChoixEtoile();
+  if (q < PRIX[cle]) { Son.erreur(); Gege.dire(GEGE_LIGNES.manque(PRIX[cle] - q), "triste"); return; }
+  cptOccupe = true;
+  const n = cle === "lot" ? 10 : 1;
+  const r = await Stock.poussiereBooster(n).catch((e) => ({ erreur: e.message }));
+  cptOccupe = false;
+  if (!r || r.erreur) { Son.erreur(); Gege.dire(GEGE_LIGNES.erreur((r && r.erreur) || "réessaie"), "triste"); return; }
+  Son.dechire(); flotte(bouton, `+${n} booster${n > 1 ? "s" : ""}`, "#ffd23f"); flotte($("cptPoussiere"), `−${nf(PRIX[cle])}`, "#7df9ff");
+  await majEtat(); majComptoir();
+  Gege.dire(hasardDe(GEGE_LIGNES.merci), "content");
+}
+
+function cptChoixEtoile(brille) {
+  const z = $("cptChoix"), q = maPoussiere();
+  const sup = CARTES.filter((c) => c.r === "S" && possede(c.id));
+  if (!sup.length) { z.innerHTML = ""; Gege.dire(GEGE_LIGNES.sansSupreme, "triste"); return; }
+  z.innerHTML = `<div class="cpt-choix">
+    <div class="cpt-choix-tete"><h3>Quelle Suprême gagne une étoile ?</h3><button class="onglet" type="button" id="cptChoixFermer">Fermer</button></div>
+    <div class="choix-etoile-grille">${sup.map((c) => { const e = etoilesDe(c), plein = e >= ETOILES_MAX;
+      return `<button type="button" class="choix-sup${brille === c.id ? " brille" : ""}" data-etoile="${c.id}" ${plein ? "disabled" : ""} aria-label="${esc(c.n)}, ${e} étoile${e > 1 ? "s" : ""}">${carteHTML(c.id)}<span>${plein ? "25 ★ : maximum" : `${e} → ${e + 1} ★`}</span></button>`; }).join("")}</div>
+  </div>`;
+  $("cptChoixFermer").onclick = () => { z.innerHTML = ""; };
+  if (!brille) {
+    z.scrollIntoView({ block: "start", behavior: reduit ? "auto" : "smooth" });
+    Gege.dire(q < PRIX_ETOILE ? GEGE_LIGNES.manque(PRIX_ETOILE - q) : GEGE_LIGNES.choix, q < PRIX_ETOILE ? "triste" : "");
+  }
+}
+async function cptAcheterEtoile(id, el) {
+  if (cptOccupe) return;
+  const c = PAR_ID[id], q = maPoussiere();
+  if (etoilesDe(c) >= ETOILES_MAX) { Gege.dire(GEGE_LIGNES.max, "triste"); return; }
+  if (q < PRIX_ETOILE) { Son.erreur(); Gege.dire(GEGE_LIGNES.manque(PRIX_ETOILE - q), "triste"); return; }
+  cptOccupe = true;
+  const r = await Stock.poussiereEtoile(id).catch((e) => ({ erreur: e.message }));
+  cptOccupe = false;
+  if (!r || r.erreur) { Son.erreur(); Gege.dire(GEGE_LIGNES.erreur((r && r.erreur) || "réessaie"), "triste"); return; }
+  Son.rare("S"); flotte(el, "+1 ★", "#ffd23f"); flotte($("cptPoussiere"), `−${nf(PRIX_ETOILE)}`, "#7df9ff");
+  await majEtat(); majComptoir(); cptChoixEtoile(id);
+  Gege.dire(GEGE_LIGNES.brille(c.n, r.etoiles), "content epate", 4000);
+}
+let cptConfirme = false;
+async function cptVendre() {
+  if (cptOccupe) return;
+  const { cartes } = doublons();
+  if (!cartes) { Gege.dire(GEGE_LIGNES.rienAVendre); return; }
+  if (!cptConfirme) {
+    cptConfirme = true; const b = $("cptVendre"); b.textContent = "Confirmer"; b.classList.add("confirmer");
+    Gege.dire(GEGE_LIGNES.confirmer);
+    setTimeout(() => { if (cptConfirme) { cptConfirme = false; majComptoir(); } }, 5000);
+    return;
+  }
+  cptConfirme = false; cptOccupe = true;
+  const r = await Stock.recycler(null).catch((e) => ({ erreur: e.message }));
+  cptOccupe = false;
+  if (!r || r.erreur) { Gege.dire(GEGE_LIGNES.erreur((r && r.erreur) || "réessaie"), "triste"); return; }
+  Son.dechire(); flotte($("cptPoussiere"), `+${nf(r.gain)}`, "#34d399");
+  await Promise.all([chargerCollection(), majEtat()]); majComptoir(); majBoite(true);
+  Gege.dire(GEGE_LIGNES.vendu(r.gain, r.cartes), "content");
+}
+document.addEventListener("click", (e) => {
+  if ($("e-comptoir").hidden) return;
+  const a = e.target.closest("[data-acheter]"); if (a) { cptAcheter(a.dataset.acheter, a); return; }
+  const s = e.target.closest("#cptChoix [data-etoile]"); if (s && !s.disabled) { cptAcheterEtoile(s.dataset.etoile, s); return; }
+  if (e.target.closest("#cptVendre")) { cptVendre(); return; }
+});
+// Gégé commente l'article qu'on survole
+document.addEventListener("pointerover", (e) => {
+  if ($("e-comptoir").hidden || e.pointerType === "touch") return;
+  const a = e.target.closest(".cpt-article"); if (!a || a === Gege.survol || Date.now() < (Gege.calme || 0)) return;
+  Gege.survol = a;
+  const t = GEGE_LIGNES[a.dataset.article]; if (t) Gege.dire(t);
+});
+document.addEventListener("pointerout", (e) => { const a = e.target.closest?.(".cpt-article"); if (a && !a.contains(e.relatedTarget)) Gege.survol = null; });
 
 // =========================================================
 // CARTE GRISE : la course (pseudo-3D façon arcade) et les échanges
