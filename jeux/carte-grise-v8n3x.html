@@ -954,6 +954,19 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
 @keyframes lot-arrive { from { opacity: 0; transform: translateY(24px) scale(.9); } }
 @media (prefers-reduced-motion: reduce) { .lot-carte { animation: none; } }
 .lot-passer { position: fixed; right: 16px; bottom: 16px; z-index: 2147483000; }
+.poussiere-echanges { flex-basis: 100%; display: flex; flex-wrap: wrap; gap: 10px; }
+.poussiere-echanges .btn small { opacity: .75; margin-left: .4em; }
+.poussiere .poussiere-echanges .btn.btn-etoile:not(:disabled) { background: linear-gradient(90deg, #ff4fa3, #8b5cf6); color: #fff; border-color: transparent; }
+.choix-etoile { flex-basis: 100%; }
+.choix-etoile p { margin: 0 0 10px; color: var(--pale); font-size: 14px; }
+.choix-etoile p b { color: #ffd23f; }
+.choix-etoile-grille { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 12px; }
+.choix-sup { --w: 100%; display: grid; gap: 6px; padding: 0; border: 0; background: none; color: #fff; cursor: pointer; text-align: center; font: 800 13px/1.2 var(--f-titre, sans-serif); border-radius: 1em; transition: transform .2s; }
+.choix-sup .carte { width: 100%; --w: 100%; font-size: clamp(5px, 1vw, 7px); pointer-events: none; }
+.choix-sup span { color: #ffd23f; }
+.choix-sup:hover:not(:disabled), .choix-sup:focus-visible { transform: translateY(-4px); }
+.choix-sup:focus-visible { outline: 3px solid #ffd23f; outline-offset: 3px; }
+.choix-sup:disabled { cursor: not-allowed; opacity: .5; filter: grayscale(.4); }
 
 </style>
 </head>
@@ -974,7 +987,7 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
   </nav>
   <button class="rond" type="button" id="btnSon" aria-label="Couper le son" title="Son"></button>
 </header>
-<div class="defile" aria-hidden="true"><div><span>🎮 NOUVEAU : SÉRIE 3 « MANETTES &amp; CASSETTES »</span><span>🎯 OBJECTIFS DU JOUR ET DE LA SEMAINE</span><span>🏆 LIGUE : LES MEILLEURS GAGNENT DES BOOSTERS ET UN CADRE CHAQUE SEMAINE</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 DES CARTES SUPRÊMES CACHÉES DANS CHAQUE SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>✨ RECYCLE TES DOUBLONS EN POUSSIÈRE : 100 = 1 BOOSTER</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
+<div class="defile" aria-hidden="true"><div><span>🎮 NOUVEAU : SÉRIE 3 « MANETTES &amp; CASSETTES »</span><span>🎯 OBJECTIFS DU JOUR ET DE LA SEMAINE</span><span>🏆 LIGUE : LES MEILLEURS GAGNENT DES BOOSTERS ET UN CADRE CHAQUE SEMAINE</span><span>⚔ DUELS : GAGNE DES BOOSTERS À CHAQUE VICTOIRE</span><span>🦩 DES CARTES SUPRÊMES CACHÉES DANS CHAQUE SÉRIE</span><span>✨ GOD PACK : 1 BOOSTER SUR 100 GARANTI, MYTHIQUE ET ÉPIQUE À L'INTÉRIEUR</span><span>🔁 ÉCHANGE TES DOUBLES AVEC TES AMIS</span><span>✨ RECYCLE TES DOUBLONS EN POUSSIÈRE : 100 = 1 BOOSTER, 10 000 = 1 ÉTOILE DE SUPRÊME</span><span>🏆 CLASSEMENT : CHAQUE CARTE DIFFÉRENTE RAPPORTE DES POINTS</span></div></div>
 
 
 <main>
@@ -7319,7 +7332,7 @@ async function afficherDuel() {
       <div class="adversaires">${Object.entries(BOTS).map(([n, b]) => `<button class="adv" type="button" data-bot="${n}" aria-pressed="${adversaire.type === "bot" && adversaire.bot === Number(n)}"><span class="av">${b.av}</span><b>${b.nom}</b><small>${b.txt}</small></button>`).join("")}
       ${(joueursDuel || []).map((j) => `<button class="adv" type="button" data-adv="${esc(j.id)}" data-pseudo="${esc(j.pseudo)}" aria-pressed="${adversaire.id === j.id}"><span class="av">${j.avatar ? `<img src="${esc(j.avatar)}" alt="">` : "🃏"}</span><b>${esc(j.pseudo)}</b><small>${j.ami ? "Ami · " : ""}ses 5 meilleures cartes · victoire = 1 booster</small></button>`).join("")}</div>
       ${enLigne ? "" : `<p style="margin-top:10px">Connecte-toi sur le site pour défier tes amis et les autres joueurs.</p>`}
-      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Chaque doublon d'une Suprême lui donne une étoile (+2 % de puissance, 25 au maximum) : ★ blanches, puis <b>★ dorées</b>, <span class="c-et p3">★ diamant</span>, <span class="c-et p4">★ ambre</span> et <span class="c-et p5">★ noires</span>.</p>
+      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Chaque doublon d'une Suprême (ou 10 000 poussières) lui donne une étoile (+2 % de puissance, 25 au maximum) : ★ blanches, puis <b>★ dorées</b>, <span class="c-et p3">★ diamant</span>, <span class="c-et p4">★ ambre</span> et <span class="c-et p5">★ noires</span>.</p>
     </div>
     <div class="duel-bloc"><h3>2. Compose ta main</h3>
       <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Chaque victoire rapporte ses boosters, sans limite.</p>
@@ -7870,6 +7883,118 @@ function resumeLot(cartes, avant) {
   const e1 = $("btnEncore"); if (e1) e1.onclick = () => { enCours = false; ouvrirBooster(); };
   enCours = false; majLot();
 }
+
+// ---------- Poussière : elle s'accumule, puis on l'échange (100 = 1 booster, 10 000 = 1 étoile de Suprême) ----------
+const PRIX_BOOSTER = 100, PRIX_ETOILE = 10000;
+const etoilesAchetees = (id) => Number((etat && etat.etoiles && etat.etoiles[id]) || 0);
+// Étoiles : 1 par doublon + celles achetées avec la poussière (25 au maximum, il faut posséder la carte)
+etoilesDe = function (c) {
+  if (!c || c.r !== "S") return 0;
+  const ex = (collection[c.id] || 0) + (collection[c.id + "*"] || 0);
+  return ex > 0 ? Math.min(ETOILES_MAX, ex - 1 + etoilesAchetees(c.id)) : 0;
+};
+// Mode invité : mêmes règles que le serveur
+const _etatLocal = Local.etat;
+Local.etat = async function () { const e = await _etatLocal.call(this); e.etoiles = this.lire().etoiles || {}; return e; };
+Local.recycler = async function (id) {
+  const d = this.lire(); d.cartes ||= {};
+  let cartes = 0, gain = 0;
+  CARTES.filter((c) => !id || c.id === id.replace("*", "")).forEach((c) => {
+    const n = d.cartes[c.id] || 0, h = d.cartes[c.id + "*"] || 0, total = n + h;
+    if (total <= 1 || c.r === "S") return;
+    const extra = id ? 1 : total - 1, rn = Math.min(n, extra), rh = extra - rn;
+    if (n - rn > 0) d.cartes[c.id] = n - rn; else delete d.cartes[c.id];
+    if (h - rh > 0) d.cartes[c.id + "*"] = h - rh; else delete d.cartes[c.id + "*"];
+    cartes += extra; gain += (rn + 2 * rh) * POUSSIERE[c.r];
+  });
+  d.poussiere = (d.poussiere || 0) + gain;
+  this.ecrire(d);
+  return { cartes, gain, poussiere: d.poussiere, boosters: 0 };
+};
+Local.poussiereBooster = async function (n = 1) {
+  const d = this.lire(); n = Math.max(1, n | 0);
+  if ((d.poussiere || 0) < PRIX_BOOSTER * n) return { erreur: "pas assez de poussière" };
+  d.poussiere -= PRIX_BOOSTER * n; d.bonus = (d.bonus || 0) + n; this.ecrire(d);
+  return { boosters: n, poussiere: d.poussiere };
+};
+Local.poussiereEtoile = async function (id) {
+  const d = this.lire(), c = PAR_ID[id];
+  if (!c || c.r !== "S") return { erreur: "seulement pour une Suprême" };
+  if (!possede(id)) return { erreur: "tu ne possèdes pas cette Suprême" };
+  if (etoilesDe(c) >= ETOILES_MAX) return { erreur: "cette Suprême a déjà 25 étoiles" };
+  if ((d.poussiere || 0) < PRIX_ETOILE) return { erreur: "pas assez de poussière" };
+  d.poussiere -= PRIX_ETOILE; d.etoiles ||= {}; d.etoiles[id] = (d.etoiles[id] || 0) + 1; this.ecrire(d);
+  return { carte: id, etoiles: Math.min(ETOILES_MAX, possede(id) - 1 + d.etoiles[id]), poussiere: d.poussiere };
+};
+Serveur.poussiereBooster = function (n) { return this.appel("poussiere_booster", { n }); };
+Serveur.poussiereEtoile = function (carte) { return this.appel("poussiere_etoile", { carte }); };
+
+const nf = (n) => Number(n || 0).toLocaleString("fr-FR");
+let choixEtoileOuvert = false;
+blocPoussiere = function () {
+  const q = (etat && etat.poussiere) || 0, { cartes, gain } = doublons();
+  const nbB = Math.floor(q / PRIX_BOOSTER);
+  const sup = CARTES.filter((c) => c.r === "S" && possede(c.id));
+  const pct = Math.min(100, q / PRIX_ETOILE * 100);
+  return `<div class="poussiere">
+    <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${nf(q)}</b>
+      <div class="obj-barre" title="Vers une étoile de Suprême"><i style="width:${pct}%"></i></div>
+      <small>Commune +1 · Rare +2 · Épique +3 · Mythique +10 par doublon recyclé, le double pour une holo. Ta poussière s'accumule : échange-la quand tu veux. ${q < PRIX_ETOILE ? `Encore ${nf(PRIX_ETOILE - q)} pour une étoile de Suprême.` : "Tu peux acheter une étoile de Suprême !"}</small></div>
+    <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${nf(gain)})` : "Aucun doublon à recycler"}</button>
+    <div class="poussiere-echanges">
+      <button class="btn" type="button" id="btnPoussBooster" ${nbB ? "" : "disabled"}>📦 1 booster <small>100</small></button>
+      ${nbB >= 10 ? `<button class="btn" type="button" id="btnPoussBooster10">📦 10 boosters <small>1 000</small></button>` : ""}
+      <button class="btn btn-etoile" type="button" id="btnPoussEtoile" aria-expanded="${choixEtoileOuvert}" ${sup.length ? "" : "disabled"} title="${sup.length ? "Choisis la Suprême qui reçoit l'étoile" : "Il faut d'abord posséder une Suprême"}">★ 1 étoile de Suprême <small>10 000</small></button>
+    </div>
+    ${choixEtoileOuvert && sup.length ? `<div class="choix-etoile">
+      <p>Choisis la Suprême qui gagne une étoile (+2 % de puissance en duel). ${q < PRIX_ETOILE ? `<b>Il te manque ${nf(PRIX_ETOILE - q)} poussières.</b>` : ""}</p>
+      <div class="choix-etoile-grille">${sup.map((c) => { const e = etoilesDe(c), plein = e >= ETOILES_MAX;
+        return `<button type="button" class="choix-sup" data-etoile="${c.id}" ${plein || q < PRIX_ETOILE ? "disabled" : ""} aria-label="${esc(c.n)}, ${e} étoile${e > 1 ? "s" : ""}">${carteHTML(c.id)}<span>${plein ? "25 étoiles : maximum" : `${e} → ${e + 1} ★`}</span></button>`; }).join("")}</div>
+    </div>` : ""}
+  </div>`;
+};
+async function echangerBooster(n) {
+  const r = await (Stock.poussiereBooster ? Stock.poussiereBooster(n) : null)?.catch?.((e) => ({ erreur: e.message }));
+  if (!r || r.erreur) { toast("Échange impossible : " + ((r && r.erreur) || "réessaie")); return; }
+  Son.dechire(); flash();
+  toast(`+${r.boosters} booster${r.boosters > 1 ? "s" : ""} ! Il${r.boosters > 1 ? "s sont" : " est"} prêt${r.boosters > 1 ? "s" : ""} à ouvrir.`);
+  await majEtat(); afficherClasseur();
+}
+let achatEtoileEnCours = false;
+async function acheterEtoile(id) {
+  if (achatEtoileEnCours) return; achatEtoileEnCours = true;
+  const r = await Stock.poussiereEtoile(id).catch((e) => ({ erreur: e.message }));
+  achatEtoileEnCours = false;
+  if (!r || r.erreur) { toast("Impossible : " + ((r && r.erreur) || "réessaie")); return; }
+  Son.rare("S"); flash();
+  await majEtat();
+  toast(`★ ${PAR_ID[id].n} passe à ${r.etoiles} étoile${r.etoiles > 1 ? "s" : ""} !`);
+  choixEtoileOuvert = false; afficherClasseur(); zoomer(id);
+}
+document.addEventListener("click", (e) => {
+  const t = e.target;
+  if (t.closest("#btnPoussBooster")) return echangerBooster(1);
+  if (t.closest("#btnPoussBooster10")) return echangerBooster(10);
+  if (t.closest("#btnPoussEtoile")) { choixEtoileOuvert = !choixEtoileOuvert; $("zonePoussiere").innerHTML = blocPoussiere(); $("btnRecyclerTout").onclick = () => recycler(null); if (choixEtoileOuvert) $("zonePoussiere").querySelector(".choix-etoile")?.scrollIntoView({ block: "nearest", behavior: "smooth" }); return; }
+  const s = t.closest("[data-etoile]"); if (s && !s.disabled) { e.stopPropagation(); acheterEtoile(s.dataset.etoile); }
+}, true);
+// Recyclage : la poussière s'accumule (plus de booster automatique)
+recycler = async function (id) {
+  if (!id && !confirmeRecyclage) {
+    confirmeRecyclage = true;
+    const b = $("btnRecyclerTout"); b.textContent = "Sûr ? On garde 1 exemplaire de chaque carte. Clique pour confirmer"; b.classList.add("confirmer");
+    setTimeout(() => { confirmeRecyclage = false; if ($("btnRecyclerTout") === b) afficherClasseur(); }, 4000);
+    return;
+  }
+  confirmeRecyclage = false;
+  const r = await Stock.recycler(id || null).catch((e) => ({ erreur: e.message }));
+  if (!r || r.erreur) { toast("Recyclage impossible : " + ((r && r.erreur) || "réessaie")); return; }
+  if (!r.cartes) { toast("Rien à recycler."); return; }
+  Son.dechire();
+  toast(`+${nf(r.gain)} poussière${r.gain > 1 ? "s" : ""} · total ${nf(r.poussiere)}`);
+  await Promise.all([chargerCollection(), majEtat()]);
+  afficherClasseur(); majBoite(true);
+};
 
 // =========================================================
 // CARTE GRISE : la course (pseudo-3D façon arcade) et les échanges

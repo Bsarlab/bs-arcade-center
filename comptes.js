@@ -1149,6 +1149,8 @@
         if (action === "cadres" && data) data.avatar = imageSure(data.avatar);
         return data;
       }
+      if (action === "poussiere_booster") { const { data, error } = await sb.rpc("tcg_poussiere_booster", { p_n: Math.max(1, Number(a.n) || 1) }); return error ? err(error) : data; }
+      if (action === "poussiere_etoile") { const { data, error } = await sb.rpc("tcg_poussiere_etoile", { p_carte: String(a.carte || "") }); return error ? err(error) : data; }
       if (action === "recycler") { const { data, error } = await sb.rpc("tcg_recycler", { p_carte: a.carte ? String(a.carte) : null }); return error ? err(error) : data; }
       if (action === "recuperer") { const { data, error } = await sb.rpc("tcg_recuperer", { p_id: a.id ? Number(a.id) : null }); return error ? err(error) : data; }
       if (action === "equiper") {

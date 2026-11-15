@@ -426,7 +426,8 @@ begin
   b := coalesce((select nombre from tcg_bonus where joueur = auth.uid()), 0);
   return json_build_object('restants', greatest(0, 5 - n), 'prochain', case when n >= 5 then premier + interval '1 hour' end, 'bonus', b, 'maintenant', now(),
     'total', (select count(*) from tcg_ouvertures where joueur = auth.uid()),
-    'poussiere', coalesce((select quantite from tcg_poussiere where joueur = auth.uid()), 0));
+    'poussiere', coalesce((select quantite from tcg_poussiere where joueur = auth.uid()), 0),
+    'etoiles', coalesce((select json_object_agg(carte, nombre) from tcg_etoiles_bonus where joueur = auth.uid() and nombre > 0), '{}'::json));
 end $$;
 
 alter table public.tcg_ouvertures add column if not exists god boolean not null default false;
@@ -834,9 +835,21 @@ alter table public.tcg_combats enable row level security;
 drop policy if exists "mes combats" on public.tcg_combats;
 create policy "mes combats" on public.tcg_combats for select using (auth.uid() = joueur);
 -- Étoiles d'une Suprême : chaque doublon (normal ou holo) en donne une, 25 au maximum ; +2 % de puissance par étoile
+-- Étoiles achetées avec la poussière (10 000 poussières = 1 étoile sur la Suprême de son choix)
+create table if not exists public.tcg_etoiles_bonus (
+  joueur uuid not null references public.profils(id) on delete cascade,
+  carte text not null,
+  nombre int not null default 0 check (nombre >= 0),
+  primary key (joueur, carte)
+);
+alter table public.tcg_etoiles_bonus enable row level security;
+drop policy if exists "mes etoiles" on public.tcg_etoiles_bonus;
+create policy "mes etoiles" on public.tcg_etoiles_bonus for select using (auth.uid() = joueur);
+-- Étoiles d'une Suprême : un par doublon + celles achetées avec la poussière (25 au maximum, il faut posséder la carte)
 create or replace function public.tcg_etoiles(p_joueur uuid, p_carte text) returns int language sql stable security definer set search_path = public as $$
-  select case when (select rarete from tcg_valeurs where carte = replace(p_carte, '*', '')) = 'S'
-    then least(25, greatest(0, coalesce((select sum(nombre) from tcg_cartes where joueur = p_joueur and replace(carte, '*', '') = replace(p_carte, '*', '')), 0)::int - 1)) else 0 end $$;
+  with n as (select coalesce((select sum(nombre) from tcg_cartes where joueur = p_joueur and replace(carte, '*', '') = replace(p_carte, '*', '')), 0)::int as ex)
+  select case when (select rarete from tcg_valeurs where carte = replace(p_carte, '*', '')) = 'S' and n.ex > 0
+    then least(25, n.ex - 1 + coalesce((select nombre from tcg_etoiles_bonus where joueur = p_joueur and carte = replace(p_carte, '*', '')), 0)) else 0 end from n $$;
 revoke all on function public.tcg_etoiles(uuid, text) from public, anon, authenticated;
 create or replace function public.tcg_combat(p_deck text[], p_adv uuid default null, p_bot int default 1) returns json language plpgsql security definer set search_path = public as $$
 declare lui text[]; m json[] := '{}'; i int; pa float; pb float; ga int := 0; gb int := 0; deja int; g int := 0; vic boolean; nom text; prix int; eb int[] := array[0, 0, 0, 0, 0]; tir float;
@@ -1276,16 +1289,42 @@ begin
   delete from tcg_cartes where joueur = auth.uid() and nombre <= 0;
   insert into tcg_poussiere (joueur, quantite) values (auth.uid(), gain)
     on conflict (joueur) do update set quantite = tcg_poussiere.quantite + gain returning quantite into q;
-  if q >= 100 then
-    b := q / 100;
-    update tcg_poussiere set quantite = q % 100 where joueur = auth.uid();
-    insert into tcg_boite (joueur, titre, texte, boosters) values (auth.uid(), 'Poussière de booster',
-      b * 100 || ' poussières de doublons transformées en booster' || case when b > 1 then 's' else '' end || '.', b);
-  end if;
-  return json_build_object('cartes', nb, 'gain', gain, 'poussiere', q % 100, 'boosters', b);
+  -- La poussière s'accumule : on l'échange ensuite soi-même (100 = 1 booster, 10 000 = 1 étoile de Suprême)
+  return json_build_object('cartes', nb, 'gain', gain, 'poussiere', q, 'boosters', b);
 end $$;
 revoke all on function public.tcg_recycler(text) from public, anon;
 grant execute on function public.tcg_recycler(text) to authenticated;
+-- 100 poussières = 1 booster (p_n boosters d'un coup)
+create or replace function public.tcg_poussiere_booster(p_n int default 1) returns json language plpgsql security definer set search_path = public as $$
+declare q int; n int := greatest(1, least(coalesce(p_n, 1), 1000));
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  perform pg_advisory_xact_lock(hashtext('tcgr' || auth.uid()::text));
+  update tcg_poussiere set quantite = quantite - 100 * n where joueur = auth.uid() and quantite >= 100 * n returning quantite into q;
+  if q is null then raise exception 'pas assez de poussière'; end if;
+  insert into tcg_bonus (joueur, nombre) values (auth.uid(), n) on conflict (joueur) do update set nombre = tcg_bonus.nombre + n;
+  return json_build_object('boosters', n, 'poussiere', q);
+end $$;
+revoke all on function public.tcg_poussiere_booster(int) from public, anon;
+grant execute on function public.tcg_poussiere_booster(int) to authenticated;
+-- 10 000 poussières = 1 étoile sur une Suprême qu'on possède (25 étoiles au maximum)
+create or replace function public.tcg_poussiere_etoile(p_carte text) returns json language plpgsql security definer set search_path = public as $$
+declare base text := replace(coalesce(p_carte, ''), '*', ''); q int; e int;
+begin
+  if auth.uid() is null then raise exception 'connexion requise'; end if;
+  perform pg_advisory_xact_lock(hashtext('tcgr' || auth.uid()::text));
+  if coalesce((select rarete from tcg_valeurs where carte = base), '') <> 'S' then raise exception 'seulement pour une Suprême'; end if;
+  if not exists (select 1 from tcg_cartes where joueur = auth.uid() and replace(carte, '*', '') = base and nombre > 0) then raise exception 'tu ne possèdes pas cette Suprême'; end if;
+  if tcg_etoiles(auth.uid(), base) >= 25 then raise exception 'cette Suprême a déjà 25 étoiles'; end if;
+  update tcg_poussiere set quantite = quantite - 10000 where joueur = auth.uid() and quantite >= 10000 returning quantite into q;
+  if q is null then raise exception 'pas assez de poussière'; end if;
+  insert into tcg_etoiles_bonus (joueur, carte, nombre) values (auth.uid(), base, 1)
+    on conflict (joueur, carte) do update set nombre = tcg_etoiles_bonus.nombre + 1;
+  e := tcg_etoiles(auth.uid(), base);
+  return json_build_object('carte', base, 'etoiles', e, 'poussiere', q);
+end $$;
+revoke all on function public.tcg_poussiere_etoile(text) from public, anon;
+grant execute on function public.tcg_poussiere_etoile(text) to authenticated;
 revoke all on function public.tcg_points_de(uuid) from public, anon;
 revoke all on function public.tcg_maj_points() from public, anon, authenticated;
 -- Remet à jour les points de tous les joueurs (utile la première fois)
