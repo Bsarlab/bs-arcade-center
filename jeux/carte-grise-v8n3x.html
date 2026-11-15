@@ -7677,21 +7677,6 @@ document.addEventListener("click", (e) => { if (e.target.closest(".serie-btn") &
     void t.offsetWidth; slots.forEach((s) => s.style.removeProperty("transition"));
     return r;
   };
-  // 4) Compteurs : les nombres défilent au lieu de sauter
-  const animer = (el) => {
-    let affiche = el.textContent, verrou = false;
-    new MutationObserver(() => {
-      if (verrou) return;
-      const neuf = el.textContent, a = parseInt(affiche.replace(/\D/g, ""), 10), b = parseInt(neuf.replace(/\D/g, ""), 10);
-      if (calme || isNaN(a) || isNaN(b) || a === b || !/^\s*[\d\s]+\s*$/.test(neuf)) { affiche = neuf; return; }
-      const t0 = performance.now(), d = Math.min(900, 300 + Math.abs(b - a) * 4);
-      const pas = (t) => { const p = Math.min(1, (t - t0) / d), e = 1 - Math.pow(1 - p, 3);
-        verrou = true; el.textContent = Math.round(a + (b - a) * e).toLocaleString("fr-FR"); verrou = false;
-        if (p < 1) requestAnimationFrame(pas); else { verrou = true; el.textContent = neuf; verrou = false; affiche = neuf; } };
-      requestAnimationFrame(pas);
-    }).observe(el, { childList: true, characterData: true, subtree: true });
-  };
-  ["pointsAccueil", "godDans", "bonus"].forEach((id) => { const el = $(id); if (el) animer(el); });
   // 5) Changement de série : un balayage de couleur part du bouton cliqué
   const COUL = { 1: "rgba(255,79,163,.32)", 2: "rgba(255,210,63,.3)", 3: "rgba(34,211,238,.32)" };
   document.addEventListener("click", (e) => {
