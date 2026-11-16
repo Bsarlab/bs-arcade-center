@@ -427,6 +427,7 @@ begin
   return json_build_object('restants', greatest(0, 5 - n), 'prochain', case when n >= 5 then premier + interval '1 hour' end, 'bonus', b, 'maintenant', now(),
     'total', (select count(*) from tcg_ouvertures where joueur = auth.uid()),
     'poussiere', coalesce((select quantite from tcg_poussiere where joueur = auth.uid()), 0),
+    'regles_poussiere', 3,
     'etoiles', coalesce((select json_object_agg(carte, nombre) from tcg_etoiles_bonus where joueur = auth.uid() and nombre > 0), '{}'::json));
 end $$;
 
@@ -1267,6 +1268,20 @@ create table if not exists public.tcg_poussiere (
 alter table public.tcg_poussiere enable row level security;
 drop policy if exists "ma poussiere" on public.tcg_poussiere;
 create policy "ma poussiere" on public.tcg_poussiere for select using (auth.uid() = joueur);
+-- Journal de la poussière : chaque recyclage et chaque achat est noté (permet de rendre ce qui aurait été perdu)
+create table if not exists public.tcg_journal_poussiere (
+  id bigint generated always as identity primary key,
+  joueur uuid not null references public.profils(id) on delete cascade,
+  quand timestamptz not null default now(),
+  action text not null,
+  cartes int not null default 0,
+  montant int not null,
+  solde int not null
+);
+alter table public.tcg_journal_poussiere enable row level security;
+drop policy if exists "mon journal" on public.tcg_journal_poussiere;
+create policy "mon journal" on public.tcg_journal_poussiere for select using (auth.uid() = joueur);
+create index if not exists tcg_journal_poussiere_joueur on public.tcg_journal_poussiere (joueur, quand desc);
 create or replace function public.tcg_recycler(p_carte text default null) returns json language plpgsql security definer set search_path = public as $$
 declare r record; n int; h int; extra int; rn int; rh int; gain int := 0; nb int := 0; q int; b int := 0;
 begin
@@ -1289,6 +1304,7 @@ begin
   delete from tcg_cartes where joueur = auth.uid() and nombre <= 0;
   insert into tcg_poussiere (joueur, quantite) values (auth.uid(), gain)
     on conflict (joueur) do update set quantite = tcg_poussiere.quantite + gain returning quantite into q;
+  if nb > 0 then insert into tcg_journal_poussiere (joueur, action, cartes, montant, solde) values (auth.uid(), 'recyclage', nb, gain, q); end if;
   -- La poussière s'accumule : on l'échange ensuite soi-même (100 = 1 booster, 50 000 = 1 étoile de Suprême)
   return json_build_object('cartes', nb, 'gain', gain, 'poussiere', q, 'boosters', b);
 end $$;
@@ -1303,6 +1319,7 @@ begin
   update tcg_poussiere set quantite = quantite - 100 * n where joueur = auth.uid() and quantite >= 100 * n returning quantite into q;
   if q is null then raise exception 'pas assez de poussière'; end if;
   insert into tcg_bonus (joueur, nombre) values (auth.uid(), n) on conflict (joueur) do update set nombre = tcg_bonus.nombre + n;
+  insert into tcg_journal_poussiere (joueur, action, cartes, montant, solde) values (auth.uid(), 'booster', n, -100 * n, q);
   return json_build_object('boosters', n, 'poussiere', q);
 end $$;
 revoke all on function public.tcg_poussiere_booster(int) from public, anon;
@@ -1320,6 +1337,7 @@ begin
   if q is null then raise exception 'pas assez de poussière'; end if;
   insert into tcg_etoiles_bonus (joueur, carte, nombre) values (auth.uid(), base, 1)
     on conflict (joueur, carte) do update set nombre = tcg_etoiles_bonus.nombre + 1;
+  insert into tcg_journal_poussiere (joueur, action, cartes, montant, solde) values (auth.uid(), 'etoile ' || base, 0, -50000, q);
   e := tcg_etoiles(auth.uid(), base);
   return json_build_object('carte', base, 'etoiles', e, 'poussiere', q);
 end $$;

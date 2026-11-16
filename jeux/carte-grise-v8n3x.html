@@ -1063,6 +1063,43 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
   .cpt-bourse { grid-template-columns: auto 1fr; } .cpt-bourse p { grid-column: 1 / -1; }
 }
 @media (prefers-reduced-motion: reduce) { .cpt-grains, .cpt-etoile, .cpt-enseigne em { animation: none !important; } .cpt-grains { display: none; } }
+.regles-ko { flex-basis: 100%; margin: 0 0 10px; padding: 10px 14px; border-radius: 12px; background: rgba(255,90,60,.14); border: 1px solid rgba(255,120,90,.5); color: #ffb4a3; font-weight: 700; font-size: 14px; }
+/* Animation de l'étoile achetée */
+.anim-etoile { position: fixed; inset: 0; z-index: 2147482000; display: grid; place-items: center; align-content: center; gap: 18px; padding: 20px; background: radial-gradient(circle at 50% 45%, rgba(60,30,90,.92), rgba(5,3,12,.97) 70%); opacity: 0; transition: opacity .3s; overflow: hidden; }
+.anim-etoile.ouvert { opacity: 1; }
+.anim-etoile.sortie { opacity: 0; }
+.ae-rayons { position: absolute; left: 50%; top: 45%; width: 160vmax; height: 160vmax; margin: -80vmax 0 0 -80vmax; background: repeating-conic-gradient(from 0deg, rgba(255,210,63,.11) 0 6deg, transparent 6deg 18deg); opacity: 0; transform: scale(.6); transition: opacity .6s, transform 1.2s var(--ease); animation: ae-tourne 30s linear infinite; pointer-events: none; }
+.anim-etoile.pose .ae-rayons { opacity: 1; transform: scale(1); }
+.anim-etoile.p3 .ae-rayons { background: repeating-conic-gradient(rgba(125,211,252,.13) 0 6deg, transparent 6deg 18deg); }
+.anim-etoile.p4 .ae-rayons { background: repeating-conic-gradient(rgba(255,140,30,.14) 0 6deg, transparent 6deg 18deg); }
+.anim-etoile.p5 .ae-rayons { background: repeating-conic-gradient(rgba(217,70,239,.16) 0 6deg, transparent 6deg 18deg); }
+@keyframes ae-tourne { to { rotate: 360deg; } }
+.ae-carte { position: relative; z-index: 1; transform: scale(.7) translateY(30px); opacity: 0; transition: transform .6s var(--ease), opacity .4s; }
+.ae-carte .carte { --w: min(300px, 64vw, calc((100vh - 260px) * .716)); }
+.anim-etoile.ouvert .ae-carte { transform: none; opacity: 1; }
+.anim-etoile.pose .ae-carte { animation: ae-secousse .45s ease-out; }
+@keyframes ae-secousse { 20% { transform: scale(1.06) rotate(-1.5deg); } 45% { transform: scale(.98) rotate(1deg); } 70% { transform: scale(1.02); } }
+.ae-etoile { position: fixed; z-index: 3; left: 50%; top: -120px; width: 110px; height: 110px; margin: -55px 0 0 -55px; fill: #ffd23f; stroke: #fff6c8; stroke-width: 3; filter: drop-shadow(0 0 18px #ffd23f) drop-shadow(0 0 40px rgba(255,210,63,.6)); opacity: 0; pointer-events: none; }
+.ae-etoile.tombe { animation: ae-tombe 1.05s cubic-bezier(.55,0,.35,1) forwards; }
+@keyframes ae-tombe {
+  0% { opacity: 0; transform: translate(0, 0) scale(1.4) rotate(0); }
+  15% { opacity: 1; }
+  70% { transform: translate(calc(var(--tx) - 50vw), calc(var(--ty) + 120px)) scale(.6) rotate(540deg); opacity: 1; }
+  100% { transform: translate(calc(var(--tx) - 50vw), calc(var(--ty) + 120px)) scale(.12) rotate(720deg); opacity: 0; }
+}
+.ae-pop { animation: ae-pop .6s cubic-bezier(.34,1.56,.64,1); }
+@keyframes ae-pop { 0% { transform: scale(3); filter: brightness(3); } 100% { transform: none; } }
+.ae-eclat { position: fixed; z-index: 4; font-style: normal; color: #ffd23f; font-size: 18px; text-shadow: 0 0 8px #ffd23f; pointer-events: none; transform: translate(-50%, -50%); animation: ae-eclat .9s ease-out forwards; }
+@keyframes ae-eclat { to { transform: translate(calc(-50% + var(--dx)), calc(-50% + var(--dy))) rotate(var(--r)) scale(.4); opacity: 0; } }
+.ae-texte { position: relative; z-index: 1; display: grid; gap: 4px; text-align: center; opacity: 0; transform: translateY(10px); transition: opacity .4s .2s, transform .4s .2s; }
+.anim-etoile.pose .ae-texte { opacity: 1; transform: none; }
+.ae-texte b { font: 400 clamp(30px, 6vw, 46px)/1 var(--f-tampon); color: #ffd23f; text-shadow: 0 0 18px rgba(255,210,63,.7); }
+.ae-texte span { color: #f4ecd8; font-weight: 700; }
+.ae-texte em { font-style: normal; font: 800 18px/1.2 var(--f-titre); color: #7df9ff; text-shadow: 0 0 12px rgba(125,249,255,.6); animation: ae-pulse 1.2s ease-in-out infinite alternate; }
+@keyframes ae-pulse { to { transform: scale(1.06); } }
+.ae-ok { position: relative; z-index: 1; opacity: 0; transition: opacity .3s .5s; }
+.anim-etoile.pose .ae-ok { opacity: 1; }
+@media (prefers-reduced-motion: reduce) { .ae-rayons, .ae-texte em { animation: none; } }
 
 </style>
 </head>
@@ -7989,6 +8026,10 @@ function resumeLot(cartes, avant) {
 
 // ---------- Poussière : elle s'accumule, puis on l'échange (100 = 1 booster, 50 000 = 1 étoile de Suprême) ----------
 const PRIX_BOOSTER = 100, PRIX_ETOILE = 50000;
+// Sécurité : si la base n'a pas les mêmes règles que le jeu, on bloque recyclage et achats (rien ne peut être perdu)
+const REGLES_POUSSIERE = 3;
+const reglesOk = () => Stock !== Serveur || (etat && etat.regles_poussiere === REGLES_POUSSIERE);
+const MSG_REGLES = "Le serveur n'est pas encore à jour : recyclage et achats sont bloqués pour que tu ne perdes rien. L'admin doit relancer le SQL.";
 const etoilesAchetees = (id) => Number((etat && etat.etoiles && etat.etoiles[id]) || 0);
 // Étoiles : uniquement celles achetées au Comptoir (25 au maximum, il faut posséder la carte)
 // Les doublons ne donnent que de la poussière : Commune 10, Rare 50, Épique 250, Mythique 500, Suprême 5 000
@@ -8050,7 +8091,8 @@ blocPoussiere = function () {
     <div class="poussiere-jauge"><span>✨ Poussière de booster</span><b>${nf(q)}</b>
       <div class="obj-barre" title="Vers une étoile de Suprême"><i style="width:${pct}%"></i></div>
       <small>Commune +10 · Rare +50 · Épique +250 · Mythique +500 · Suprême +5 000 par doublon recyclé, le double pour une holo. Échange ta poussière chez Gégé : 100 = 1 booster, 50 000 = 1 étoile de Suprême.</small></div>
-    <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${nf(gain)})` : "Aucun doublon à recycler"}</button>
+    ${reglesOk() ? "" : `<p class="regles-ko">⚠ ${MSG_REGLES}</p>`}
+    <button class="btn alerte" type="button" id="btnRecyclerTout" ${cartes && reglesOk() ? "" : "disabled"}>${cartes ? `Recycler mes ${cartes} doublon${cartes > 1 ? "s" : ""} (+${nf(gain)})` : "Aucun doublon à recycler"}</button>
     <button class="btn lien-comptoir" type="button" data-aller="comptoir">🛒 Le Comptoir de Gégé <small>dépenser</small></button>
   </div>`;
 };
@@ -8063,6 +8105,7 @@ recycler = async function (id) {
     return;
   }
   confirmeRecyclage = false;
+  if (!reglesOk()) { toast(MSG_REGLES); return; }
   const r = await Stock.recycler(id || null).catch((e) => ({ erreur: e.message }));
   if (!r || r.erreur) { toast("Recyclage impossible : " + ((r && r.erreur) || "réessaie")); return; }
   if (!r.cartes) { toast("Rien à recycler."); return; }
@@ -8357,7 +8400,7 @@ function majComptoir() {
     </article>`;
   };
   const etoile = `<svg viewBox="0 0 100 100" class="cpt-etoile" aria-hidden="true"><path d="M50 6 L62 38 L96 40 L69 61 L79 94 L50 75 L21 94 L31 61 L4 40 L38 38 Z" fill="#ffd23f" stroke="#fff6c8" stroke-width="3" stroke-linejoin="round"/></svg>`;
-  b.innerHTML = `
+  b.innerHTML = `${reglesOk() ? "" : `<p class="regles-ko">⚠ ${MSG_REGLES}</p>`}
     <div class="cpt-bourse">
       <div class="cpt-bocal" aria-hidden="true"><i style="height:${Math.min(100, 8 + q / PRIX_ETOILE * 92)}%"></i></div>
       <div><small>Ta poussière de booster</small><b id="cptPoussiere">${nf(q)}</b></div>
@@ -8391,6 +8434,7 @@ function flotte(el, texte, couleur) {
 let cptOccupe = false;
 async function cptAcheter(cle, bouton) {
   if (cptOccupe) return;
+  if (!reglesOk()) { Gege.dire("Ma balance est en panne, l'ami : je n'achète et ne vends rien tant que le serveur n'est pas réparé. Tu perdras rien, promis.", "triste"); return; }
   const q = maPoussiere();
   if (cle === "etoile") return cptChoixEtoile();
   if (q < PRIX[cle]) { Son.erreur(); Gege.dire(GEGE_LIGNES.manque(PRIX[cle] - q), "triste"); return; }
@@ -8421,6 +8465,7 @@ function cptChoixEtoile(brille) {
 }
 async function cptAcheterEtoile(id, el) {
   if (cptOccupe) return;
+  if (!reglesOk()) { Gege.dire("Ma balance est en panne : pas d'étoile tant que le serveur n'est pas réparé.", "triste"); return; }
   const c = PAR_ID[id], q = maPoussiere();
   if (etoilesDe(c) >= ETOILES_MAX) { Gege.dire(GEGE_LIGNES.max, "triste"); return; }
   if (q < PRIX_ETOILE) { Son.erreur(); Gege.dire(GEGE_LIGNES.manque(PRIX_ETOILE - q), "triste"); return; }
@@ -8428,9 +8473,11 @@ async function cptAcheterEtoile(id, el) {
   const r = await Stock.poussiereEtoile(id).catch((e) => ({ erreur: e.message }));
   cptOccupe = false;
   if (!r || r.erreur) { Son.erreur(); Gege.dire(GEGE_LIGNES.erreur((r && r.erreur) || "réessaie"), "triste"); return; }
-  Son.rare("S"); flotte(el, "+1 ★", "#ffd23f"); flotte($("cptPoussiere"), `−${nf(PRIX_ETOILE)}`, "#7df9ff");
+  const avant = r.etoiles - 1;
+  flotte($("cptPoussiere"), `−${nf(PRIX_ETOILE)}`, "#7df9ff");
   await majEtat(); majComptoir(); cptChoixEtoile(id);
   Gege.dire(GEGE_LIGNES.brille(c.n, r.etoiles), "content epate", 4000);
+  await animEtoile(id, avant, r.etoiles);
 }
 let cptConfirme = false;
 async function cptVendre() {
@@ -8443,6 +8490,7 @@ async function cptVendre() {
     setTimeout(() => { if (cptConfirme) { cptConfirme = false; majComptoir(); } }, 5000);
     return;
   }
+  if (!reglesOk()) { cptConfirme = false; Gege.dire("Ma balance est en panne, je rachète rien pour l'instant. Garde tes doublons, tu perdras rien.", "triste"); return; }
   cptConfirme = false; cptOccupe = true;
   const r = await Stock.recycler(null).catch((e) => ({ erreur: e.message }));
   cptOccupe = false;
@@ -8465,6 +8513,55 @@ document.addEventListener("pointerover", (e) => {
   const t = GEGE_LIGNES[a.dataset.article]; if (t) Gege.dire(t);
 });
 document.addEventListener("pointerout", (e) => { const a = e.target.closest?.(".cpt-article"); if (a && !a.contains(e.relatedTarget)) Gege.survol = null; });
+
+// ---------- Animation : une étoile tombe sur la Suprême ----------
+const PALIERS = ["", "blanches", "dorées", "diamant", "ambre", "noires"];
+function animEtoile(id, avant, apres) {
+  return new Promise((fin) => {
+    const c = PAR_ID[id], palier = Math.ceil(apres / 5), nouveauPalier = apres > 1 && apres % 5 === 1;
+    const o = document.createElement("div");
+    o.className = `anim-etoile p${palier}`; o.setAttribute("role", "dialog"); o.setAttribute("aria-label", `${c.n} gagne une étoile`);
+    o.innerHTML = `<div class="ae-rayons"></div>
+      <div class="ae-carte">${carteHTML(id, { etoiles: avant })}</div>
+      <svg class="ae-etoile" viewBox="0 0 100 100" aria-hidden="true"><path d="M50 6 L62 38 L96 40 L69 61 L79 94 L50 75 L21 94 L31 61 L4 40 L38 38 Z"/></svg>
+      <div class="ae-texte"><b>+1 ★</b><span>${esc(c.n)} : ${apres} étoile${apres > 1 ? "s" : ""} · +${apres * 2} % de puissance</span>
+        ${nouveauPalier ? `<em>Nouveau palier : étoiles ${PALIERS[palier]} !</em>` : ""}</div>
+      <button class="btn alerte ae-ok" type="button">Continuer</button>`;
+    document.body.appendChild(o);
+    const fermer = () => { o.classList.add("sortie"); setTimeout(() => { o.remove(); fin(); }, 300); document.removeEventListener("keydown", touche); };
+    const touche = (e) => { if (e.key === "Escape" || e.key === "Enter") fermer(); };
+    const remplir = () => {
+      const et = o.querySelector(".ae-carte .c-etoiles");
+      if (et) et.outerHTML = etoilesHTML(apres);
+      const neuf = o.querySelectorAll(".ae-carte .c-etoiles i")[(apres - 1) % 5];
+      neuf?.classList.add("ae-pop");
+      o.classList.add("pose"); Son.rare("S"); flash();
+      // éclats autour de l'étoile posée
+      const r = (neuf || o.querySelector(".ae-carte")).getBoundingClientRect();
+      for (let i = 0; i < 14; i++) {
+        const s = document.createElement("i"); s.className = "ae-eclat"; s.textContent = "★";
+        const a = (i / 14) * Math.PI * 2, d = 70 + Math.random() * 60;
+        s.style.cssText = `left:${r.left + r.width / 2}px;top:${r.top + r.height / 2}px;--dx:${Math.cos(a) * d}px;--dy:${Math.sin(a) * d}px;--r:${Math.random() * 360}deg`;
+        o.appendChild(s);
+      }
+      setTimeout(() => { o.querySelector(".ae-ok").focus({ preventScroll: true }); o.addEventListener("click", (e) => { if (!e.target.closest(".ae-carte")) fermer(); }); }, 700);
+    };
+    document.addEventListener("keydown", touche);
+    o.querySelector(".ae-ok").onclick = (e) => { e.stopPropagation(); fermer(); };
+    requestAnimationFrame(() => {
+      o.classList.add("ouvert");
+      if (reduit) { remplir(); return; }
+      setTimeout(() => {
+        const etoile = o.querySelector(".ae-etoile");
+        const cible = o.querySelectorAll(".ae-carte .c-etoiles i")[(apres - 1) % 5] || o.querySelector(".ae-carte");
+        const r = cible.getBoundingClientRect();
+        etoile.style.setProperty("--tx", `${r.left + r.width / 2}px`); etoile.style.setProperty("--ty", `${r.top + r.height / 2}px`);
+        etoile.classList.add("tombe"); Son.tic?.(.4);
+        setTimeout(remplir, 1050);
+      }, 650);
+    });
+  });
+}
 
 // =========================================================
 // CARTE GRISE : la course (pseudo-3D façon arcade) et les échanges
