@@ -227,7 +227,8 @@
   const rad = (id, stops, cx = .5, cy = .5, r = .5) => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops.map((c, i) => `<stop offset="${r1(i / (stops.length - 1))}" stop-color="${c}"${c === "transparent" ? ' stop-opacity="0"' : ""}/>`).join("")}</radialGradient>`;
   const flou = (id, s = 2.4) => `<filter id="${id}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${s}"/></filter>`;
   const an = (attr, vals, dur, extra = "") => anime ? `<animate attributeName="${attr}" values="${vals}" dur="${dur}s" repeatCount="indefinite"${extra}/>` : "";
-  const rot = (vals, dur, extra = "") => anime ? `<animateTransform attributeName="transform" type="rotate" values="${vals}" dur="${dur}s" repeatCount="indefinite"${extra}/>` : "";
+  // « additive=sum » : la rotation s'ajoute à la position du groupe au lieu de la remplacer
+  const rot = (vals, dur, extra = "") => anime ? `<animateTransform attributeName="transform" type="rotate" values="${vals}" dur="${dur}s" repeatCount="indefinite" additive="sum"${extra}/>` : "";
   const ease = ' calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"';
   const cligne = (d) => anime ? `<animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 .1;1 1" keyTimes="0;.9;.95;1" dur="${d}s" repeatCount="indefinite" additive="sum"/>` : "";
   // Particules qui montent (braises, bulles) ou qui tombent (neige, feuilles)
