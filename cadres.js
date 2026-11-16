@@ -204,54 +204,282 @@
     const cr = CREATURES[c], co = COULEURS[(c + q * 5) % 12];
     return Object.assign({}, cr, { nom: `${cr.nom} ${co.nom}`, pal: co.pal });
   };
-  // Emblèmes, dessinés autour de (0, 0) dans une boîte d'environ 36 × 36
-  const EMB = {
-    flamme: (p) => `<path d="M0 -19C7 -10 13 -5 11 5 9 13 4 17 0 17-4 17-10 13-11 5-12-4-4-7-4-13 0-9 2-11 0-19Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.5"/><path d="M0 -3C3 1 5 4 4 9 3 12 1 13 0 13-2 13-4 11-4 8-4 4-1 2 0-3Z" fill="${p[0]}"/>`,
-    flocon: (p) => { let s = ""; for (let i = 0; i < 6; i++) s += `<g transform="rotate(${i * 60})"><path d="M0 0V-17M0 -11-5 -15M0 -11 5 -15M0 -5-4 -8M0 -5 4 -8" stroke="${p[0]}" stroke-width="2.6" stroke-linecap="round" fill="none"/></g>`; return s + `<circle r="3.5" fill="${p[1]}" stroke="${p[0]}" stroke-width="1.2"/>`; },
-    oeil: (p) => `<path d="M-18 0C-10 -13 10 -13 18 0 10 13-10 13-18 0Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.8"/><circle r="7.5" fill="${p[1]}"/><ellipse rx="2.2" ry="6.5" fill="${p[2]}"/><circle cx="2.5" cy="-3" r="1.6" fill="#fff"/>`,
-    plume: (p) => `<path d="M0 -6C-6 -16-16 -18-22 -14-14 -12-12 -8-12 -4-17 -4-20 0-20 4-13 2-7 4 0 10 7 4 13 2 20 4 20 0 17 -4 12 -4 12 -8 14 -12 22 -14 16 -18 6 -16 0 -6Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.5" stroke-linejoin="round"/><path d="M0 -10 4 -4 0 14-4 -4Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1"/>`,
-    croc: (p) => `<path d="M0 -17 14 -3 7 13H-7L-14 -3Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.8" stroke-linejoin="round"/><path d="M-6 -2 0 -10 6 -2" fill="none" stroke="${p[0]}" stroke-width="1.4"/><ellipse cx="-5" cy="1" rx="2.4" ry="3" fill="#ffd23f"/><ellipse cx="5" cy="1" rx="2.4" ry="3" fill="#ffd23f"/><path d="M-5 0v2M5 0v2" stroke="#000" stroke-width="1.2"/><path d="M0 13v6l-3 3M0 19l3 3" stroke="#ff3b5c" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
-    soleil: (p) => { let s = ""; for (let i = 0; i < 12; i++) s += `<path d="M-3 -11 0 -19 3 -11Z" fill="${p[1]}" transform="rotate(${i * 30})"/>`; return s + `<circle r="10" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.8"/><circle cx="-3.5" cy="-2" r="1.4" fill="${p[2]}"/><circle cx="3.5" cy="-2" r="1.4" fill="${p[2]}"/><path d="M-4 3Q0 7 4 3" stroke="${p[2]}" stroke-width="1.4" fill="none"/>`; },
-    planete: (p) => `<circle r="10.5" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.6"/><path d="M-7 -4Q0 -8 7 -5" stroke="${p[0]}" stroke-width="1.6" fill="none" opacity=".8"/><ellipse rx="20" ry="5.5" fill="none" stroke="${p[0]}" stroke-width="2.4" transform="rotate(-18)"/><path d="M-19 3A20 5.5 0 0 0 19 -3" fill="none" stroke="${p[2]}" stroke-width="1" transform="rotate(-18)" opacity=".5"/>`,
-    griffe: (p) => [-9, 0, 9].map((x, i) => `<path d="M${x - 6} ${-16 + i * 2}Q${x + 6} ${-2} ${x - 2} ${16 - i * 2}" fill="none" stroke="${p[2]}" stroke-width="6" stroke-linecap="round"/><path d="M${x - 6} ${-16 + i * 2}Q${x + 6} ${-2} ${x - 2} ${16 - i * 2}" fill="none" stroke="${p[1]}" stroke-width="3.2" stroke-linecap="round"/>`).join(""),
-    bois: (p) => [1, -1].map((k) => `<path d="M${k * 3} 12C${k * 4} 0 ${k * 8} -6 ${k * 16} -18M${k * 6} -2 ${k * 17} -5M${k * 10} -9 ${k * 9} -19M${k * 13} -13 ${k * 21} -12" fill="none" stroke="${p[2]}" stroke-width="5" stroke-linecap="round"/><path d="M${k * 3} 12C${k * 4} 0 ${k * 8} -6 ${k * 16} -18M${k * 6} -2 ${k * 17} -5M${k * 10} -9 ${k * 9} -19M${k * 13} -13 ${k * 21} -12" fill="none" stroke="${p[0]}" stroke-width="2.4" stroke-linecap="round"/>`).join("") + `<circle cy="13" r="3.5" fill="${p[1]}"/>`,
-    dard: (p) => `<path d="M-12 14C-18 2-14 -12 0 -14 10 -15 14 -8 12 -2" fill="none" stroke="${p[2]}" stroke-width="7" stroke-linecap="round"/><path d="M-12 14C-18 2-14 -12 0 -14 10 -15 14 -8 12 -2" fill="none" stroke="${p[1]}" stroke-width="4" stroke-linecap="round" stroke-dasharray="5 2"/><path d="M12 -2 18 4 9 4Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.4" stroke-linejoin="round"/>`,
-    lune: (p) => `<path d="M6 -16A17 17 0 1 0 6 16 13 13 0 1 1 6 -16Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.6"/><circle cx="-6" cy="4" r="2" fill="${p[1]}"/><circle cx="-2" cy="-7" r="1.4" fill="${p[1]}"/>` + etoile(14, -10, 4, "#fff", .3),
-    cornes: (p) => `<path d="M-6 6C-16 2-22 -8-18 -20-14 -10-8 -6 0 -4Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 6C16 2 22 -8 18 -20 14 -10 8 -6 0 -4Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.6" stroke-linejoin="round"/><path d="M0 -6 7 4 0 14-7 4Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.4"/><circle cy="4" r="2.2" fill="#ff3b5c"/>`,
+  // ---------- Dessins des cadres de podium (une créature par semaine) ----------
+  const r1 = (n) => Math.round(n * 10) / 10;
+  // Tube effilé lissé (tentacules, queues, mèches, cornes…) : liste de points, largeur au départ et à la fin
+  const tube = (pts, w0, w1) => {
+    const P = [pts[0], ...pts, pts[pts.length - 1]], S = [];
+    for (let i = 1; i < P.length - 2; i++) for (let k = 0; k < 8; k++) {
+      const t = k / 8, [p0, p1, p2, p3] = [P[i - 1], P[i], P[i + 1], P[i + 2]];
+      const q = (a) => .5 * (2 * p1[a] + (-p0[a] + p2[a]) * t + (2 * p0[a] - 5 * p1[a] + 4 * p2[a] - p3[a]) * t * t + (-p0[a] + 3 * p1[a] - 3 * p2[a] + p3[a]) * t * t * t);
+      S.push([q(0), q(1)]);
+    }
+    S.push(pts[pts.length - 1]);
+    const G = [], D = [];
+    S.forEach((p, i) => {
+      const a = S[Math.max(0, i - 1)], b = S[Math.min(S.length - 1, i + 1)], dx = b[0] - a[0], dy = b[1] - a[1], l = Math.hypot(dx, dy) || 1;
+      const w = (w0 + (w1 - w0) * (i / (S.length - 1))) / 2, nx = -dy / l * w, ny = dx / l * w;
+      G.push([p[0] + nx, p[1] + ny]); D.push([p[0] - nx, p[1] - ny]);
+    });
+    return "M" + [...G, ...D.reverse()].map(([x, y]) => `${r1(x)} ${r1(y)}`).join("L") + "Z";
   };
-  // Ornements de chaque côté de la photo (dessinés à gauche puis recopiés en miroir)
+  const lin = (id, stops, x1 = 0, y1 = 0, x2 = 0, y2 = 1) => `<linearGradient id="${id}" x1="${x1}" y1="${y1}" x2="${x2}" y2="${y2}">${stops.map((c, i) => `<stop offset="${r1(i / (stops.length - 1))}" stop-color="${c}"/>`).join("")}</linearGradient>`;
+  const rad = (id, stops, cx = .5, cy = .5, r = .5) => `<radialGradient id="${id}" cx="${cx}" cy="${cy}" r="${r}">${stops.map((c, i) => `<stop offset="${r1(i / (stops.length - 1))}" stop-color="${c}"${c === "transparent" ? ' stop-opacity="0"' : ""}/>`).join("")}</radialGradient>`;
+  const flou = (id, s = 2.4) => `<filter id="${id}" x="-60%" y="-60%" width="220%" height="220%"><feGaussianBlur stdDeviation="${s}"/></filter>`;
+  const an = (attr, vals, dur, extra = "") => anime ? `<animate attributeName="${attr}" values="${vals}" dur="${dur}s" repeatCount="indefinite"${extra}/>` : "";
+  const rot = (vals, dur, extra = "") => anime ? `<animateTransform attributeName="transform" type="rotate" values="${vals}" dur="${dur}s" repeatCount="indefinite"${extra}/>` : "";
+  const ease = ' calcMode="spline" keySplines=".45 0 .55 1;.45 0 .55 1"';
+  const cligne = (d) => anime ? `<animateTransform attributeName="transform" type="scale" values="1 1;1 1;1 .1;1 1" keyTimes="0;.9;.95;1" dur="${d}s" repeatCount="indefinite" additive="sum"/>` : "";
+  // Particules qui montent (braises, bulles) ou qui tombent (neige, feuilles)
+  const monte = (liste, forme, dur, sens = -1) => !anime ? "" : liste.map(([x, d, dx = 0]) => `<g>${anime ? `<animateTransform attributeName="transform" type="translate" values="0 0;${dx} ${sens * 120}" dur="${dur}s" begin="${d}s" repeatCount="indefinite"/>` : ""}<g transform="translate(${x} ${sens < 0 ? 118 : -24})">${forme}${an("opacity", "0;1;1;0", dur, ` begin="${d}s"`)}</g></g>`).join("");
+
+  // Plume : longue forme effilée avec sa nervure
+  const plume = (l, w, fill, nerv) => `<path d="M0 0C${w} ${-l * .25} ${w * .9} ${-l * .75} 0 ${-l}C${-w * .9} ${-l * .75} ${-w} ${-l * .25} 0 0Z" fill="${fill}"/><path d="M0 -1V${-l * .9}" stroke="${nerv}" stroke-width=".7" opacity=".7"/>`;
+  // Aile déployée (côté gauche, épaule en (ex, ey)) : 3 rangées de plumes qui s'ouvrent en éventail
+  const aile = (P, g, ex, ey, n = 8, base = -168, pas = 11, long = 44) => {
+    let s = "";
+    for (let i = 0; i < n; i++) s += `<g transform="translate(${ex} ${ey}) rotate(${base + i * pas + 90})">${plume(long - i * 2.2, 7, `url(#${g}p)`, P[2])}</g>`;
+    for (let i = 0; i < n - 1; i++) s += `<g transform="translate(${ex + 2} ${ey + 2}) rotate(${base + 6 + i * pas + 90})">${plume(28 - i * 1.4, 7.5, `url(#${g}s)`, P[2])}</g>`;
+    for (let i = 0; i < n - 2; i++) s += `<g transform="translate(${ex + 4} ${ey + 3}) rotate(${base + 12 + i * pas + 90})">${plume(15, 7, `url(#${g}c)`, P[2])}</g>`;
+    return s;
+  };
+  const defsAile = (g, P) => lin(g + "p", [P[2], P[1], P[0]], 0, 1, 0, 0) + lin(g + "s", [P[2], P[1]], 0, 1, 0, 0) + lin(g + "c", [P[1], P[0]], 0, 1, 0, 0);
+  // Œil brillant qui cligne
+  const oeil = (x, y, rx, ry, iris, fente = false, d = 4.5) => `<g transform="translate(${x} ${y})"><g>${cligne(d)}<ellipse rx="${rx}" ry="${ry}" fill="${iris}"/><ellipse rx="${rx}" ry="${ry}" fill="url(#oeilBrille)" opacity=".7"/>${fente ? `<ellipse rx="${rx * .22}" ry="${ry * .9}" fill="#000"/>` : `<circle r="${Math.min(rx, ry) * .55}" fill="#000"/>`}<circle cx="${-rx * .3}" cy="${-ry * .35}" r="${Math.min(rx, ry) * .3}" fill="#fff"/></g></g>`;
+  const DEFS_COMMUNS = `<defs>${rad("oeilBrille", ["#fff", "transparent"], .35, .3, .7)}</defs>`;
+
   const miroir = (s) => `${s}<g transform="translate(100 0) scale(-1 1)">${s}</g>`;
-  const COTES = {
-    ailes: (p) => miroir(`<path d="M30 -2C18 -24-2 -28-26 -20c7 4 10 8 10 13-7-3-14-2-19 4 8 1 12 4 14 9-7 0-12 4-14 9 13-6 27-4 40 4Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.6" stroke-linejoin="round"/><path d="M-4 -18-8 -10M-14 -10-16 -1" stroke="${p[0]}" stroke-width="1.2"/>`),
-    pics: (p) => Array.from({ length: 11 }, (_, i) => { const a = 115 + i * 13, [x1, y1] = pt(a - 5, 57), [x2, y2] = pt(a, 72 + (i % 2) * 6), [x3, y3] = pt(a + 5, 57); return `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}Z" fill="${p[i % 2]}" stroke="${p[2]}" stroke-width="1"/>`; }).join(""),
-    tentacules: (p) => miroir(`<path d="M8 86C-6 92-20 84-18 70-16 60-6 62-8 70" fill="none" stroke="${p[2]}" stroke-width="8" stroke-linecap="round"/><path d="M8 86C-6 92-20 84-18 70-16 60-6 62-8 70" fill="none" stroke="${p[1]}" stroke-width="5" stroke-linecap="round"/><path d="M4 14C-10 8-18 18-14 28-10 36-2 32-4 26" fill="none" stroke="${p[2]}" stroke-width="7" stroke-linecap="round"/><path d="M4 14C-10 8-18 18-14 28-10 36-2 32-4 26" fill="none" stroke="${p[1]}" stroke-width="4" stroke-linecap="round"/>` + [[-14, 76], [-17, 66], [-13, 22]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="${p[0]}"/>`).join("")),
-    feuilles: (p) => laurier(p[1], p[2]),
-    rayons: (p) => Array.from({ length: 20 }, (_, i) => { const a = i * 18 + 9, l = i % 2 ? 66 : 74, [x1, y1] = pt(a - 5, 56), [x2, y2] = pt(a, l), [x3, y3] = pt(a + 5, 56); return `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}Z" fill="${i % 2 ? p[0] : p[1]}" stroke="${p[2]}" stroke-width=".8"/>`; }).join(""),
-    cristaux: (p) => miroir([[-14, 30, -30], [-20, 56, -90], [-12, 84, -140]].map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 -14 5 -3 0 14-5 -3Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.2"/><path d="M0 -14 0 14M-5 -3H5" stroke="${p[1]}" stroke-width=".8"/></g>`).join("")),
-    flammes: (p) => Array.from({ length: 9 }, (_, i) => { const a = 120 + i * 15, [x, y] = pt(a, 64); return `<g transform="translate(${f(x)} ${f(y)}) rotate(${a})"><path d="M0 -12C4 -6 6 -2 5 3 4 7 2 8 0 8-2 8-4 7-5 3-6-2-3-4 0-12Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1">${anime ? `<animateTransform attributeName="transform" type="scale" values="1;1.18;1" dur="${.7 + (i % 3) * .2}s" repeatCount="indefinite" additive="sum"/>` : ""}</path></g>`; }).join(""),
+  const CREA = {};
+  // Phénix : grandes ailes de plumes qui battent, tête à crête de flammes, longues plumes de queue, braises
+  CREA.flamme = (P, g) => `<defs>${defsAile(g, P)}${rad(g + "h", [P[0], P[1], P[2]], .4, .35, .7)}${rad(g + "aura", [P[1], "transparent"])}${lin(g + "q", [P[1], P[0]], 0, 0, 0, 1)}${flou(g + "f", 3)}</defs>
+    <ellipse cx="50" cy="-6" rx="62" ry="26" fill="url(#${g}aura)" opacity=".6">${an("opacity", ".35;.7;.35", 2.4)}</ellipse>
+    ${miroir(`<g>${rot("0 16 10;-9 16 10;0 16 10", 1.6, ease)}${aile(P, g, 18, 12, 9, -176, 12, 58)}</g>`)}
+    ${[-16, 0, 16].map((dx, i) => `<path d="${tube([[50 + dx * .3, 100], [50 + dx, 112], [50 + dx * 1.9, 124], [50 + dx * 2.6, 128]], 6, 1.5)}" fill="url(#${g}q)">${rot(`0 50 100;${i % 2 ? 4 : -4} 50 100;0 50 100`, 2 + i * .3)}</path>`).join("")}
+    <g transform="translate(50 -8)">
+      ${[-10, -5, 0, 5, 10].map((a, i) => `<path d="M0 -8C${a * .6 - 3} -16 ${a * 1.4} -22 ${a * 1.2} ${-30 + Math.abs(a) * .8}C${a * .5 + 3} -20 ${a * .3 + 2} -14 0 -8Z" fill="${i % 2 ? P[0] : P[1]}" stroke="${P[2]}" stroke-width=".6">${rot(`0 0 -8;${i % 2 ? 6 : -6} 0 -8;0 0 -8`, .9 + i * .17)}</path>`).join("")}
+      <path d="M-11 14C-14 2-9 -10 0 -11 9 -10 14 2 11 14Z" fill="url(#${g}h)" stroke="${P[2]}" stroke-width="1"/>
+      <path d="M-4 3 0 13 4 3Z" fill="#ffd23f" stroke="#7a4a00" stroke-width=".8"/>
+      ${oeil(-5, -1, 2.6, 2.2, "#fff2a8")}${oeil(5, -1, 2.6, 2.2, "#fff2a8")}
+    </g>
+    ${monte([[-16, 0, 6], [-6, 1.1, -5], [108, .5, -6], [116, 1.7, 4], [-12, 2.2, 8], [112, 2.7, -3], [50, 1.4, 0]], `<circle r="1.8" fill="${P[0]}"/><circle r="3.5" fill="${P[1]}" opacity=".35"/>`, 3.4)}`;
+
+  // Loup : tête de loup de face (oreilles, fourrure, yeux qui brillent et clignent), givre et neige qui tombe
+  CREA.flocon = (P, g) => {
+    const touffes = (cote) => `<path d="M${50 + cote * 8} 6L${50 + cote * 19} 2L${50 + cote * 17} -3L${50 + cote * 23} -6L${50 + cote * 19} -10L${50 + cote * 22} -15L${50 + cote * 15} -14Z" fill="url(#${g}f)"/>`;
+    return `<defs>${lin(g + "f", [P[0], P[1], P[2]])}${lin(g + "m", ["#fff", P[0]])}${lin(g + "i", [P[2], P[1]], 0, 0, 1, 1)}${lin(g + "gl", ["#ffffff", P[0], P[1]], 0, 0, 0, 1)}</defs>
+      ${Array.from({ length: 13 }, (_, i) => { const a = 108 + i * 12, l = 66 + (i % 3) * 5, [x1, y1] = pt(a - 4, 55), [x2, y2] = pt(a, l), [x3, y3] = pt(a + 4, 55); return `<path d="M${r1(x1)} ${r1(y1)}L${r1(x2)} ${r1(y2)}L${r1(x3)} ${r1(y3)}Z" fill="url(#${g}gl)" stroke="${P[2]}" stroke-width=".5"/><path d="M${r1(x1 + (x2 - x1) * .2)} ${r1(y1 + (y2 - y1) * .2)}L${r1(x2)} ${r1(y2)}" stroke="#fff" stroke-width=".8" opacity=".8"/>`; }).join("")}
+      <g transform="translate(50 0) scale(1.28) translate(-50 0)"><g>${rot("0 50 6;-2 50 6;0 50 6;2 50 6;0 50 6", 6)}
+        <path d="M33 -6 30 -32 45 -14Z" fill="url(#${g}f)" stroke="${P[2]}" stroke-width="1"/><path d="M34 -10 32 -26 42 -15Z" fill="url(#${g}i)"/>
+        <path d="M67 -6 70 -32 55 -14Z" fill="url(#${g}f)" stroke="${P[2]}" stroke-width="1"/><path d="M66 -10 68 -26 58 -15Z" fill="url(#${g}i)"/>
+        ${touffes(-1)}${touffes(1)}
+        <path d="M50 -20C38 -20 31 -12 31 -2 31 6 38 10 42 14L50 22 58 14C62 10 69 6 69 -2 69 -12 62 -20 50 -20Z" fill="url(#${g}f)" stroke="${P[2]}" stroke-width="1"/>
+        <path d="M50 -12C46 -6 43 2 43 8 45 14 48 17 50 18 52 17 55 14 57 8 57 2 54 -6 50 -12Z" fill="url(#${g}m)"/>
+        <path d="M40 -10 45 -6M60 -10 55 -6M38 -2 42 -1M62 -2 58 -1" stroke="${P[2]}" stroke-width=".8" opacity=".6"/>
+        ${oeil(43, -3, 3.2, 2, P[1], true, 5)}${oeil(57, -3, 3.2, 2, P[1], true, 5)}
+        <path d="M46.5 12C48 10.5 52 10.5 53.5 12 52 14.5 48 14.5 46.5 12Z" fill="#111"/><path d="M50 14.5V17M47 18Q50 20 53 18" stroke="#111" stroke-width=".9" fill="none"/>
+      </g></g>
+      ${monte([[-20, 0, 8], [-8, 1.3, 4], [10, 2.6, 6], [88, .7, -6], [106, 1.9, -4], [120, 3.1, -8], [40, 3.8, 3], [66, .3, -3]], `<g>${rot("0;360", 4)}<path d="M0 -2.6V2.6M-2.3 -1.3 2.3 1.3M-2.3 1.3 2.3 -1.3" stroke="#fff" stroke-width=".9" stroke-linecap="round"/></g>`, 4.5, 1)}`;
   };
-  // Effets animés autour du cadre
-  const PARTS = {
-    braises: (p) => [[-16, 0], [-6, .9], [106, .4], [114, 1.5], [-12, 2.1], [110, 2.5]].map(([x, d]) => `<circle cx="${x}" cy="110" r="2" fill="${p[1]}">${anime ? `<animate attributeName="cy" values="115;-12" dur="3.2s" begin="${d}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="3.2s" begin="${d}s" repeatCount="indefinite"/>` : ""}</circle>`).join(""),
-    flocons: (p) => `<g>${tourne(20)}${etoile(-14, 40, 4, p[0], 0)}${etoile(114, 60, 4, p[0], .6)}${etoile(30, 118, 3.5, "#fff", 1.1)}${etoile(80, -18, 3.5, "#fff", .3)}${etoile(-6, 92, 3, p[0], .9)}</g>`,
-    bulles: (p) => [[-14, 0], [-6, 1.2], [108, .5], [116, 1.8], [-18, 2.3]].map(([x, d]) => `<circle cx="${x}" cy="110" r="2.6" fill="none" stroke="${p[0]}" stroke-width="1.2">${anime ? `<animate attributeName="cy" values="118;-10" dur="3.6s" begin="${d}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="3.6s" begin="${d}s" repeatCount="indefinite"/>` : ""}</circle>`).join(""),
-    eclairs: (p) => [[-18, 32, -15, 0], [118, 24, 20, .45], [-12, 96, 25, .8], [114, 94, -20, .25]].map(([x, y, r, d]) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 -12 6 -12 2 -3 8 -3 -4 14 -1 3 -6 3Z" fill="${p[1]}" stroke="${p[0]}" stroke-width="1" stroke-linejoin="round">${anime ? `<animate attributeName="opacity" values="1;.15;1;1" dur="1.4s" begin="${d}s" repeatCount="indefinite"/>` : ""}</path></g>`).join(""),
-    orbite: (p) => orbite(66, [p[0], p[1], "#fff", p[1]], 7),
+
+  // Kraken : manteau et grand œil au sommet, quatre tentacules à ventouses qui ondulent, bulles
+  CREA.oeil = (P, g) => {
+    const tent = (pts, w, d, k) => `<g>${rot(`0 ${pts[0][0]} ${pts[0][1]};${k * 5} ${pts[0][0]} ${pts[0][1]};0 ${pts[0][0]} ${pts[0][1]};${-k * 3} ${pts[0][0]} ${pts[0][1]};0 ${pts[0][0]} ${pts[0][1]}`, d)}<path d="${tube(pts, w, 1.2)}" fill="url(#${g}t)" stroke="${P[2]}" stroke-width=".8"/>${pts.slice(1, -1).map(([x, y], i) => `<circle cx="${r1(x + (50 - x) * .05)}" cy="${r1(y + (50 - y) * .05)}" r="${r1(w * .16 * (1 - i / pts.length))}" fill="${P[0]}" stroke="${P[2]}" stroke-width=".4"/>`).join("")}</g>`;
+    return `<defs>${lin(g + "t", [P[1], P[2]], 0, 0, 1, 1)}${rad(g + "m", [P[0], P[1], P[2]], .45, .35, .75)}</defs>
+      ${tent([[22, 96], [4, 104], [-14, 92], [-20, 70], [-12, 56], [-4, 60]], 11, 5.2, 1)}
+      ${tent([[78, 96], [96, 104], [114, 92], [120, 70], [112, 56], [104, 60]], 11, 5.8, -1)}
+      ${tent([[16, 30], [-2, 22], [-16, 28], [-22, 42], [-14, 48]], 8, 4.4, -1)}
+      ${tent([[84, 30], [102, 22], [116, 28], [122, 42], [114, 48]], 8, 4.8, 1)}
+      <g>${rot("0 50 0;-3 50 0;0 50 0;3 50 0;0 50 0", 7)}
+        <path d="M24 6C22 -18 36 -32 50 -32 64 -32 78 -18 76 6 66 0 34 0 24 6Z" fill="url(#${g}m)" stroke="${P[2]}" stroke-width="1.2"/>
+        ${[[36, -20, 2.2], [62, -22, 1.8], [44, -27, 1.4], [68, -12, 1.6], [30, -8, 1.5]].map(([x, y, r]) => `<circle cx="${x}" cy="${y}" r="${r}" fill="${P[0]}" opacity=".55"/>`).join("")}
+        <path d="M37 -9C42 -16 58 -16 63 -9 58 -2 42 -2 37 -9Z" fill="#fff8d0" stroke="${P[2]}" stroke-width="1"/>
+        ${oeil(50, -9, 6, 5.2, "#ffcf3f", true, 3.8)}
+      </g>
+      ${monte([[-14, 0, 4], [-4, 1.4, -3], [104, .6, 3], [114, 2, -4], [-20, 2.6, 5], [118, 3.1, -2]], `<circle r="2.6" fill="none" stroke="${P[0]}" stroke-width="1"/><circle cx="-.8" cy="-.9" r=".8" fill="#fff"/>`, 3.6)}`;
   };
+
+  // Aigle : ailes brunes à pointes claires qui battent, tête blanche de profil au bec crochu, éclairs
+  CREA.plume = (P, g) => {
+    const eclair = (x, y, r, d, s = 1) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 -14 7 -14 2 -3 9 -3 -5 16 -1 3 -7 3Z" fill="#fffbe0" filter="url(#${g}fl)"/><path d="M0 -14 7 -14 2 -3 9 -3 -5 16 -1 3 -7 3Z" fill="${P[0]}" stroke="${P[1]}" stroke-width=".8" stroke-linejoin="round"/>${an("opacity", "0;0;1;.2;1;0", 2.2, ` begin="${d}s" keyTimes="0;.55;.6;.66;.72;1"`)}</g>`;
+    return `<defs>${lin(g + "p", [P[2], "#3a2414", "#f4ead2"], 0, 1, 0, 0)}${lin(g + "s", [P[2], "#5a3a1e"], 0, 1, 0, 0)}${lin(g + "c", ["#6b4423", P[1]], 0, 1, 0, 0)}${lin(g + "t", ["#ffffff", "#e6e2d6"])}${flou(g + "fl", 2)}</defs>
+      ${miroir(`<g>${rot("0 16 8;-11 16 8;0 16 8", 1.8, ease)}${aile(P, g, 16, 8, 9, -172, 10, 46)}</g>`)}
+      ${eclair(-18, 34, -15, 0)}${eclair(118, 26, 20, .7)}${eclair(-12, 98, 25, 1.3, .8)}${eclair(114, 96, -20, .35, .8)}
+      <g transform="translate(50 -6)">${rot("0 0 10;-4 0 10;0 0 10;3 0 10;0 0 10", 5)}
+        <path d="M-12 16C-15 4-10 -12 2 -14 12 -15 18 -8 18 0 18 6 14 10 8 12 4 16-4 20-12 16Z" fill="url(#${g}t)" stroke="#8a8274" stroke-width="1"/>
+        <path d="M-12 16-14 22-6 20-8 26 0 21 2 27 6 19Z" fill="#e6e2d6" stroke="#8a8274" stroke-width=".6"/>
+        <path d="M14 -4C22 -6 28 -2 28 4 28 9 24 11 21 9 22 6 20 3 15 3Z" fill="#ffc21a" stroke="#7a4a00" stroke-width="1"/><path d="M15 3C18 4 20 6 21 9" stroke="#7a4a00" stroke-width=".8" fill="none"/>
+        <path d="M3 -7C7 -9 12 -8 14 -5" stroke="#5a5040" stroke-width="1.6" fill="none" stroke-linecap="round"/>
+        ${oeil(8, -3, 2.6, 2.4, "#ffb000", false, 6)}
+      </g>`;
+  };
+
+  // Serpent : long corps à écailles enroulé autour de la photo, tête au sommet, langue qui sort
+  CREA.croc = (P, g) => {
+    const corps = Array.from({ length: 15 }, (_, i) => { const a = 66 + i * 21.5, r = 61 + Math.sin(i * 1.3) * 3; return pt(a, r); });
+    return `<defs>${lin(g + "c", [P[0], P[1], P[2]], 0, 0, 1, 1)}${lin(g + "v", ["#fff8d6", P[0]])}
+        <pattern id="${g}e" width="6" height="5" patternUnits="userSpaceOnUse"><path d="M0 5A3 3 0 0 1 6 5" fill="none" stroke="${P[2]}" stroke-width=".7" opacity=".7"/><path d="M-3 2.5A3 3 0 0 1 3 2.5M3 2.5A3 3 0 0 1 9 2.5" fill="none" stroke="${P[2]}" stroke-width=".7" opacity=".7"/></pattern></defs>
+      <path d="${tube(corps, 4, 11)}" fill="url(#${g}c)" stroke="${P[2]}" stroke-width="1"/>
+      <path d="${tube(corps, 4, 11)}" fill="url(#${g}e)"/>
+      <path d="${tube(corps.map(([x, y]) => [x + (50 - x) * .04, y + (50 - y) * .04]), 1, 3)}" fill="#fff" opacity=".35"/>
+      <g transform="translate(${r1(corps[14][0])} ${r1(corps[14][1] - 6)}) scale(1.45) rotate(-4)">${rot("0 0 4;-6 0 4;0 0 4;5 0 4;0 0 4", 4)}
+        <g>${anime ? `<animateTransform attributeName="transform" type="scale" values="1 0;1 0;1 1;1 .2;1 1;1 0" keyTimes="0;.6;.66;.72;.78;1" dur="2.6s" repeatCount="indefinite"/>` : ""}<path d="M0 -8V-16M0 -16-3 -20M0 -16 3 -20" stroke="#ff2e56" stroke-width="1.3" fill="none" stroke-linecap="round"/></g>
+        <path d="M0 10C-10 10-13 2-12 -3-10 -9-5 -11 0 -11 5 -11 10 -9 12 -3 13 2 10 10 0 10Z" fill="url(#${g}c)" stroke="${P[2]}" stroke-width="1.1"/>
+        <path d="M0 10C-10 10-13 2-12 -3-10 -9-5 -11 0 -11 5 -11 10 -9 12 -3 13 2 10 10 0 10Z" fill="url(#${g}e)"/>
+        <path d="M-4 -9C-2 -6 2 -6 4 -9" stroke="${P[2]}" stroke-width=".8" fill="none"/>
+        ${oeil(-6, -2, 2.8, 3.2, "#ffd23f", true, 4.2)}${oeil(6, -2, 2.8, 3.2, "#ffd23f", true, 4.2)}
+        <circle cx="-2" cy="-9" r=".7" fill="#111"/><circle cx="2" cy="-9" r=".7" fill="#111"/>
+      </g>
+      `;
+  };
+
+  // Lion : crinière de mèches tout autour (qui ondule), tête de lion au sommet, halo solaire
+  CREA.soleil = (P, g) => {
+    const meches = Array.from({ length: 26 }, (_, i) => { const a = -150 + i * 12, l = 70 + (i % 3) * 5 + (Math.abs(a) < 60 ? 6 : 0); const [x0, y0] = pt(a, 54), [x1, y1] = pt(a + 4, (54 + l) / 2), [x2, y2] = pt(a + (i % 2 ? 9 : -2), l); return `<path d="${tube([[x0, y0], [x1, y1], [x2, y2]], 9, 1)}" fill="url(#${g}m)" stroke="${P[2]}" stroke-width=".6"/>`; }).join("");
+    return `<defs>${lin(g + "m", [P[0], P[1], P[2]], 0, 0, 1, 1)}${rad(g + "a", [P[0], "transparent"])}${rad(g + "v", [P[0], P[1], P[2]], .5, .45, .75)}</defs>
+      <circle cx="50" cy="50" r="84" fill="url(#${g}a)" opacity=".5">${an("r", "78;88;78", 3)}</circle>
+      <g>${rot("0 50 50;2 50 50;0 50 50;-2 50 50;0 50 50", 6)}${meches}</g>
+      <g transform="translate(50 -8)">
+        <path d="M-15 -4C-15 -16-6 -21 0 -21 6 -21 15 -16 15 -4 15 8 9 17 0 19-9 17-15 8-15 -4Z" fill="url(#${g}v)" stroke="${P[2]}" stroke-width="1.1"/>
+        <path d="M-15 -14-18 -20-11 -18Z M15 -14 18 -20 11 -18Z" fill="${P[1]}" stroke="${P[2]}" stroke-width=".8"/>
+        <path d="M-8 5C-8 14 8 14 8 5 5 1-5 1-8 5Z" fill="#fff6e0"/><path d="M-3 -16C-1 -10 1 -10 3 -16" fill="none" stroke="${P[0]}" stroke-width="2" opacity=".6"/>
+        <path d="M-3.5 3.5C-2 2 2 2 3.5 3.5 2.5 6 -2.5 6 -3.5 3.5Z" fill="#3a1a0a"/><path d="M0 6V9M-4 10Q0 12 4 10" stroke="#3a1a0a" stroke-width="1" fill="none"/>
+        <path d="M-9 -7Q-5 -10-2 -7M9 -7Q5 -10 2 -7" stroke="${P[2]}" stroke-width="1.2" fill="none"/>
+        ${oeil(-6, -3.5, 2.6, 2, "#ffb000", false, 5.5)}${oeil(6, -3.5, 2.6, 2, "#ffb000", false, 5.5)}
+        <path d="M-1 -12V-6M1 -12V-6" stroke="${P[2]}" stroke-width=".6" opacity=".5"/>
+      </g>`;
+  };
+
+  // Comète : nébuleuse, planète à anneaux au sommet, comète qui fait le tour de la photo, étoiles qui scintillent
+  CREA.planete = (P, g) => `<defs>${rad(g + "n", [P[1], "transparent"])}${rad(g + "p", [P[0], P[1], P[2]], .35, .3, .8)}${lin(g + "q", ["transparent", P[0], "#fff"], 0, 0, 1, 0)}${flou(g + "fl", 1.5)}</defs>
+    <ellipse cx="-8" cy="14" rx="26" ry="20" fill="url(#${g}n)" opacity=".55">${an("opacity", ".3;.6;.3", 4)}</ellipse><ellipse cx="110" cy="88" rx="24" ry="22" fill="url(#${g}n)" opacity=".5">${an("opacity", ".55;.25;.55", 5)}</ellipse>
+    ${[[-20, 10, 0], [118, 30, .7], [-14, 108, 1.4], [114, 116, .3], [8, -22, 1.1], [96, -24, 1.8], [124, 70, 2.2], [-24, 60, .5]].map(([x, y, d]) => etoile(x, y, 3.2, "#fff", d)).join("")}
+    <circle cx="50" cy="50" r="64" fill="none" stroke="${P[0]}" stroke-width=".7" stroke-dasharray="1 4" opacity=".7"/>
+    <g>${anime ? `<animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="7s" repeatCount="indefinite"/>` : ""}
+      <path d="M50 -14A64 64 0 0 0 4 4" fill="none" stroke="url(#${g}q)" stroke-width="5" stroke-linecap="round" opacity=".85" transform="rotate(180 50 50) scale(1 1)"/>
+      <circle cx="50" cy="114" r="5" fill="#fff" filter="url(#${g}fl)"/><circle cx="50" cy="114" r="3" fill="#fff"/></g>
+    <g transform="translate(50 -12)">${rot("0;-10;0", 8)}
+      <circle r="13" fill="url(#${g}p)" stroke="${P[2]}" stroke-width=".8"/>
+      <path d="M-11 -3C-4 -6 6 -6 12 -2M-12 4C-4 1 6 2 12 5" stroke="${P[0]}" stroke-width="1.3" fill="none" opacity=".55"/>
+      <ellipse rx="25" ry="6" fill="none" stroke="${P[0]}" stroke-width="2.6" transform="rotate(-16)" stroke-dasharray="40 0"/>
+      <path d="M-13 3A13 13 0 0 0 13 -3" transform="rotate(-16)" fill="none" stroke="url(#${g}p)" stroke-width="0"/>
+      <ellipse rx="25" ry="6" fill="none" stroke="#fff" stroke-width=".6" transform="rotate(-16)" opacity=".6"/>
+    </g>`;
+
+  // Tigre : tête de tigre rayée au sommet, griffures lumineuses sur les côtés, anneau rayé
+  CREA.griffe = (P, g) => {
+    const griffures = (x, y, r, d) => `<g transform="translate(${x} ${y}) rotate(${r})">${[-6, 0, 6].map((dx) => `<path d="M${dx - 4} -14Q${dx + 4} 0 ${dx - 2} 14" fill="none" stroke="${P[1]}" stroke-width="3.2" stroke-linecap="round" filter="url(#${g}fl)"/><path d="M${dx - 4} -14Q${dx + 4} 0 ${dx - 2} 14" fill="none" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/>`).join("")}${an("opacity", ".3;1;.3", 1.6, ` begin="${d}s"`)}</g>`;
+    return `<defs>${lin(g + "f", ["#ffb347", "#ff7a1a", "#c2410c"])}${flou(g + "fl", 1.8)}</defs>
+      <circle cx="50" cy="50" r="59" fill="none" stroke="#1a1a1a" stroke-width="5" stroke-dasharray="3 7"/>
+      ${griffures(-14, 50, -10, 0)}${griffures(114, 50, 10, .8)}
+      <g transform="translate(50 -8)">${rot("0 0 10;-3 0 10;0 0 10;3 0 10;0 0 10", 5)}
+        <path d="M-16 -12-14 -22-6 -17Z M16 -12 14 -22 6 -17Z" fill="url(#${g}f)" stroke="#2a1205" stroke-width="1"/><path d="M-14 -14-13 -19-9 -16Z M14 -14 13 -19 9 -16Z" fill="#fff"/>
+        <path d="M0 -19C-12 -19-18 -10-18 -1-18 6-13 12-8 15L0 20 8 15C13 12 18 6 18 -1 18 -10 12 -19 0 -19Z" fill="url(#${g}f)" stroke="#2a1205" stroke-width="1.1"/>
+        <path d="M-10 4C-8 13 8 13 10 4 6 1-6 1-10 4Z" fill="#fff8ef"/><path d="M-17 2-11 1-16 6Z M17 2 11 1 16 6Z" fill="#fff8ef"/>
+        <path d="M0 -19-2 -13 0 -9 2 -13Z M-7 -17-6 -12M7 -17 6 -12M-17 -6-11 -5M-17 -2-12 -1M17 -6 11 -5M17 -2 12 -1" stroke="#1a0d05" stroke-width="1.5" fill="#1a0d05" stroke-linecap="round"/>
+        ${oeil(-6, -5, 3, 2.2, "#7dff6a", true, 4.8)}${oeil(6, -5, 3, 2.2, "#7dff6a", true, 4.8)}
+        <path d="M-3 2C-1.5 .5 1.5 .5 3 2 2 4.5-2 4.5-3 2Z" fill="#e0607a"/><path d="M0 4.5V7M-4 8Q0 10 4 8" stroke="#1a0d05" stroke-width=".9" fill="none"/>
+      </g>`;
+  };
+
+  // Cerf : tête de cerf aux grands bois, feuilles qui tombent, lucioles
+  CREA.bois = (P, g) => {
+    const bois = (k) => `<path d="${tube([[50 + k * 5, -12], [50 + k * 10, -20], [50 + k * 22, -26], [50 + k * 36, -28]], 4.5, 1.6)}" fill="url(#${g}b)"/>
+      <path d="${tube([[50 + k * 14, -22], [50 + k * 14, -32], [50 + k * 10, -40]], 3, 1)}" fill="url(#${g}b)"/>
+      <path d="${tube([[50 + k * 24, -26], [50 + k * 28, -36], [50 + k * 26, -44]], 2.8, 1)}" fill="url(#${g}b)"/>
+      <path d="${tube([[50 + k * 32, -27], [50 + k * 40, -34], [50 + k * 42, -42]], 2.4, .8)}" fill="url(#${g}b)"/>`;
+    return `<defs>${lin(g + "b", ["#f4ead2", "#c9a97a", "#7a5a32"], 0, 0, 1, 1)}${lin(g + "t", ["#c98a4a", "#8a5226"])}${rad(g + "l", ["#fff9b0", "transparent"])}</defs>
+      ${laurier(P[1], P[2])}
+      <g>${rot("0 50 0;-2 50 0;0 50 0;2 50 0;0 50 0", 6)}${bois(-1)}${bois(1)}
+        <path d="M37 -12 28 -18 34 -8Z M63 -12 72 -18 66 -8Z" fill="url(#${g}t)" stroke="#4a2a10" stroke-width=".8"/>
+        <path d="M50 -16C42 -16 38 -10 38 -4 38 4 44 12 46 18 47 21 53 21 54 18 56 12 62 4 62 -4 62 -10 58 -16 50 -16Z" fill="url(#${g}t)" stroke="#4a2a10" stroke-width="1"/>
+        <path d="M50 -8C47 -2 46 8 47 16 48 19 52 19 53 16 54 8 53 -2 50 -8Z" fill="#e8c9a0" opacity=".7"/>
+        <ellipse cx="50" cy="17" rx="3.4" ry="2.4" fill="#2a1508"/>
+        ${oeil(43.5, -3, 2.4, 2.4, "#3a1d0a", false, 6.2)}${oeil(56.5, -3, 2.4, 2.4, "#3a1d0a", false, 6.2)}
+      </g>
+      ${monte([[-18, 0, 10], [8, 1.6, 6], [92, .8, -8], [118, 2.4, -6], [40, 3.2, 4]], `<g>${rot("0;40;-20;0", 3)}<path d="M0 -4C3 -2 3 2 0 4-3 2-3 -2 0 -4Z" fill="${P[1]}" stroke="${P[2]}" stroke-width=".4"/><path d="M0 -4V4" stroke="${P[2]}" stroke-width=".4"/></g>`, 5, 1)}
+      ${[[-16, 30, 0], [116, 40, 1], [-8, 80, 2], [110, 86, .5], [20, -20, 1.5]].map(([x, y, d]) => `<circle cx="${x}" cy="${y}" r="4" fill="url(#${g}l)">${an("opacity", "0;1;0", 2.4, ` begin="${d}s"`)}</circle><circle cx="${x}" cy="${y}" r="1" fill="#fffde0">${an("opacity", "0;1;0", 2.4, ` begin="${d}s"`)}</circle>`).join("")}`;
+  };
+
+  // Scorpion : pinces qui agrippent la photo, queue segmentée qui passe au-dessus, dard qui goutte
+  CREA.dard = (P, g) => {
+    const seg = Array.from({ length: 17 }, (_, i) => { const a = 120 - i * 6.6, r = 63 + Math.sin(i / 16 * Math.PI) * 9; return [pt(a, r), a]; });
+    const pince = (k) => `<g transform="translate(${50 + k * 60} 86) scale(${k} 1)">
+      <path d="${tube([[-14, 22], [-4, 14], [2, 4], [6, -4]], 7, 6)}" fill="url(#${g}c)" stroke="${P[2]}" stroke-width=".8"/>
+      <g transform="translate(6 -4)">${rot("0 0 0;-10 0 0;0 0 0", 1.6, ease)}
+        <path d="M0 0C-2 -8 0 -16 8 -20 14 -22 18 -18 16 -12 14 -14 10 -14 8 -12 6 -8 6 -4 4 0Z" fill="url(#${g}s)" stroke="${P[2]}" stroke-width=".9"/>
+        <path d="M2 -2C6 -6 12 -6 16 -4 13 -2 8 0 4 2Z" fill="url(#${g}s)" stroke="${P[2]}" stroke-width=".9"/>
+        <path d="M4 -14 9 -16" stroke="#fff" stroke-width="1" opacity=".6" stroke-linecap="round"/></g></g>`;
+    return `<defs>${lin(g + "c", [P[0], P[1], P[2]], 0, 0, 1, 1)}${rad(g + "s", [P[0], P[1], P[2]], .35, .3, .8)}${flou(g + "fl", 1.2)}</defs>
+      ${pince(-1)}${pince(1)}
+      <g>${rot("0 50 50;-4 50 50;0 50 50", 3.2, ease)}
+        ${seg.map(([[x, y], a], i) => `<ellipse cx="${r1(x)}" cy="${r1(y)}" rx="${r1(6.8 - i * .2)}" ry="${r1(5 - i * .15)}" fill="url(#${g}s)" stroke="${P[2]}" stroke-width=".8" transform="rotate(${r1(a + 90)} ${r1(x)} ${r1(y)})"/><path d="M${r1(x - 2)} ${r1(y - 2)}l2 -1" stroke="#fff" stroke-width=".8" opacity=".6"/>`).join("")}
+        <g transform="translate(${r1(seg[16][0][0])} ${r1(seg[16][0][1])}) rotate(${r1(seg[16][1] - 80)})">
+          <path d="M-5 2C-6 -6 0 -11 6 -10 10 -9 12 -5 10 0 8 4 2 6-5 2Z" fill="url(#${g}s)" stroke="${P[2]}" stroke-width=".9"/>
+          <path d="M9 0C12 4 12 9 8 13 9 8 8 5 6 3Z" fill="#1a1a1a" stroke="#000" stroke-width=".5"/>
+          <circle cx="8.5" cy="13" r="1.5" fill="#9dff5a" filter="url(#${g}fl)">${anime ? `<animate attributeName="cy" values="13;13;22" keyTimes="0;.7;1" dur="2.4s" repeatCount="indefinite"/>` : ""}${an("opacity", "1;1;0", 2.4, ' keyTimes="0;.85;1"')}</circle></g>
+      </g>
+      ${monte([[-16, 0, 14], [10, 1, 10], [90, .6, 12], [116, 1.8, 8]], `<circle r="1" fill="${P[0]}"/><circle cx="3" cy="2" r=".7" fill="${P[1]}"/>`, 3, -1)}`;
+  };
+
+  // Lune : grand croissant de lune aux cratères qui luit, éclats de cristal en orbite, étoiles
+  CREA.lune = (P, g) => {
+    const cristal = (x, y, r, s) => `<g transform="translate(${x} ${y}) rotate(${r}) scale(${s})"><path d="M0 -14 6 -4 4 12-4 12-6 -4Z" fill="url(#${g}k)" stroke="${P[2]}" stroke-width=".8"/><path d="M0 -14 0 12M-6 -4 0 0 6 -4" stroke="#fff" stroke-width=".7" opacity=".7" fill="none"/><path d="M-1 -10-3 -3" stroke="#fff" stroke-width="1.2" stroke-linecap="round"/></g>`;
+    return `<defs>${rad(g + "m", ["#ffffff", P[0], P[1]], .3, .4, .8)}${rad(g + "h", [P[0], "transparent"])}${lin(g + "k", ["#ffffff", P[0], P[1], P[2]], 0, 0, 1, 1)}</defs>
+      <circle cx="50" cy="-10" r="34" fill="url(#${g}h)" opacity=".7">${an("opacity", ".45;.85;.45", 3.5)}</circle>
+      <g>${anime ? `<animateTransform attributeName="transform" type="rotate" from="0 50 50" to="-360 50 50" dur="24s" repeatCount="indefinite"/>` : ""}
+        ${cristal(-14, 36, -30, .9)}${cristal(-16, 76, -120, .75)}${cristal(114, 30, 30, .8)}${cristal(116, 72, 120, .95)}${cristal(50, 122, 180, .7)}</g>
+      ${[[-22, 8, 0], [120, 10, .8], [-20, 104, 1.6], [122, 104, 2.2], [28, -28, 1.2], [76, -28, .4]].map(([x, y, d]) => etoile(x, y, 3.6, "#fff", d)).join("")}
+      <g transform="translate(50 -12)">${rot("0;-6;0", 9)}
+        <path d="M6 -20A21 21 0 1 0 6 20 16 16 0 1 1 6 -20Z" fill="url(#${g}m)" stroke="${P[2]}" stroke-width=".8"/>
+        <circle cx="-8" cy="6" r="3" fill="${P[1]}" opacity=".45"/><circle cx="-4" cy="-9" r="2" fill="${P[1]}" opacity=".45"/><circle cx="-12" cy="-2" r="1.5" fill="${P[1]}" opacity=".4"/>
+        <path d="M-6 3Q-3 6 0 3" stroke="${P[2]}" stroke-width=".9" fill="none" opacity=".7"/><path d="M-8 -3h2" stroke="${P[2]}" stroke-width="1" stroke-linecap="round"/>
+      </g>`;
+  };
+
+  // Démon : grandes cornes recourbées, visage dans l'ombre aux yeux rougeoyants, flammes et fumée
+  CREA.cornes = (P, g) => {
+    const corne = (k) => `<path d="${tube([[50 + k * 12, -6], [50 + k * 24, -14], [50 + k * 34, -28], [50 + k * 30, -40], [50 + k * 22, -40]], 10, 1.2)}" fill="url(#${g}c)" stroke="${P[2]}" stroke-width="1"/>
+      ${[0, 1, 2, 3].map((i) => { const t = [[50 + k * 18, -10], [50 + k * 26, -17], [50 + k * 32, -25], [50 + k * 33, -33]][i]; return `<path d="M${t[0] - 4} ${t[1] + 2}Q${t[0]} ${t[1] - 1} ${t[0] + 4 * k} ${t[1] - 3}" stroke="${P[2]}" stroke-width=".8" fill="none" opacity=".7"/>`; }).join("")}`;
+    const flammes = Array.from({ length: 11 }, (_, i) => { const a = 118 + i * 12.4, [x, y] = pt(a, 60); return `<g transform="translate(${r1(x)} ${r1(y)}) rotate(${r1(a)})"><path d="M0 2C-5 -2-5 -8-1 -16 1 -10 4 -8 5 -4 6 -1 4 2 0 2Z" fill="url(#${g}f)">${anime ? `<animateTransform attributeName="transform" type="scale" values="1 1;1.1 1.3;.95 .9;1 1" dur="${r1(.6 + (i % 4) * .15)}s" repeatCount="indefinite"/>` : ""}</path></g>`; }).join("");
+    return `<defs>${lin(g + "c", [P[0], P[1], P[2]], 0, 0, 1, 1)}${lin(g + "f", ["#fff3a0", "#ff7a1a", P[1]], 0, 1, 0, 0)}${flou(g + "fl", 1.6)}</defs>
+      ${flammes}
+      ${monte([[-12, 0, -6], [6, 1.5, -10], [94, .7, 8], [112, 2.2, 6]], `<circle r="5" fill="#2a2030" opacity=".45"/><circle cx="3" cy="-3" r="3.5" fill="#2a2030" opacity=".35"/>`, 4.2)}
+      ${corne(-1)}${corne(1)}
+      <g transform="translate(50 -2)">
+        <path d="M-15 -8C-15 -18-6 -22 0 -22 6 -22 15 -18 15 -8 15 2 9 12 0 16-9 12-15 2-15 -8Z" fill="url(#${g}c)" stroke="${P[2]}" stroke-width="1"/>
+        <path d="M-15 -8C-15 -18-6 -22 0 -22 6 -22 15 -18 15 -8 15 2 9 12 0 16-9 12-15 2-15 -8Z" fill="#000" opacity=".45"/>
+        <path d="M-12 -9-3 -5-11 -3Z M12 -9 3 -5 11 -3Z" fill="#ff2a2a" filter="url(#${g}fl)">${an("opacity", ".4;1;.4", 1.4)}</path><path d="M-12 -9-3 -5-11 -3Z M12 -9 3 -5 11 -3Z" fill="#ffd0b0"/>
+        <path d="M-7 5-4 8-1 5 2 8 5 5 7 7" stroke="#ff6a4a" stroke-width="1" fill="none" stroke-linejoin="round"/>
+      </g>`;
+  };
+
+  // Anneau métallique ciselé (pierres, gravure, reflet qui tourne) et bannière de la semaine
+  const STATUES = { b: ["#ffffff", "#b9c4d2", "#4b5563"], c: ["#ffe0c2", "#c87a3e", "#5a3010"] };
+  const anneauPodium = (g, P, pl) => {
+    const M = PLACES[pl].met, cols = pl === "a" ? [P[0], P[1], "#ffffff", P[1], P[2], P[1], P[0]] : [M[0], M[1], "#ffffff", M[1], M[2], M[1], M[0]];
+    const pierre = pl === "a" ? P[1] : pl === "b" ? "#60a5fa" : "#22c55e";
+    const gemmes = Array.from({ length: 8 }, (_, i) => { const [x, y] = pt(22.5 + i * 45, 54); return `<circle cx="${r1(x)}" cy="${r1(y)}" r="2.6" fill="url(#${g}gm)" stroke="${M[2]}" stroke-width=".6"/><circle cx="${r1(x - .8)}" cy="${r1(y - .9)}" r=".8" fill="#fff"/>`; }).join("");
+    const [sx, sy] = pt(-28, 54), [ex, ey] = pt(8, 54);
+    return `<defs>${lin(g + "r", cols, 0, 0, 1, 1)}${rad(g + "gm", ["#ffffff", pierre, M[2]], .35, .3, .8)}${lin(g + "sh", ["transparent", "#ffffff", "transparent"], 0, 0, 1, 0)}</defs>
+      <circle cx="50" cy="50" r="54" fill="none" stroke="${M[2]}" stroke-width="9.5"/>
+      <circle cx="50" cy="50" r="54" fill="none" stroke="url(#${g}r)" stroke-width="7.5"/>
+      <circle cx="50" cy="50" r="54" fill="none" stroke="#fff" stroke-width=".5" stroke-dasharray="1.5 2.5" opacity=".45"/>
+      ${gemmes}
+      <g>${anime ? `<animateTransform attributeName="transform" type="rotate" from="0 50 50" to="360 50 50" dur="6s" repeatCount="indefinite"/>` : ""}<path d="M${r1(sx)} ${r1(sy)}A54 54 0 0 1 ${r1(ex)} ${r1(ey)}" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" opacity=".5"/></g>`;
+  };
+  const banniere = (g, txt, M, texte) => `<defs>${lin(g + "rb", [M[0], M[1], M[2]])}</defs>
+    <path d="M8 104 20 100V114L8 117 13 110Z" fill="${M[2]}"/><path d="M92 104 80 100V114L92 117 87 110Z" fill="${M[2]}"/>
+    <path d="M18 97Q50 105 82 97V112Q50 120 18 112Z" fill="url(#${g}rb)" stroke="${M[2]}" stroke-width="1.2"/>
+    <path d="M20 99.5Q50 107 80 99.5" fill="none" stroke="#fff" stroke-width=".7" opacity=".55"/>
+    <text x="50" y="112" text-anchor="middle" font-family="Arial Black, Arial, sans-serif" font-weight="900" font-size="9.5" fill="${texte}" letter-spacing=".3">${txt}</text>`;
   const hebdo = (code) => {
     const m = code.match(HEBDO); if (!m) return "";
-    const an = +m[1], sem = +m[2], pl = m[3], t = themeDe(an, sem), P = PLACES[pl], p = t.pal, id = "cw" + code;
-    const metal = pl === "a" ? [p[0], p[1], P.met[1], p[2]] : [P.met[0], P.met[1], p[1], P.met[2]];
-    const echelle = pl === "a" ? 1.15 : pl === "b" ? 1 : .85;
-    const embleme = `<g transform="translate(50 -14) scale(${echelle})">${pl === "a" && anime ? `<animateTransform attributeName="transform" type="translate" values="50 -14;50 -17;50 -14" dur="2.2s" repeatCount="indefinite" additive="replace"/><g transform="scale(${echelle})">${EMB[t.emb](p)}</g>` : EMB[t.emb](p)}</g>`;
-    const socle = `<path d="M30 6Q50 -4 70 6" fill="none" stroke="${P.met[2]}" stroke-width="5" stroke-linecap="round"/><path d="M30 6Q50 -4 70 6" fill="none" stroke="${P.met[1]}" stroke-width="2.6" stroke-linecap="round"/>`;
-    return svg(`${pl === "a" ? COTES[t.cote](p) : pl === "b" && t.cote !== "ailes" ? COTES[t.cote]([P.met[0], p[1], P.met[2]]) : ""}
-      ${anneau(id, metal, pl === "a" ? 7 : 6)}
-      ${pl !== "c" ? PARTS[t.part](p) : ""}
-      <circle cx="50" cy="50" r="${pl === "a" ? 57.5 : 56.5}" fill="none" stroke="${p[1]}" stroke-width="1.2" stroke-dasharray="${pl === "a" ? "2 4" : "1 5"}" opacity=".9"/>
-      ${socle}${embleme}
-      ${ruban(`S${sem} · ${P.n}`, pl === "a" ? p[1] : P.met[1], P.met[2], pl === "a" ? "#fff" : P.txt)}`);
+    const an_ = +m[1], sem = +m[2], pl = m[3], t = themeDe(an_, sem), Pl = PLACES[pl], g = "w" + code;
+    // 1er : la créature en couleurs ; 2e : statue d'argent ; 3e : statue de bronze
+    const P = pl === "a" ? t.pal : STATUES[pl];
+    return svg(`${DEFS_COMMUNS}${anneauPodium(g, t.pal, pl)}${CREA[t.emb](P, g)}${banniere(g, `S${sem} · ${Pl.n}`, pl === "a" ? [t.pal[0], t.pal[1], t.pal[2]] : Pl.met, pl === "a" ? "#fff" : Pl.txt)}`);
   };
+
   // Semaine de ligue en cours (heure de Paris, semaine ISO commençant le lundi)
   const semaineEnCours = () => {
     const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
