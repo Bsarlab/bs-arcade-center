@@ -1131,7 +1131,8 @@ begin
       'Ligue : tu finis ' || case when n = 1 then '1er' else n || 'e' end || ' !',
       'Classement de la semaine du ' || to_char(d at time zone 'Europe/Paris', 'DD/MM') || ' : ' || r.pts || ' points de ligue.',
       case when n = 1 then 15 when n = 2 then 10 when n = 3 then 7 when n <= 10 then 4 else 2 end,
-      tcg_cadre_neuf(r.joueur, case when n = 1 then 'or' when n = 2 then 'argent' when n = 3 then 'bronze' when n <= 10 then 'top10' end));
+      -- Podium : 3 cadres dessinés pour cette semaine-là (identifiant « l » + année et semaine ISO + a/b/c), nouveaux chaque semaine
+      tcg_cadre_neuf(r.joueur, case when n <= 3 then 'l' || to_char(d at time zone 'Europe/Paris', 'IYYYIW') || chr(96 + n) when n <= 10 then 'top10' end));
   end loop;
 end $$;
 

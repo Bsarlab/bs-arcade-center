@@ -186,7 +186,7 @@
     // Progression vers les cadres des autres jeux (objectifs du jour)
     let prog = {};
     try { const r = await sb.rpc("jeu_objectifs_resume"); Object.values(r.data || {}).forEach((v) => (prog[v.cadre] = v.jours)); } catch {}
-    const catalogue = (window.BS_CADRES && BS_CADRES.jeux) || [];
+    const catalogue = (window.BS_CADRES && (BS_CADRES.catalogue ? BS_CADRES.catalogue(liste) : BS_CADRES.jeux)) || [];
     z.innerHTML = `<p class="sous-titre">Mes cadres de profil</p>
       <p class="meta">Ton cadre s'affiche autour de ta photo partout sur le site. Les cadres verrouillés montrent ce que tu peux gagner.</p>
       ${!base && liste.length ? `<p class="meta">Enregistre d'abord un avatar pour pouvoir y mettre un cadre.</p>` : ""}

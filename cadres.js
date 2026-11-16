@@ -166,8 +166,112 @@
         ${etoile(50, -30, 5, "#fff", .2)}`);
     },
   };
+  // ---------- Cadres du podium de la ligue : de nouveaux dessins chaque semaine ----------
+  // Identifiant : « l » + année ISO + semaine ISO + place (a = 1er, b = 2e, c = 3e), ex. l202647a
+  // 12 créatures × 12 couleurs : la combinaison change chaque semaine et ne revient pas avant 144 semaines (presque 3 ans)
+  const CREATURES = [
+    { nom: "Phénix", emb: "flamme", cote: "ailes", part: "braises" },
+    { nom: "Loup", emb: "flocon", cote: "pics", part: "flocons" },
+    { nom: "Kraken", emb: "oeil", cote: "tentacules", part: "bulles" },
+    { nom: "Aigle", emb: "plume", cote: "ailes", part: "eclairs" },
+    { nom: "Serpent", emb: "croc", cote: "feuilles", part: "orbite" },
+    { nom: "Lion", emb: "soleil", cote: "rayons", part: "braises" },
+    { nom: "Comète", emb: "planete", cote: "cristaux", part: "orbite" },
+    { nom: "Tigre", emb: "griffe", cote: "flammes", part: "eclairs" },
+    { nom: "Cerf", emb: "bois", cote: "feuilles", part: "flocons" },
+    { nom: "Scorpion", emb: "dard", cote: "pics", part: "braises" },
+    { nom: "Lune", emb: "lune", cote: "cristaux", part: "flocons" },
+    { nom: "Démon", emb: "cornes", cote: "flammes", part: "braises" },
+  ];
+  const COULEURS = [
+    { nom: "de feu", pal: ["#fff1a8", "#ff8a00", "#c81e1e"] },
+    { nom: "de givre", pal: ["#e6f8ff", "#7dd3fc", "#1d4ed8"] },
+    { nom: "des abysses", pal: ["#b6f5e0", "#14b8a6", "#0f4c47"] },
+    { nom: "tonnerre", pal: ["#fff7c2", "#facc15", "#7c4a03"] },
+    { nom: "de jade", pal: ["#c9f7d6", "#22c55e", "#14532d"] },
+    { nom: "solaire", pal: ["#fff3c4", "#f59e0b", "#92400e"] },
+    { nom: "cosmique", pal: ["#efe0ff", "#a855f7", "#3b0764"] },
+    { nom: "néon", pal: ["#ffd9ec", "#ff4fa3", "#7a1145"] },
+    { nom: "des forêts", pal: ["#eefccf", "#84cc16", "#3f6212"] },
+    { nom: "des sables", pal: ["#fdeba8", "#d97706", "#6b3409"] },
+    { nom: "de cristal", pal: ["#f5f8ff", "#9fb3d1", "#30415f"] },
+    { nom: "d'ombre", pal: ["#f7d6ff", "#c026d3", "#2a0a4a"] },
+  ];
+  const PLACES = { a: { n: "1er", met: ["#fff6c2", "#ffd23f", "#b7791f"], txt: "#4a2c00" }, b: { n: "2e", met: ["#ffffff", "#c9d2de", "#6b7480"], txt: "#2b3038" }, c: { n: "3e", met: ["#ffe0c2", "#d4864a", "#6e3d15"], txt: "#3d1f08" } };
+  const HEBDO = /^l(\d{4})(\d{2})([abc])$/;
+  const themeDe = (an, sem) => {
+    const n = (an - 2026) * 53 + sem - 47, mod = (x) => ((x % 12) + 12) % 12, c = mod(n), q = mod(Math.floor(n / 12));
+    const cr = CREATURES[c], co = COULEURS[(c + q * 5) % 12];
+    return Object.assign({}, cr, { nom: `${cr.nom} ${co.nom}`, pal: co.pal });
+  };
+  // Emblèmes, dessinés autour de (0, 0) dans une boîte d'environ 36 × 36
+  const EMB = {
+    flamme: (p) => `<path d="M0 -19C7 -10 13 -5 11 5 9 13 4 17 0 17-4 17-10 13-11 5-12-4-4-7-4-13 0-9 2-11 0-19Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.5"/><path d="M0 -3C3 1 5 4 4 9 3 12 1 13 0 13-2 13-4 11-4 8-4 4-1 2 0-3Z" fill="${p[0]}"/>`,
+    flocon: (p) => { let s = ""; for (let i = 0; i < 6; i++) s += `<g transform="rotate(${i * 60})"><path d="M0 0V-17M0 -11-5 -15M0 -11 5 -15M0 -5-4 -8M0 -5 4 -8" stroke="${p[0]}" stroke-width="2.6" stroke-linecap="round" fill="none"/></g>`; return s + `<circle r="3.5" fill="${p[1]}" stroke="${p[0]}" stroke-width="1.2"/>`; },
+    oeil: (p) => `<path d="M-18 0C-10 -13 10 -13 18 0 10 13-10 13-18 0Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.8"/><circle r="7.5" fill="${p[1]}"/><ellipse rx="2.2" ry="6.5" fill="${p[2]}"/><circle cx="2.5" cy="-3" r="1.6" fill="#fff"/>`,
+    plume: (p) => `<path d="M0 -6C-6 -16-16 -18-22 -14-14 -12-12 -8-12 -4-17 -4-20 0-20 4-13 2-7 4 0 10 7 4 13 2 20 4 20 0 17 -4 12 -4 12 -8 14 -12 22 -14 16 -18 6 -16 0 -6Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.5" stroke-linejoin="round"/><path d="M0 -10 4 -4 0 14-4 -4Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1"/>`,
+    croc: (p) => `<path d="M0 -17 14 -3 7 13H-7L-14 -3Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.8" stroke-linejoin="round"/><path d="M-6 -2 0 -10 6 -2" fill="none" stroke="${p[0]}" stroke-width="1.4"/><ellipse cx="-5" cy="1" rx="2.4" ry="3" fill="#ffd23f"/><ellipse cx="5" cy="1" rx="2.4" ry="3" fill="#ffd23f"/><path d="M-5 0v2M5 0v2" stroke="#000" stroke-width="1.2"/><path d="M0 13v6l-3 3M0 19l3 3" stroke="#ff3b5c" stroke-width="1.4" fill="none" stroke-linecap="round"/>`,
+    soleil: (p) => { let s = ""; for (let i = 0; i < 12; i++) s += `<path d="M-3 -11 0 -19 3 -11Z" fill="${p[1]}" transform="rotate(${i * 30})"/>`; return s + `<circle r="10" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.8"/><circle cx="-3.5" cy="-2" r="1.4" fill="${p[2]}"/><circle cx="3.5" cy="-2" r="1.4" fill="${p[2]}"/><path d="M-4 3Q0 7 4 3" stroke="${p[2]}" stroke-width="1.4" fill="none"/>`; },
+    planete: (p) => `<circle r="10.5" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.6"/><path d="M-7 -4Q0 -8 7 -5" stroke="${p[0]}" stroke-width="1.6" fill="none" opacity=".8"/><ellipse rx="20" ry="5.5" fill="none" stroke="${p[0]}" stroke-width="2.4" transform="rotate(-18)"/><path d="M-19 3A20 5.5 0 0 0 19 -3" fill="none" stroke="${p[2]}" stroke-width="1" transform="rotate(-18)" opacity=".5"/>`,
+    griffe: (p) => [-9, 0, 9].map((x, i) => `<path d="M${x - 6} ${-16 + i * 2}Q${x + 6} ${-2} ${x - 2} ${16 - i * 2}" fill="none" stroke="${p[2]}" stroke-width="6" stroke-linecap="round"/><path d="M${x - 6} ${-16 + i * 2}Q${x + 6} ${-2} ${x - 2} ${16 - i * 2}" fill="none" stroke="${p[1]}" stroke-width="3.2" stroke-linecap="round"/>`).join(""),
+    bois: (p) => [1, -1].map((k) => `<path d="M${k * 3} 12C${k * 4} 0 ${k * 8} -6 ${k * 16} -18M${k * 6} -2 ${k * 17} -5M${k * 10} -9 ${k * 9} -19M${k * 13} -13 ${k * 21} -12" fill="none" stroke="${p[2]}" stroke-width="5" stroke-linecap="round"/><path d="M${k * 3} 12C${k * 4} 0 ${k * 8} -6 ${k * 16} -18M${k * 6} -2 ${k * 17} -5M${k * 10} -9 ${k * 9} -19M${k * 13} -13 ${k * 21} -12" fill="none" stroke="${p[0]}" stroke-width="2.4" stroke-linecap="round"/>`).join("") + `<circle cy="13" r="3.5" fill="${p[1]}"/>`,
+    dard: (p) => `<path d="M-12 14C-18 2-14 -12 0 -14 10 -15 14 -8 12 -2" fill="none" stroke="${p[2]}" stroke-width="7" stroke-linecap="round"/><path d="M-12 14C-18 2-14 -12 0 -14 10 -15 14 -8 12 -2" fill="none" stroke="${p[1]}" stroke-width="4" stroke-linecap="round" stroke-dasharray="5 2"/><path d="M12 -2 18 4 9 4Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.4" stroke-linejoin="round"/>`,
+    lune: (p) => `<path d="M6 -16A17 17 0 1 0 6 16 13 13 0 1 1 6 -16Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.6"/><circle cx="-6" cy="4" r="2" fill="${p[1]}"/><circle cx="-2" cy="-7" r="1.4" fill="${p[1]}"/>` + etoile(14, -10, 4, "#fff", .3),
+    cornes: (p) => `<path d="M-6 6C-16 2-22 -8-18 -20-14 -10-8 -6 0 -4Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.6" stroke-linejoin="round"/><path d="M6 6C16 2 22 -8 18 -20 14 -10 8 -6 0 -4Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.6" stroke-linejoin="round"/><path d="M0 -6 7 4 0 14-7 4Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.4"/><circle cy="4" r="2.2" fill="#ff3b5c"/>`,
+  };
+  // Ornements de chaque côté de la photo (dessinés à gauche puis recopiés en miroir)
+  const miroir = (s) => `${s}<g transform="translate(100 0) scale(-1 1)">${s}</g>`;
+  const COTES = {
+    ailes: (p) => miroir(`<path d="M30 -2C18 -24-2 -28-26 -20c7 4 10 8 10 13-7-3-14-2-19 4 8 1 12 4 14 9-7 0-12 4-14 9 13-6 27-4 40 4Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1.6" stroke-linejoin="round"/><path d="M-4 -18-8 -10M-14 -10-16 -1" stroke="${p[0]}" stroke-width="1.2"/>`),
+    pics: (p) => Array.from({ length: 11 }, (_, i) => { const a = 115 + i * 13, [x1, y1] = pt(a - 5, 57), [x2, y2] = pt(a, 72 + (i % 2) * 6), [x3, y3] = pt(a + 5, 57); return `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}Z" fill="${p[i % 2]}" stroke="${p[2]}" stroke-width="1"/>`; }).join(""),
+    tentacules: (p) => miroir(`<path d="M8 86C-6 92-20 84-18 70-16 60-6 62-8 70" fill="none" stroke="${p[2]}" stroke-width="8" stroke-linecap="round"/><path d="M8 86C-6 92-20 84-18 70-16 60-6 62-8 70" fill="none" stroke="${p[1]}" stroke-width="5" stroke-linecap="round"/><path d="M4 14C-10 8-18 18-14 28-10 36-2 32-4 26" fill="none" stroke="${p[2]}" stroke-width="7" stroke-linecap="round"/><path d="M4 14C-10 8-18 18-14 28-10 36-2 32-4 26" fill="none" stroke="${p[1]}" stroke-width="4" stroke-linecap="round"/>` + [[-14, 76], [-17, 66], [-13, 22]].map(([x, y]) => `<circle cx="${x}" cy="${y}" r="1.4" fill="${p[0]}"/>`).join("")),
+    feuilles: (p) => laurier(p[1], p[2]),
+    rayons: (p) => Array.from({ length: 20 }, (_, i) => { const a = i * 18 + 9, l = i % 2 ? 66 : 74, [x1, y1] = pt(a - 5, 56), [x2, y2] = pt(a, l), [x3, y3] = pt(a + 5, 56); return `<path d="M${f(x1)} ${f(y1)}L${f(x2)} ${f(y2)}L${f(x3)} ${f(y3)}Z" fill="${i % 2 ? p[0] : p[1]}" stroke="${p[2]}" stroke-width=".8"/>`; }).join(""),
+    cristaux: (p) => miroir([[-14, 30, -30], [-20, 56, -90], [-12, 84, -140]].map(([x, y, r]) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 -14 5 -3 0 14-5 -3Z" fill="${p[0]}" stroke="${p[2]}" stroke-width="1.2"/><path d="M0 -14 0 14M-5 -3H5" stroke="${p[1]}" stroke-width=".8"/></g>`).join("")),
+    flammes: (p) => Array.from({ length: 9 }, (_, i) => { const a = 120 + i * 15, [x, y] = pt(a, 64); return `<g transform="translate(${f(x)} ${f(y)}) rotate(${a})"><path d="M0 -12C4 -6 6 -2 5 3 4 7 2 8 0 8-2 8-4 7-5 3-6-2-3-4 0-12Z" fill="${p[1]}" stroke="${p[2]}" stroke-width="1">${anime ? `<animateTransform attributeName="transform" type="scale" values="1;1.18;1" dur="${.7 + (i % 3) * .2}s" repeatCount="indefinite" additive="sum"/>` : ""}</path></g>`; }).join(""),
+  };
+  // Effets animés autour du cadre
+  const PARTS = {
+    braises: (p) => [[-16, 0], [-6, .9], [106, .4], [114, 1.5], [-12, 2.1], [110, 2.5]].map(([x, d]) => `<circle cx="${x}" cy="110" r="2" fill="${p[1]}">${anime ? `<animate attributeName="cy" values="115;-12" dur="3.2s" begin="${d}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="3.2s" begin="${d}s" repeatCount="indefinite"/>` : ""}</circle>`).join(""),
+    flocons: (p) => `<g>${tourne(20)}${etoile(-14, 40, 4, p[0], 0)}${etoile(114, 60, 4, p[0], .6)}${etoile(30, 118, 3.5, "#fff", 1.1)}${etoile(80, -18, 3.5, "#fff", .3)}${etoile(-6, 92, 3, p[0], .9)}</g>`,
+    bulles: (p) => [[-14, 0], [-6, 1.2], [108, .5], [116, 1.8], [-18, 2.3]].map(([x, d]) => `<circle cx="${x}" cy="110" r="2.6" fill="none" stroke="${p[0]}" stroke-width="1.2">${anime ? `<animate attributeName="cy" values="118;-10" dur="3.6s" begin="${d}s" repeatCount="indefinite"/><animate attributeName="opacity" values="0;1;0" dur="3.6s" begin="${d}s" repeatCount="indefinite"/>` : ""}</circle>`).join(""),
+    eclairs: (p) => [[-18, 32, -15, 0], [118, 24, 20, .45], [-12, 96, 25, .8], [114, 94, -20, .25]].map(([x, y, r, d]) => `<g transform="translate(${x} ${y}) rotate(${r})"><path d="M0 -12 6 -12 2 -3 8 -3 -4 14 -1 3 -6 3Z" fill="${p[1]}" stroke="${p[0]}" stroke-width="1" stroke-linejoin="round">${anime ? `<animate attributeName="opacity" values="1;.15;1;1" dur="1.4s" begin="${d}s" repeatCount="indefinite"/>` : ""}</path></g>`).join(""),
+    orbite: (p) => orbite(66, [p[0], p[1], "#fff", p[1]], 7),
+  };
+  const hebdo = (code) => {
+    const m = code.match(HEBDO); if (!m) return "";
+    const an = +m[1], sem = +m[2], pl = m[3], t = themeDe(an, sem), P = PLACES[pl], p = t.pal, id = "cw" + code;
+    const metal = pl === "a" ? [p[0], p[1], P.met[1], p[2]] : [P.met[0], P.met[1], p[1], P.met[2]];
+    const echelle = pl === "a" ? 1.15 : pl === "b" ? 1 : .85;
+    const embleme = `<g transform="translate(50 -14) scale(${echelle})">${pl === "a" && anime ? `<animateTransform attributeName="transform" type="translate" values="50 -14;50 -17;50 -14" dur="2.2s" repeatCount="indefinite" additive="replace"/><g transform="scale(${echelle})">${EMB[t.emb](p)}</g>` : EMB[t.emb](p)}</g>`;
+    const socle = `<path d="M30 6Q50 -4 70 6" fill="none" stroke="${P.met[2]}" stroke-width="5" stroke-linecap="round"/><path d="M30 6Q50 -4 70 6" fill="none" stroke="${P.met[1]}" stroke-width="2.6" stroke-linecap="round"/>`;
+    return svg(`${pl === "a" ? COTES[t.cote](p) : pl === "b" && t.cote !== "ailes" ? COTES[t.cote]([P.met[0], p[1], P.met[2]]) : ""}
+      ${anneau(id, metal, pl === "a" ? 7 : 6)}
+      ${pl !== "c" ? PARTS[t.part](p) : ""}
+      <circle cx="50" cy="50" r="${pl === "a" ? 57.5 : 56.5}" fill="none" stroke="${p[1]}" stroke-width="1.2" stroke-dasharray="${pl === "a" ? "2 4" : "1 5"}" opacity=".9"/>
+      ${socle}${embleme}
+      ${ruban(`S${sem} · ${P.n}`, pl === "a" ? p[1] : P.met[1], P.met[2], pl === "a" ? "#fff" : P.txt)}`);
+  };
+  // Semaine de ligue en cours (heure de Paris, semaine ISO commençant le lundi)
+  const semaineEnCours = () => {
+    const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const d = new Date(parts + "T12:00:00Z"), j = (d.getUTCDay() + 6) % 7;
+    const jeudi = new Date(d); jeudi.setUTCDate(d.getUTCDate() - j + 3);
+    const an = jeudi.getUTCFullYear(), debutAn = new Date(Date.UTC(an, 0, 4));
+    const sem = 1 + Math.round(((jeudi - debutAn) / 864e5 - 3 + ((debutAn.getUTCDay() + 6) % 7)) / 7);
+    const lundi = new Date(d); lundi.setUTCDate(d.getUTCDate() - j);
+    const dim = new Date(lundi); dim.setUTCDate(lundi.getUTCDate() + 6);
+    const jm = (x) => String(x.getUTCDate()).padStart(2, "0") + "/" + String(x.getUTCMonth() + 1).padStart(2, "0");
+    return { an, sem, du: jm(lundi), au: jm(dim) };
+  };
+  const infoHebdo = (code) => {
+    const m = code.match(HEBDO); if (!m) return null;
+    const an = +m[1], sem = +m[2], t = themeDe(an, sem), P = PLACES[m[3]];
+    return { id: code, nom: `${t.nom} · ${P.n}`, comment: `Finir ${P.n} de la ligue CARDS CENTER la semaine ${sem}${an !== semaineEnCours().an ? " de " + an : ""}.` };
+  };
   const CACHE = {};
-  const dessin = (c) => (CACHE[c] ||= DESSINS[c] ? DESSINS[c]() : "");
+  const existe = (c) => !!(DESSINS[c] || HEBDO.test(c));
+  const dessin = (c) => (CACHE[c] ||= DESSINS[c] ? DESSINS[c]() : hebdo(c));
 
   const css = document.createElement("style");
   css.textContent = `
@@ -194,12 +298,12 @@
     const c = cadreDe(img), boite = img.parentElement && img.parentElement.classList.contains("cadre-deco") ? img.parentElement : null;
     if (boite) {
       if (boite.dataset.cadre === c) return;
-      if (!c || !DESSINS[c]) { boite.replaceWith(img); return; }
+      if (!c || !existe(c)) { boite.replaceWith(img); return; }
       boite.className = "cadre-deco c-" + c; boite.dataset.cadre = c;
       boite.querySelector(".cadre-svg").outerHTML = dessin(c);
       return;
     }
-    if (!c || !DESSINS[c]) return;
+    if (!c || !existe(c)) return;
     const w = img.offsetWidth, h = img.offsetHeight;
     if (!w || !h) { attendre(img); return; }
     const cs = getComputedStyle(img), s = document.createElement("span");
@@ -223,9 +327,6 @@
   const ligue = (id, nom, comment) => ({ id, nom, comment });
   const JEUX = [
     { jeu: "CARDS CENTER", id: "jmwdr0y57", cadres: [
-      ligue("or", "Dragon rouge", "Finir 1er de la ligue CARDS CENTER de la semaine."),
-      ligue("argent", "Couronne d'argent", "Finir 2e de la ligue CARDS CENTER de la semaine."),
-      ligue("bronze", "Couronne de bronze", "Finir 3e de la ligue CARDS CENTER de la semaine."),
       ligue("top10", "Top 10 de la ligue", "Finir entre la 4e et la 10e place de la ligue."),
       ligue("assidu", "Assidu", "Réussir 25 objectifs du jour de CARDS CENTER dans la même semaine."),
       ligue("supreme", "Suprême", "Tirer une carte Suprême dans un booster."),
@@ -240,9 +341,22 @@
     { jeu: "Cul Sec !", id: "jmw0rvbcc", cadres: [ligue("culsec", "Santé !", "Réussir tous les objectifs du jour de Cul Sec ! 3 jours différents.")] },
   ];
   // Catalogue des cadres à gagner sur le site, jeu par jeu
+  // Anciens cadres de podium (avant les cadres de la semaine) : on les garde pour ceux qui les ont
+  const ANCIENS = [ligue("or", "Dragon rouge", "Ancien cadre du 1er de la ligue."), ligue("argent", "Couronne d'argent", "Ancien cadre du 2e de la ligue."), ligue("bronze", "Couronne de bronze", "Ancien cadre du 3e de la ligue.")];
+  const podiumDeLaSemaine = () => { const s = semaineEnCours(), code = `l${s.an}${String(s.sem).padStart(2, "0")}`; return ["a", "b", "c"].map((pl) => Object.assign(infoHebdo(code + pl), { comment: `Finir ${PLACES[pl].n} de la ligue CARDS CENTER cette semaine (du ${s.du} au ${s.au}). Nouveaux cadres chaque lundi !` })); };
+  // Catalogue : les 3 cadres à gagner cette semaine, puis les podiums déjà gagnés (et les anciens), puis les autres cadres
+  const catalogue = (mes = []) => JEUX.map((g, i) => {
+    if (i) return g;
+    const cette = podiumDeLaSemaine(), ids = new Set(cette.map((c) => c.id));
+    const gagnes = mes.filter((id) => HEBDO.test(id) && !ids.has(id)).sort().reverse().map(infoHebdo);
+    const anciens = ANCIENS.filter((c) => mes.includes(c.id));
+    return Object.assign({}, g, { cadres: [...cette, ...gagnes, ...anciens, ...g.cadres] });
+  });
   window.BS_CADRES = {
     dessin,
-    jeux: JEUX,
-    trouver: (id) => { for (const g of JEUX) for (const c of g.cadres) if (c.id === id) return Object.assign({ jeu: g.jeu }, c); return null; },
+    jeux: catalogue(),
+    catalogue,
+    semaine: semaineEnCours,
+    trouver: (id) => { if (HEBDO.test(id)) return Object.assign({ jeu: "CARDS CENTER" }, infoHebdo(id)); for (const g of [...JEUX, { jeu: "CARDS CENTER", cadres: ANCIENS }]) for (const c of g.cadres) if (c.id === id) return Object.assign({ jeu: g.jeu }, c); return null; },
   };
 })();
