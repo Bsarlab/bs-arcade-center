@@ -955,6 +955,15 @@ body:not([data-theme="2"]):not([data-theme="3"]) .d1, body[data-theme="2"] .d2, 
 @media (prefers-reduced-motion: reduce) { .lot-carte { animation: none; } }
 .lot-passer { position: fixed; right: 16px; bottom: 16px; z-index: 2147483000; }
 
+.c-cout.boost { color: #ffd23f; text-shadow: 0 0 8px rgba(255,210,63,.8); }
+.echelle-s { margin-top: 10px; font-size: 14px; }
+.echelle-s summary { cursor: pointer; color: #ffd23f; font-weight: 800; }
+.echelle-s ol { display: grid; gap: 4px; margin: 10px 0 0; padding-left: 28px; }
+.echelle-s li { display: grid; grid-template-columns: 62px 1fr auto; gap: 10px; align-items: center; padding: 5px 10px; border-radius: 8px; background: rgba(255,255,255,.04); color: var(--doux); }
+.echelle-s li.a { background: rgba(255,210,63,.1); color: #fff; }
+.echelle-s li em { font-style: normal; font-size: 12px; font-weight: 800; }
+.echelle-s li.rg4 em { color: #ff5ab8; } .echelle-s li.rg3 em { color: #ffb347; } .echelle-s li.rg2 em { color: #7dd3fc; } .echelle-s li.rg1 em { color: #a7f3d0; }
+.echelle-s li b { font-weight: 800; white-space: nowrap; } .echelle-s li small { color: #ffd23f; }
 .gege { display: block; width: 100%; height: auto; overflow: visible; }
 .gege .gg-corps { transform-origin: 160px 360px; animation: gg-souffle 3.6s ease-in-out infinite; }
 .gege .gg-tete { transform-box: view-box; transform-origin: 160px 200px; transition: transform .35s cubic-bezier(.34,1.56,.64,1); }
@@ -1277,7 +1286,7 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 239,
+"pw": 308,
 "rang": 4
 },
 {
@@ -1297,7 +1306,7 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 193,
+"pw": 209,
 "rang": 2
 },
 {
@@ -1317,7 +1326,7 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 193,
+"pw": 205,
 "rang": 2
 },
 {
@@ -1337,7 +1346,7 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 213,
+"pw": 243,
 "rang": 3
 },
 {
@@ -1357,7 +1366,7 @@ const CARTES = [
 "lic": "Tous droits réservés",
 "sil": "route",
 "se": 1,
-"pw": 173,
+"pw": 172,
 "rang": 1
 },
 {
@@ -2798,7 +2807,7 @@ const CARTES = [
 "cite": "Soulier d'or de la Coupe du monde 2026 avec 10 buts, 2e du Ballon d'Or 2026.",
 "q": "Kylian Mbappé",
 "sil": "foot",
-"pw": 217,
+"pw": 255,
 "rang": 3
 },
 {
@@ -2817,7 +2826,7 @@ const CARTES = [
 "cite": "Finaliste de la Coupe du monde 2026.",
 "q": "Lionel Messi",
 "sil": "foot",
-"pw": 239,
+"pw": 304,
 "rang": 4
 },
 {
@@ -2836,7 +2845,7 @@ const CARTES = [
 "cite": "Triple vainqueur de la Ligue des champions comme entraîneur du Real Madrid.",
 "q": "Zinédine Zidane",
 "sil": "foot",
-"pw": 216,
+"pw": 251,
 "rang": 3
 },
 {
@@ -5235,7 +5244,7 @@ const CARTES = [
 "img": "Minecraft Beta 1.8.1 Gameplay Screenshot.png",
 "auteur": "Xbox México",
 "lic": "CC BY 3.0",
-"pw": 242,
+"pw": 312,
 "rang": 4
 },
 {
@@ -5256,7 +5265,7 @@ const CARTES = [
 "auteur": "Rockstar Games",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 217,
+"pw": 259,
 "rang": 3
 },
 {
@@ -5277,7 +5286,7 @@ const CARTES = [
 "auteur": "The Tetris Company",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 215,
+"pw": 247,
 "rang": 3
 },
 {
@@ -5298,7 +5307,7 @@ const CARTES = [
 "auteur": "Nintendo",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 197,
+"pw": 217,
 "rang": 2
 },
 {
@@ -5319,7 +5328,7 @@ const CARTES = [
 "auteur": "Epic Games",
 "lic": "Domaine public",
 "logo": 2,
-"pw": 193,
+"pw": 213,
 "rang": 2
 },
 {
@@ -5340,7 +5349,7 @@ const CARTES = [
 "auteur": "Riot Games",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 192,
+"pw": 201,
 "rang": 2
 },
 {
@@ -5361,7 +5370,7 @@ const CARTES = [
 "auteur": "Rockstar Games",
 "lic": "Domaine public",
 "logo": 1,
-"pw": 218,
+"pw": 263,
 "rang": 3
 },
 {
@@ -6742,7 +6751,8 @@ function carteHTML(cle, o = {}) {
   const S2 = c.se === 2, ST = SERIES[c.se].stats;
   return `<div class="carte r-${c.r} s${c.se} ${holo ? "holo" : ""}" data-cle="${esc(cle)}" ${o.w ? `style="--w:${o.w}"` : ""}>
     <div class="c-cadre">
-      <div class="c-photo">${c.r === "S" ? etoilesHTML(o.etoiles ?? etoilesDe(c)) : ""}${c.se === 3 ? ART_JEU(c) : SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" data-logo="${c.logo || ""}" src="${PHOTO(c)}" alt="${esc(S2 ? c.n : c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" data-q="${!c.local && c.q ? esc(c.q) : ""}" data-id="${c.id}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else if(this.dataset.q){chercherPhoto(this)}else this.remove()"><span class="c-cout" title="Puissance de combat">⚔ ${c.pw}</span><span class="c-categorie">${esc(S2 ? c.sport : c.cl)}</span></div>
+      <div class="c-photo">${c.r === "S" ? etoilesHTML(o.etoiles ?? etoilesDe(c)) : ""}${c.se === 3 ? ART_JEU(c) : SILHOUETTES[c.sil] || SILHOUETTES.route}<img class="c-img" data-logo="${c.logo || ""}" src="${PHOTO(c)}" alt="${esc(S2 ? c.n : c.marque + " " + c.n)}" loading="lazy" decoding="async" data-wiki="${!c.local && c.img ? IMG(c, 960) : ""}" data-q="${!c.local && c.q ? esc(c.q) : ""}" data-id="${c.id}" onerror="if(this.dataset.wiki){this.src=this.dataset.wiki;this.dataset.wiki=''}else if(this.dataset.q){chercherPhoto(this)}else this.remove()">${(() => { const n = c.r === "S" ? (o.etoiles ?? etoilesDe(c)) : 0, p = Math.round(c.pw * (holo ? 1.1 : 1) * (1 + .02 * n));
+        return `<span class="c-cout${p > c.pw ? " boost" : ""}" title="Puissance de combat${p > c.pw ? ` : ${c.pw} de base${holo ? ", +10 % holo" : ""}${n ? `, +${n * 2} % d'étoiles` : ""}` : ""}">⚔ ${p}</span>`; })()}<span class="c-categorie">${esc(S2 ? c.sport : c.cl)}</span></div>
       ${S2 ? `<div class="c-ruban"><b>${esc(c.an)}</b><span>${esc(c.cl.split(" · ")[1] || c.sport)}</span></div>` : c.se === 3 ? `<div class="c-etiq"><b>${esc(c.marque)}</b><span>${esc(c.an)}</span></div>` : `<div class="c-plaque"><i>F</i><span>${esc(c.marque)}</span><em>${esc(c.an)}</em></div>`}
       <div class="c-corps"><div class="c-nom"><b>${esc(c.n)}</b></div>
       <div class="c-texte">${c.txt}<i>${S2 ? esc(c.cite) : `« ${esc(c.cite)} »`}</i></div></div>
@@ -7004,17 +7014,19 @@ async function annonceGod(o) {
 }
 function distribuer(ordre, avant) {
   const t = $("tirage");
+  cinesVues.clear();
   t.innerHTML = ordre.map(({ k, r }, i) => {
     const neuve = !(avant[k.replace("*", "")] || avant[k.replace("*", "") + "*"]);
-    return `<div class="slot r-${r}" style="--k:${i};--rot:${(i - 2) * 6}deg" data-cle="${esc(k)}" data-r="${r}">
+    return `<div class="slot r-${r}" style="--k:${i};--rot:${(i - 2) * 6}deg" data-cle="${esc(k)}" data-r="${r}" data-neuve="${neuve ? 1 : ""}">
       ${neuve ? `<span class="nouveau">NOUVEAU +${POINTS[r]} pts</span>` : ""}
       <div class="retourne" role="button" tabindex="0" aria-label="Retourner la carte ${i + 1}"><div class="dos">${dosHTML()}</div><div class="face">${carteHTML(k)}</div></div></div>`;
   }).join("");
   requestAnimationFrame(() => requestAnimationFrame(() => t.classList.add("distribue")));
   $("ouvPied").innerHTML = `<button class="btn" type="button" id="btnTout">Tout retourner</button>`;
-  $("btnTout").onclick = async () => { for (const s of t.querySelectorAll(".slot:not(.vue)")) { await retourner(s); await pause(380); } };
+  $("btnTout").onclick = async () => { for (const s of t.querySelectorAll(".slot:not(.vue)")) { await retourner(s); await pause(s.dataset.neuve ? 380 : 140); } };
 }
 let aRetourner = 0;
+const cinesVues = new Set(); // une seule cinématique par nouvelle carte, même si elle sort deux fois
 let cinemaEnCours = false;
 async function retourner(slot) {
   if (slot.classList.contains("vue")) { zoomer(slot.dataset.cle); return; }
@@ -7022,7 +7034,8 @@ async function retourner(slot) {
   const r = slot.dataset.r;
   // Dans un god pack, les Épiques se retournent sans cinématique (sinon c'est trop long)
   // Dans un god pack : chaque Mythique et la Suprême ont leur animation ; les Épiques se retournent simplement (pour garder le rythme)
-  if (["E", "L", "S"].includes(r) && !reduit && !(godPack && r === "E")) await cinema(slot.dataset.cle, r);
+  const base = slot.dataset.cle.replace("*", "");
+  if (["E", "L", "S"].includes(r) && !reduit && !(godPack && r === "E") && slot.dataset.neuve && !cinesVues.has(base)) { cinesVues.add(base); await cinema(slot.dataset.cle, r); }
   slot.classList.add("vue"); Son.retourne();
   if (r === "R") setTimeout(() => Son.rare(r), 250);
   if (![...$("tirage").querySelectorAll(".slot")].some((s) => !s.classList.contains("vue"))) finOuverture();
@@ -7472,7 +7485,10 @@ async function afficherDuel() {
       <div class="adversaires">${Object.entries(BOTS).map(([n, b]) => `<button class="adv" type="button" data-bot="${n}" aria-pressed="${adversaire.type === "bot" && adversaire.bot === Number(n)}"><span class="av">${b.av}</span><b>${b.nom}</b><small>${b.txt}</small></button>`).join("")}
       ${(joueursDuel || []).map((j) => `<button class="adv" type="button" data-adv="${esc(j.id)}" data-pseudo="${esc(j.pseudo)}" aria-pressed="${adversaire.id === j.id}"><span class="av">${j.avatar ? `<img src="${esc(j.avatar)}" alt="">` : "🃏"}</span><b>${esc(j.pseudo)}</b><small>${j.ami ? "Ami · " : ""}ses 5 meilleures cartes · victoire = 1 booster</small></button>`).join("")}</div>
       ${enLigne ? "" : `<p style="margin-top:10px">Connecte-toi sur le site pour défier tes amis et les autres joueurs.</p>`}
-      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Les étoiles s'achètent au Comptoir de Gégé, 50 000 poussières l'une (+2 % de puissance, 25 au maximum) : ★ blanches, puis <b>★ dorées</b>, <span class="c-et p3">★ diamant</span>, <span class="c-et p4">★ ambre</span> et <span class="c-et p5">★ noires</span>.</p>
+      <p class="hierarchie-s">Suprêmes : de la plus faible à la plus forte, Élite, Héros, Titan puis Divin. Les étoiles s'achètent au Comptoir de Gégé, 50 000 poussières l'une (+2 % de puissance, 25 au maximum) : blanches, puis dorées, diamant, ambre et noires.</p>
+      <details class="echelle-s"><summary>Le classement des ${CARTES.filter((c) => c.r === "S").length} Suprêmes, de la plus forte à la plus faible</summary>
+        <ol>${CARTES.filter((c) => c.r === "S").sort((a, b) => b.pw - a.pw).map((c) => { const e = possede(c.id) ? etoilesDe(c) : 0;
+          return `<li class="rg${c.rang}${possede(c.id) ? " a" : ""}"><em>${RANGS_S[c.rang]}</em><span>${esc(c.n)}</span><b>⚔ ${c.pw}${e ? ` → ${Math.round(c.pw * (1 + .02 * e))} <small>(${e} ★)</small>` : ""}</b></li>`; }).join("")}</ol></details>
     </div>
     <div class="duel-bloc"><h3>2. Compose ta main</h3>
       <p>Tes 5 cartes jouent dans l'ordre. Puissance totale : <span class="puiss-totale">⚔ ${total}</span>. Chaque victoire rapporte ses boosters, sans limite.</p>
@@ -7965,12 +7981,11 @@ function montrerLot(cartes, avant, ouverts, gods, se) {
       await annonceGod(o);
       if (gods > 1) toast(`${gods} god packs dans le lot !`);
     }
-    // Grande animation pour chaque Suprême et chaque Mythique NOUVELLE (les plus rares à la fin) ; un bouton permet de passer
+    // Grande animation seulement pour les Suprêmes et Mythiques NOUVELLES (les plus rares à la fin) ; un bouton permet de passer
     const vues = new Set();
     const fortes = cartes.filter((k) => {
       const id = k.replace("*", ""), r = PAR_ID[id]?.r;
-      if (r === "S") return true;
-      if (r !== "L" || avant[id] || avant[id + "*"] || vues.has(id)) return false;
+      if (!["L", "S"].includes(r) || avant[id] || avant[id + "*"] || vues.has(id)) return false;
       vues.add(id); return true;
     }).sort((a, b) => ORDRE_RARETE[PAR_ID[b.replace("*", "")].r] - ORDRE_RARETE[PAR_ID[a.replace("*", "")].r]);
     if (!reduit && fortes.length) {
