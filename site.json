@@ -188,23 +188,6 @@
       "solo": true,
       "enLigne": false,
       "version": "e6373e94"
-    },
-    {
-      "id": "jmwk1ck0f",
-      "titre": "Kickoff du Midi",
-      "genre": "Outil",
-      "description": "L'outil des parties de Rocket League du midi entre collègues.\n\nCoche qui est là, choisis le format (2c2, 3c3, 4c3, 2c1…) et Kickoff du Midi compose les équipes les plus équilibrées possible d'après le rank de chacun. Le banc tourne quand il y a trop de monde.\n\nAprès le match, valide le score (ou active le score en direct sur PC) : classement, % de victoires, buts, séries et forme du moment.\n\nOutil de fan gratuit et non officiel, sans lien avec Psyonix ni Epic Games. Illustrations originales.",
-      "fichier": "jeux/kickoff-du-midi-k7m2q.html",
-      "image": "images/kickoff-du-midi-jaquette-k7m2q.jpg",
-      "captures": [
-        "images/kickoff-du-midi-capture-1.jpg",
-        "images/kickoff-du-midi-capture-2.jpg",
-        "images/kickoff-du-midi-capture-3.jpg",
-        "images/kickoff-du-midi-capture-4.jpg"
-      ],
-      "solo": true,
-      "enLigne": false,
-      "version": "bd5a21b0"
     }
   ],
   "blocs": [

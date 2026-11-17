@@ -1296,6 +1296,7 @@ function ouvrirJeu(id) {
   ouvrirMenu(false);
   $("lecteurTitre").textContent = j.titre;
   $("lecteurGenre").textContent = majuscule(j.genre || "Jeu");
+  $("btnRejouer").hidden = false; $("btnPartager").hidden = false;
   $("btnSuivant").hidden = donnees.jeux.length < 2;
   if (!$("lecteur").open) $("lecteur").showModal();
   $("scene").querySelector("iframe")?.remove();
@@ -1324,6 +1325,25 @@ $("lecteur").addEventListener("close", () => {
   jeuActuel = null;
   if (pageActuelle === "jeux") majListeJeux();
 });
+// Outil « Kickoff du midi » (bouton de l'en-tête) : s'ouvre dans le lecteur, sans être un jeu
+function ouvrirKickoff() {
+  if (jeuActuel) window.BS_PLATEFORME?.apresJeu?.(jeuActuel.id);
+  jeuActuel = null;
+  ouvrirMenu(false);
+  $("lecteurTitre").textContent = "Kickoff du midi";
+  $("lecteurGenre").textContent = "Équipes Rocket League";
+  ["btnRejouer", "btnPartager", "btnSuivant"].forEach((id) => { $(id).hidden = true; });
+  if (!$("lecteur").open) $("lecteur").showModal();
+  $("scene").querySelector("iframe")?.remove();
+  $("chargement").hidden = false;
+  const f = document.createElement("iframe");
+  f.title = "Kickoff du midi";
+  f.allow = "fullscreen; clipboard-write; local-network-access; local-network; loopback-network";
+  f.addEventListener("load", () => { $("chargement").hidden = true; f.focus(); });
+  f.src = lien("outils/kickoff-du-midi.html");
+  $("scene").appendChild(f);
+}
+$("btnKickoff")?.addEventListener("click", ouvrirKickoff);
 $("btnFermer").addEventListener("click", () => $("lecteur").close());
 $("btnRejouer").addEventListener("click", () => jeuActuel && ouvrirJeu(jeuActuel.id));
 $("btnPartager").addEventListener("click", () => jeuActuel && inviter(jeuActuel.id));

@@ -1290,3 +1290,11 @@ form.carte-amis > .btn { justify-self: start; }
 body:has(.lecteur[open]) .decor, body:has(.lecteur[open]) .tache, body:has(.lecteur[open]) .sphere-deco, body:has(.lecteur[open]) .deco { display: none !important; }
 body:has(.lecteur[open])::after { animation: none !important; display: none !important; }
 body:has(.lecteur[open]) > *:not(.lecteur):not(script) { visibility: hidden; }
+
+/* ===== Bouton Kickoff du midi (en-tête) ===== */
+.btn-kickoff { position: relative; border: 1px solid transparent !important;
+  background: linear-gradient(var(--fond), var(--fond)) padding-box, linear-gradient(135deg, #2a8cff, #ff7a1a) border-box !important; }
+.btn-kickoff svg { fill: none; stroke: currentColor; stroke-width: 1.6; stroke-linejoin: round; stroke-linecap: round; transition: transform .5s var(--ease, ease); }
+.btn-kickoff:hover svg { transform: rotate(72deg); }
+.btn-kickoff:hover { box-shadow: -4px 0 14px -4px rgba(42,140,255,.6), 4px 0 14px -4px rgba(255,122,26,.6); }
+body.menu-ouvert .btn-kickoff { visibility: hidden; }
