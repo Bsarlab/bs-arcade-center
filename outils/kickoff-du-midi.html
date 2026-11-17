@@ -308,6 +308,27 @@ a.btn{text-decoration:none;white-space:nowrap}
 .toast.show{visibility:visible;opacity:1;transform:translateX(-50%) translateY(0)}
 .tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
 @media (max-width:700px){.rec{padding:10px}.rec .av{display:none}.rec .rn{font-size:14px}}
+/* Équipes en direct, juste sous les joueurs */
+.mini{display:grid;grid-template-columns:1fr auto 1fr;gap:14px;align-items:stretch;margin-top:18px}
+.mini:empty{display:none}
+.mini .side{padding:14px;border-radius:16px;min-height:74px}
+.mini .side.b{background:linear-gradient(150deg,rgba(42,140,255,.3),rgba(10,15,44,.6));outline:1.5px solid rgba(108,200,255,.6)}
+.mini .side.o{background:linear-gradient(210deg,rgba(255,122,26,.3),rgba(10,15,44,.6));outline:1.5px solid rgba(255,160,90,.6);text-align:right}
+.mini .st{display:flex;justify-content:space-between;align-items:baseline;font-family:var(--display);font-style:italic;font-size:20px;text-transform:uppercase;margin-bottom:10px}
+.mini .side.b .st{color:var(--blue2)}.mini .side.o .st{color:var(--orange2);flex-direction:row-reverse}
+.mini .st small{font-family:var(--body);font-style:normal;font-size:12px;color:var(--text);opacity:.8}
+.mini .chips{display:flex;flex-wrap:wrap;gap:8px}.mini .side.o .chips{justify-content:flex-end}
+.chip{--c:#888;display:inline-flex;align-items:center;gap:8px;padding:4px 12px 4px 4px;border-radius:99px;background:rgba(5,8,26,.65);
+  border:1.5px solid var(--c);font-family:var(--display);font-size:14px;color:color-mix(in srgb,var(--c) 45%,#fff)}
+.chip.new{animation:chipIn .5s cubic-bezier(.2,1.4,.4,1)}
+@keyframes chipIn{from{transform:scale(.4);opacity:0;box-shadow:0 0 0 0 var(--c)}60%{box-shadow:0 0 22px 2px var(--c)}to{transform:none;opacity:1}}
+.mini .mid{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;font-family:var(--display);font-style:italic}
+.mini .mid .vs{font-size:22px}.mini .mid .pp{font-size:12px;font-style:normal;color:var(--mute);white-space:nowrap}
+.mini .bench2{grid-column:1/-1;font-size:13px;color:var(--mute);text-align:center}
+.pc .tt{display:block;margin-top:8px;font-family:var(--display);font-size:11px;letter-spacing:.14em;padding:3px 0;border-radius:7px;position:relative;z-index:2}
+.pc .tt.b{background:rgba(42,140,255,.85);color:#fff}.pc .tt.o{background:rgba(255,122,26,.9);color:#fff}.pc .tt.x{background:rgba(255,255,255,.12);color:var(--mute)}
+@media (max-width:640px){.mini{grid-template-columns:1fr}.mini .side.o{text-align:left}.mini .side.o .st{flex-direction:row}.mini .side.o .chips{justify-content:flex-start}.mini .mid{flex-direction:row}}
+@media (max-width:640px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sh .aside{flex-wrap:wrap;margin-left:0}.pc{padding:14px 8px 10px}.pc .nm{font-size:13px}}
 /* Mode simple : équipes en direct */
 .boost[hidden],.pitchbox,.draft{display:none!important}
 .result .m{opacity:1;transform:none}
@@ -482,6 +503,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:30px;letter
       <div class="aside"><div class="seg" id="colorSeg"><button data-m="rank">🎨 Couleur du rank</button><button data-m="player">Couleur perso</button></div><span class="pill" id="count"></span><button class="btn" id="allBtn">Tous</button><button class="btn" id="noneBtn">Aucun</button></div>
     </div>
     <div class="grid" id="players"></div>
+    <div class="mini" id="miniTeams"></div>
   </section>
 
   <section class="step">
@@ -672,6 +694,7 @@ function renderPlayers(){
       el.onpointerleave=()=>{el.style.setProperty("--rx","0deg");el.style.setProperty("--ry","0deg");};
     }
   });
+  if(lastResult)renderMini(lastResult,new Map(lastResult.blue.map(p=>[p.id,"b"]).concat(lastResult.orange.map(p=>[p.id,"o"]))));
   const n=present().length;
   $("count").innerHTML=`<b>${n}</b> / ${state.players.length} présents`;
 }
@@ -768,6 +791,7 @@ function renderResult(r){
   const ord=new Map(picks.map((x,i)=>[x.p.id,i]));
   $("teamB").innerHTML=sort(r.blue).map(p=>memberHTML(p,0,ord,prev.get(p.id)!=="b")).join("");
   $("teamO").innerHTML=sort(r.orange).map(p=>memberHTML(p,0,ord,prev.get(p.id)!=="o")).join("");
+  renderMini(r,prev);
   const wasShown=$("result").classList.contains("show");
   $("result").style.setProperty("--md",wasShown?"0s":".5s");r.fin=wasShown?-.2:.3;
   $("sB").textContent=Math.round(r.sB);$("sO").textContent=Math.round(r.sO);
@@ -782,6 +806,23 @@ function renderResult(r){
   else{tag="DÉSÉQUILIBRÉ";col="var(--bad)";txt="Trop d'écart pour ce format, essaie-en un autre";}
   $("verdict").innerHTML=`<span class="tagv" style="background:${col}">${tag}</span><span>${txt}</span>`;
   $("bench").innerHTML=r.benched.length?`🪑 Sur le banc : ${r.benched.map(p=>avatar(p,"sm")+" <b style='color:"+colorOf(p)+"'>"+esc(p.name)+"</b>").join(" ")} <span>· il passe en priorité au match suivant</span>`:"";
+}
+function renderMini(r,prev){
+  const box=$("miniTeams");
+  if(!r){box.innerHTML="";document.querySelectorAll(".pc .tt").forEach(e=>e.remove());return;}
+  const chip=(p,side)=>`<span class="chip${prev&&prev.get(p.id)===side?"":" new"}" style="--c:${colorOf(p)}">${avatar(p,"sm")}${esc(p.name)}</span>`;
+  const pb=Math.round(winProb(r.sB,r.sO)*100);
+  box.innerHTML=`<div class="side b"><div class="st">Bleus <small>${pb}%</small></div><div class="chips">${r.blue.map(p=>chip(p,"b")).join("")}</div></div>
+    <div class="mid"><span class="vs">VS</span><span class="pp">${r.blue.length} c ${r.orange.length}</span></div>
+    <div class="side o"><div class="st">Oranges <small>${100-pb}%</small></div><div class="chips">${r.orange.map(p=>chip(p,"o")).join("")}</div></div>
+    ${r.benched.length?`<div class="bench2">🪑 Sur le banc : ${r.benched.map(p=>`<b style="color:${colorOf(p)}">${esc(p.name)}</b>`).join(", ")}</div>`:""}`;
+  const side=new Map();r.blue.forEach(p=>side.set(p.id,"b"));r.orange.forEach(p=>side.set(p.id,"o"));r.benched.forEach(p=>side.set(p.id,"x"));
+  document.querySelectorAll(".pc").forEach(el=>{
+    const sd=side.get(+el.dataset.id);let t=el.querySelector(".tt");
+    if(!sd){if(t)t.remove();return;}
+    if(!t){t=document.createElement("span");t.className="tt";el.appendChild(t);}
+    t.className="tt "+sd;t.textContent=sd==="b"?"BLEUS":sd==="o"?"ORANGES":"BANC";
+  });
 }
 let draftT=[];
 function draftTicker(picks){
@@ -801,9 +842,9 @@ function autoDraft(){
   clearTimeout(autoT);
   autoT=setTimeout(()=>{
     const n=present().length;
-    if(n<2||!state.format){$("result").classList.remove("show");lastResult=null;draftT.forEach(clearTimeout);return;}
+    if(n<2||!state.format){$("result").classList.remove("show");lastResult=null;draftT.forEach(clearTimeout);renderMini(null);return;}
     renderResult(computeTeams(false,false,true));
-  },120);
+  },60);
 }
 function countUp(el,to,delay){
   if(reduceMotion){el.textContent=to+"%";return;}
