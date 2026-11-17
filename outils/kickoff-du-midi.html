@@ -990,6 +990,7 @@ function toast(txt){const t=$("toast");t.textContent=txt;t.classList.add("show")
 
 /* ---------- Agent PC : récupère les matchs joués page fermée ---------- */
 const AGENT="http://localhost:49125";
+const AGENT_CMD=`[Net.ServicePointManager]::SecurityProtocol='Tls12'; $d="$env:APPDATA\\KickoffDuMidi"; New-Item -ItemType Directory -Force $d | Out-Null; Invoke-WebRequest 'https://bsarlab.github.io/bs-arcade-center/outils/kickoff-agent.ps1' -OutFile "$d\\kickoff-agent.ps1" -UseBasicParsing; $v="$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KickoffDuMidi.vbs"; Set-Content -Path $v -Encoding ASCII -Value ('CreateObject("WScript.Shell").Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""' + "$d\\kickoff-agent.ps1" + '""", 0, False'); Start-Process wscript.exe -ArgumentList ('"' + $v + '"'); Write-Host 'Kickoff du midi : agent installe !' -ForegroundColor Green`;
 let agent={ok:false,checked:false,jeu:"",enCours:false};
 async function agentGet(path){
   const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),2500);
@@ -1022,7 +1023,11 @@ function renderAgent(){
     $("syncBtn").onclick=()=>syncAgent(true);
   }else{
     box.innerHTML=`<div class="agentcard"><span class="ic">💤</span><div class="grow"><b>Pas envie de garder cette page ouverte ?</b> Installe l'agent Kickoff sur ton PC de jeu : il enregistre les matchs en arrière-plan, et ils arrivent ici à la prochaine ouverture de la page.</div>
-      <a class="btn" href="kickoff-agent.zip" download>⬇️ Télécharger l'agent (Windows)</a></div>`;
+      <a class="btn" href="kickoff-agent.zip" download>⬇️ Télécharger l'agent (Windows)</a>
+      <div style="flex-basis:100%;font-size:13px">Windows bloque le fichier ? Installe-le en une commande : ouvre <b>PowerShell</b> (touche Windows, tape « PowerShell », Entrée), colle la commande avec un clic droit, puis Entrée.</div>
+      <button class="btn" id="copyCmd">📋 Copier la commande d'installation</button></div>`;
+    $("copyCmd").onclick=()=>{const done=()=>{$("copyCmd").textContent="✅ Commande copiée !";setTimeout(()=>{const b=$("copyCmd");if(b)b.textContent="📋 Copier la commande d'installation";},2000);};
+      (navigator.clipboard?navigator.clipboard.writeText(AGENT_CMD):Promise.reject()).then(done).catch(()=>prompt("Copie cette commande :",AGENT_CMD));};
   }
 }
 function computeStats(){
