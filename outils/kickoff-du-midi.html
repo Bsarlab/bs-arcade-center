@@ -281,6 +281,32 @@ a.btn{text-decoration:none;white-space:nowrap}
 .subh{font-family:var(--display);font-size:13px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute);margin:22px 0 4px}
 @media (max-width:700px){.hm{grid-template-columns:1fr auto 1fr 26px}.hm .dt,.hm .src{display:none}.tbl .hide-s{display:none}}
 
+/* Agent PC, filtres, records */
+.agentcard{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-top:16px;padding:14px 16px;border-radius:16px;
+  background:rgba(0,0,0,.25);border:1px solid var(--line);font-size:14px;color:var(--mute);line-height:1.55}
+.agentcard.ok{border-color:rgba(60,240,142,.45);background:rgba(60,240,142,.07)}
+.agentcard .ic{font-size:22px}
+.agentcard b{color:var(--text)}
+.agentcard .grow{flex:1;min-width:220px}
+.filtres{margin-top:14px;padding:14px 16px;border-radius:16px;background:rgba(0,0,0,.2);border:1px solid var(--line)}
+.filtres .ft{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin-bottom:10px}
+.filtres label{display:flex;align-items:center;gap:8px;font-size:14px;margin:6px 0;cursor:pointer;flex-wrap:wrap}
+.filtres input[type=checkbox]{width:18px;height:18px;accent-color:var(--ok)}
+.filtres input[type=time]{padding:5px 8px;font-size:13px}
+.filtres .ign{font-size:12.5px;color:var(--mute);margin-top:8px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.records{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-bottom:16px}
+.rec{--c:#888;position:relative;padding:14px;border-radius:16px;background:linear-gradient(160deg,color-mix(in srgb,var(--c) 22%,transparent),rgba(0,0,0,.3) 70%);
+  border:1px solid color-mix(in srgb,var(--c) 45%,transparent);display:flex;align-items:center;gap:12px;overflow:hidden}
+.rec .rt{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--mute)}
+.rec .rn{font-family:var(--display);font-size:16px;color:color-mix(in srgb,var(--c) 50%,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rec .rv{font-size:13px;color:var(--text)}
+.rec .em{position:absolute;right:8px;top:4px;font-size:30px;opacity:.25}
+.hm .mvp{display:block;font-family:var(--body);font-size:11px;color:#ffd60a;margin-top:2px;text-align:center}
+.toast{visibility:hidden;opacity:0;position:fixed;left:50%;bottom:24px;transform:translateX(-50%) translateY(120px);z-index:80;padding:12px 18px;border-radius:14px;
+  background:#0d1336;border:1px solid var(--line2);box-shadow:0 10px 40px rgba(0,0,0,.5);font-weight:600;font-size:14px;transition:transform .4s cubic-bezier(.2,1.2,.4,1)}
+.toast.show{visibility:visible;opacity:1;transform:translateX(-50%) translateY(0)}
+.tblwrap{overflow-x:auto;-webkit-overflow-scrolling:touch}
+@media (max-width:700px){.rec{padding:10px}.rec .av{display:none}.rec .rn{font-size:14px}}
 /* ======= Formats ======= */
 .formats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .fmt{position:relative;cursor:pointer;border:none;color:var(--text);font-family:var(--body);text-align:left;padding:16px 18px;border-radius:16px;
@@ -472,6 +498,8 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:30px;letter
       <div class="aside"><span class="lstat" id="lstat"><i></i><span>Désactivé</span></span><button class="btn" id="liveBtn">⚡ Activer le direct</button><a class="btn" id="openTab" target="_blank" rel="noopener" hidden title="Le direct est plus fiable quand la page est ouverte seule">↗ Plein onglet</a></div>
     </div>
     <div id="liveBoard"></div>
+    <div id="agentBox"></div>
+    <div class="filtres" id="filtresBox"></div>
   </section>
 
   <section class="step" id="standBox">
@@ -507,6 +535,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:30px;letter
 
 <div class="cd" id="cd"><div class="ring" id="cdRing"></div><div class="n" id="cdNum">3</div></div>
 <div class="gx" id="gx"></div>
+<div class="toast" id="toast"></div>
 <canvas id="confetti"></canvas>
 
 <script>
@@ -542,7 +571,9 @@ const reduceMotion=matchMedia("(prefers-reduced-motion: reduce)").matches;
 
 let state={players:JSON.parse(JSON.stringify(DEFAULT_PLAYERS)),present:DEFAULT_PLAYERS.map(p=>p.id),format:null,bench:{},colorMode:"rank"};
 try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&Array.isArray(s.players))state=Object.assign(state,s);}catch(e){}
-state.bench=state.bench||{};state.matches=Array.isArray(state.matches)?state.matches:[];state.useForm=!!state.useForm;state.live=!!state.live;state.colorMode=state.colorMode||"rank";
+state.bench=state.bench||{};state.matches=Array.isArray(state.matches)?state.matches:[];state.useForm=!!state.useForm;state.live=!!state.live;
+state.filtres=Object.assign({prive:true,midi:true,debut:"11:30",fin:"14:30",min2:true},state.filtres||{});
+state.vus=Array.isArray(state.vus)?state.vus:[];state.ignores=state.ignores||{n:0,dernier:""};state.colorMode=state.colorMode||"rank";
 function save(){
   try{localStorage.setItem(KEY,JSON.stringify(state));$("saveWarn").textContent="";}
   catch(e){$("saveWarn").textContent="⚠️ Impossible d'enregistrer (stockage du navigateur plein ou bloqué). Essaie des photos plus légères.";}
@@ -902,17 +933,106 @@ function renderScoreBox(){
   $("saveScore").onclick=()=>{if(scoreDraft.b===scoreDraft.o)return;
     recordMatch({blue:r.blue.map(p=>p.id),orange:r.orange.map(p=>p.id),sb:scoreDraft.b,so:scoreDraft.o,src:"manuel"});r.saved=true;renderScoreBox();};
 }
-function recordMatch(m){
+function recordMatch(m,explode=true){
   if(m.guid&&state.matches.some(x=>x.guid===m.guid))return;
-  const rec={id:Date.now()+Math.floor(Math.random()*1000),t:Date.now(),blue:m.blue,orange:m.orange,sb:m.sb,so:m.so,src:m.src,goals:m.goals||{},names:m.names||null,guid:m.guid||""};
-  state.matches.unshift(rec);state.matches=state.matches.slice(0,400);save();renderStandings();goalExplosion(rec);
+  const rec={id:Date.now()+Math.floor(Math.random()*100000),t:m.t||Date.now(),blue:m.blue,orange:m.orange,sb:m.sb,so:m.so,src:m.src,goals:m.goals||{},
+    stats:m.stats||null,mvp:m.mvp==null?null:m.mvp,names:m.names||null,guid:m.guid||""};
+  state.matches.unshift(rec);state.matches.sort((a,b)=>b.t-a.t);state.matches=state.matches.slice(0,400);save();renderStandings();
+  if(explode)goalExplosion(rec);
+}
+/* ---------- Filtres : ne garder que les parties privées du midi ---------- */
+const PRIVATE_PLAYLIST=6;
+const PLAYLISTS={1:"1c1",2:"2c2",3:"3c3",4:"Chaos",6:"partie privée",8:"hors ligne",10:"classé 1c1",11:"classé 2c2",13:"classé 3c3",22:"tournoi",27:"Hoops",28:"Rumble",29:"Dropshot",30:"Snow Day",34:"Heatseeker"};
+const minutes=s=>{const [h,m]=String(s||"0:0").split(":").map(Number);return (h||0)*60+(m||0);};
+function rejet(g){
+  const f=state.filtres;
+  if(f.prive&&g.playlist!=null&&g.playlist!==PRIVATE_PLAYLIST)return `mode « ${PLAYLISTS[g.playlist]||"n°"+g.playlist} »`;
+  if(f.midi){const d=new Date(g.t),mn=d.getHours()*60+d.getMinutes();
+    if(mn<minutes(f.debut)||mn>minutes(f.fin))return `joué à ${d.getHours()}h${String(d.getMinutes()).padStart(2,"0")}, hors du créneau`;}
+  if(f.min2&&g.players.filter(p=>rosterByName(p.name)).length<2)return "moins de 2 joueurs de ta liste";
+  return null;
+}
+function dejaVu(g){
+  if(g.guid)return state.vus.includes(g.guid)||state.matches.some(m=>m.guid===g.guid);
+  return state.matches.some(m=>Math.abs(m.t-g.t)<90000&&m.sb===g.sb&&m.so===g.so);
+}
+function importGame(g,explode){
+  if(dejaVu(g)||g.sb===g.so)return false;
+  const why=rejet(g);
+  if(why){
+    if(g.guid){state.vus.unshift(g.guid);state.vus=state.vus.slice(0,1000);}
+    state.ignores={n:(state.ignores.n||0)+1,dernier:why};save();renderFiltres();return false;
+  }
+  const blue=[],orange=[],goals={},stats={},names={b:[],o:[]},win=g.sb>g.so?0:1;let mvp=null,best=-1;
+  g.players.forEach(pl=>{
+    const side=pl.team===1?"o":"b",p=rosterByName(pl.name);names[side].push(pl.name);
+    if(pl.team===win&&pl.score>best){best=pl.score;mvp=p?p.id:pl.name;}
+    if(p){(side==="b"?blue:orange).push(p.id);goals[p.id]=pl.goals;
+      stats[p.id]={score:pl.score,buts:pl.goals,tirs:pl.shots,passes:pl.assists,arrets:pl.saves,demos:pl.demos};}
+  });
+  recordMatch({blue,orange,sb:g.sb,so:g.so,src:"auto",goals,stats,mvp,names,guid:g.guid,t:g.t},explode);
+  return true;
+}
+const num=v=>Number.isFinite(+v)?+v:0;
+function renderFiltres(){
+  const f=state.filtres,ig=state.ignores||{};
+  $("filtresBox").innerHTML=`<div class="ft">Ce qui est enregistré automatiquement</div>
+    <label><input type="checkbox" data-f="prive" ${f.prive?"checked":""}> Seulement les parties privées</label>
+    <label><input type="checkbox" data-f="midi" ${f.midi?"checked":""}> Seulement le midi, entre <input type="time" data-t="debut" value="${esc(f.debut)}"> et <input type="time" data-t="fin" value="${esc(f.fin)}"></label>
+    <label><input type="checkbox" data-f="min2" ${f.min2?"checked":""}> Seulement si au moins 2 joueurs de ta liste sont dans la partie</label>
+    ${ig.n?`<div class="ign">🚫 ${ig.n} match${ig.n>1?"s":""} ignoré${ig.n>1?"s":""} · dernier : ${esc(ig.dernier)} <button class="btn" id="reexam" title="Utile après avoir corrigé un pseudo ou changé un réglage">↻ Réexaminer les matchs ignorés</button></div>`:""}`;
+  $("filtresBox").querySelectorAll("[data-f]").forEach(el=>el.onchange=()=>{state.filtres[el.dataset.f]=el.checked;save();});
+  $("filtresBox").querySelectorAll("[data-t]").forEach(el=>el.onchange=()=>{if(el.value){state.filtres[el.dataset.t]=el.value;save();}});
+  const rb=$("reexam");if(rb)rb.onclick=()=>{state.vus=[];state.ignores={n:0,dernier:""};save();renderFiltres();syncAgent(true);};
+}
+let toastT=null;
+function toast(txt){const t=$("toast");t.textContent=txt;t.classList.add("show");clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove("show"),3800);}
+
+/* ---------- Agent PC : récupère les matchs joués page fermée ---------- */
+const AGENT="http://localhost:49125";
+let agent={ok:false,checked:false,jeu:"",enCours:false};
+async function agentGet(path){
+  const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),2500);
+  try{const r=await fetch(AGENT+path,{cache:"no-store",signal:ctl.signal});if(!r.ok)throw new Error(r.status);return await r.json();}
+  finally{clearTimeout(t);}
+}
+async function syncAgent(verbose){
+  if(agent.enCours)return;agent.enCours=true;
+  try{
+    const etat=await agentGet("/etat");agent.ok=true;agent.jeu=etat.jeu||"";
+    const list=[].concat(await agentGet("/matchs")||[]);
+    let n=0;
+    list.slice().reverse().forEach(m=>{
+      if(!m)return;
+      const g={guid:String(m.guid||""),t:num(m.t)||Date.now(),playlist:m.playlist==null?null:num(m.playlist),sb:num(m.sb),so:num(m.so),
+        players:[].concat(m.joueurs||[]).filter(Boolean).map(j=>({name:String(j.nom||""),team:num(j.equipe),score:num(j.score),goals:num(j.buts),shots:num(j.tirs),assists:num(j.passes),saves:num(j.arrets),demos:num(j.demos)}))};
+      if(importGame(g,false))n++;
+    });
+    if(n)toast(`⚡ ${n} match${n>1?"s":""} récupéré${n>1?"s":""} depuis ton PC`);
+    else if(verbose)toast("Aucun nouveau match à récupérer");
+  }catch(e){agent.ok=false;}
+  agent.enCours=false;agent.checked=true;renderAgent();
+}
+function renderAgent(){
+  const box=$("agentBox");if(!box)return;
+  if(live.status!=="live")renderLive();
+  if(agent.ok){
+    const jeu={deconnecte:"Rocket League fermé",connecte:"connecté au jeu","en-match":"match en cours"}[agent.jeu]||agent.jeu;
+    box.innerHTML=`<div class="agentcard ok"><span class="ic">🟢</span><div class="grow"><b>Agent PC actif</b> (${esc(jeu)}). Tes matchs sont enregistrés même quand cette page est fermée : ils arrivent ici dès que tu l'ouvres.</div><button class="btn" id="syncBtn">↻ Récupérer maintenant</button></div>`;
+    $("syncBtn").onclick=()=>syncAgent(true);
+  }else{
+    box.innerHTML=`<div class="agentcard"><span class="ic">💤</span><div class="grow"><b>Pas envie de garder cette page ouverte ?</b> Installe l'agent Kickoff sur ton PC de jeu : il enregistre les matchs en arrière-plan, et ils arrivent ici à la prochaine ouverture de la page.</div>
+      <a class="btn" href="kickoff-agent.zip" download>⬇️ Télécharger l'agent (Windows)</a></div>`;
+  }
 }
 function computeStats(){
-  const S={};state.players.forEach(p=>S[p.id]={p,j:0,v:0,g:0,streak:0,form:[]});
+  const S={};state.players.forEach(p=>S[p.id]={p,j:0,v:0,g:0,streak:0,form:[],sm:0,pts:0,pa:0,ar:0,ti:0,de:0,mvp:0});
   state.matches.slice().reverse().forEach(m=>{
     const win=m.sb>m.so?"b":"o";
     [["b",m.blue],["o",m.orange]].forEach(([side,ids])=>(ids||[]).forEach(id=>{const s=S[id];if(!s)return;
       const w=side===win;s.j++;if(w)s.v++;s.form.push(w);s.g+=(m.goals&&m.goals[id])||0;
+      const st=m.stats&&m.stats[id];if(st){s.sm++;s.pts+=st.score||0;s.pa+=st.passes||0;s.ar+=st.arrets||0;s.ti+=st.tirs||0;s.de+=st.demos||0;}
+      if(m.mvp===id)s.mvp++;
       s.streak=w?(s.streak>0?s.streak+1:1):(s.streak<0?s.streak-1:-1);}));
   });
   return S;
@@ -926,22 +1046,26 @@ function renderStandings(){
   const S=computeStats(),rows=Object.values(S).sort((a,b)=>(b.v-a.v)||((b.j?b.v/b.j:0)-(a.j?a.v/a.j:0))||(b.j-a.j));
   const box=$("standings");
   if(!state.matches.length){
-    box.innerHTML=`<div class="lempty">${heroSVG(true)}<div><b style="color:var(--text)">Aucun match enregistré pour l'instant.</b><br>Valide le score après un match (ou active le direct) et le classement se remplit tout seul : victoires, % de victoire, buts, séries et forme du moment.</div></div>`;
+    box.innerHTML=`<div class="lempty">${heroSVG(true)}<div><b style="color:var(--text)">Aucun match enregistré pour l'instant.</b><br>Valide le score après un match, ou active le direct / l'agent PC : le classement se remplit tout seul avec les victoires, les stats en jeu (points, buts, passes, arrêts, MVP), les séries et la forme du moment.</div></div>`;
     return;
   }
   const fmtStreak=s=>s>=2?`🔥 ${s}`:s<=-2?`❄️ ${-s}`:"—";
-  const table=`<table class="tbl"><thead><tr><th>#</th><th>Joueur</th><th>J</th><th>V</th><th>%</th><th class="hide-s">Buts</th><th class="hide-s">Série</th><th>Forme</th></tr></thead><tbody>
+  const recCard=(em,titre,key,unit)=>{const best=Object.values(S).filter(s=>s[key]>0).sort((a,b)=>b[key]-a[key])[0];
+    return best?`<div class="rec" style="--c:${colorOf(best.p)}"><span class="em">${em}</span>${avatar(best.p,"sm")}<div style="min-width:0"><div class="rt">${titre}</div><div class="rn">${esc(best.p.name)}</div><div class="rv">${best[key]} ${unit}${best[key]>1?"s":""}</div></div></div>`
+      :`<div class="rec"><span class="em">${em}</span><div><div class="rt">${titre}</div><div class="rv" style="color:var(--mute)">Pas encore de stats</div></div></div>`;};
+  const records=`<div class="records">${recCard("⭐","Plus de MVP","mvp","MVP")}${recCard("⚽","Meilleur buteur","g","but")}${recCard("🎯","Meilleur passeur","pa","passe")}${recCard("🧤","Meilleur gardien","ar","arrêt")}${recCard("💥","Roi de la démo","de","démo")}</div>`;
+  const table=records+`<div class="tblwrap"><table class="tbl"><thead><tr><th>#</th><th>Joueur</th><th>J</th><th>V</th><th>%</th><th class="hide-s" title="Points de score en jeu, moyenne par match">Pts/m</th><th class="hide-s">Buts</th><th class="hide-s">Passes</th><th class="hide-s">Arrêts</th><th>MVP</th><th class="hide-s">Série</th><th>Forme</th></tr></thead><tbody>
     ${rows.map((s,i)=>{const pc=s.j?Math.round(s.v/s.j*100):0,last=s.form.slice(-5);
       return `<tr class="top${i+1}"><td>${i+1}</td><td><div class="who">${avatar(s.p,"sm")}<span style="color:${colorOf(s.p)}">${esc(s.p.name)}</span></div></td>
-      <td>${s.j}</td><td>${s.v}</td><td class="pc100">${s.j?pc+"%":"—"}</td><td class="hide-s">${s.g||"—"}</td><td class="hide-s">${fmtStreak(s.streak)}</td>
+      <td>${s.j}</td><td>${s.v}</td><td class="pc100">${s.j?pc+"%":"—"}</td><td class="hide-s">${s.sm?Math.round(s.pts/s.sm):"—"}</td><td class="hide-s">${s.g||"—"}</td><td class="hide-s">${s.pa||"—"}</td><td class="hide-s">${s.ar||"—"}</td><td>${s.mvp?"⭐ "+s.mvp:"—"}</td><td class="hide-s">${fmtStreak(s.streak)}</td>
       <td><span class="dots5">${Array.from({length:5},(_,k)=>{const v=last[last.length-5+k];return `<i class="${v===true?"w":v===false?"l":""}"></i>`;}).join("")}</span></td></tr>`;}).join("")}
-    </tbody></table>`;
+    </tbody></table></div>`;
   const nameOf=(id)=>{const p=state.players.find(x=>x.id===id);return p?esc(p.name):"?";};
   const teamTxt=(m,side)=>{const ids=side==="b"?m.blue:m.orange;const raw=m.names?(side==="b"?m.names.b:m.names.o):null;
     return ids&&ids.length?ids.map(nameOf).join(", "):(raw||[]).map(esc).join(", ")||"?";};
   const hist=state.matches.slice(0,12).map(m=>{const d=new Date(m.t),bw=m.sb>m.so;
     return `<div class="hm"><span class="dt">${d.toLocaleDateString("fr-FR",{weekday:"short",day:"numeric",month:"short"})}<br>${d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</span>
-      <span class="tb ${bw?"win":""}">${teamTxt(m,"b")}</span><span class="sc"><span class="b">${m.sb}</span> - <span class="o">${m.so}</span></span>
+      <span class="tb ${bw?"win":""}">${teamTxt(m,"b")}</span><span class="sc"><span class="b">${m.sb}</span> - <span class="o">${m.so}</span>${m.mvp!=null?`<span class="mvp">⭐ ${typeof m.mvp==="number"?nameOf(m.mvp):esc(m.mvp)}</span>`:""}</span>
       <span class="to ${bw?"":"win"}">${teamTxt(m,"o")}</span><span class="src" title="${m.src==="auto"?"Enregistré automatiquement":"Saisi à la main"}">${m.src==="auto"?"⚡":"✍️"}</span>
       <button class="x" data-del="${m.id}" title="Supprimer ce match">✕</button></div>`;}).join("");
   box.innerHTML=table+`<div class="subh">Derniers matchs</div><div class="hist">${hist}</div>`;
@@ -992,11 +1116,11 @@ const scoreOf=g=>[0,1].map(n=>((g.Teams||[]).find(t=>t.TeamNum===n)||{}).Score||
 function finishLive(d){
   const g=live.game;if(!g||Date.now()-live.lastEnd<15000)return;live.lastEnd=Date.now();
   const [sb,so]=scoreOf(g);if(sb===so)return;
-  const blue=[],orange=[],goals={},names={b:[],o:[]};
-  live.players.forEach(pl=>{const side=pl.TeamNum===1?"o":"b";names[side].push(pl.Name);const p=rosterByName(pl.Name);
-    if(p){(side==="b"?blue:orange).push(p.id);goals[p.id]=pl.Goals||0;}});
-  recordMatch({blue,orange,sb,so,src:"auto",goals,names,guid:d.MatchGuid||live.guid||""});
-  if(lastResult&&!lastResult.saved){lastResult.saved=true;renderScoreBox();}
+  const avant=state.ignores.n||0;
+  const ok=importGame({guid:String(d.MatchGuid||live.guid||""),t:Date.now(),playlist:g.PlaylistId==null?null:num(g.PlaylistId),sb,so,
+    players:live.players.map(p=>({name:String(p.Name||""),team:num(p.TeamNum),score:num(p.Score),goals:num(p.Goals),shots:num(p.Shots),assists:num(p.Assists),saves:num(p.Saves),demos:num(p.Demos)}))},true);
+  if(ok&&lastResult&&!lastResult.saved){lastResult.saved=true;renderScoreBox();}
+  if(!ok&&(state.ignores.n||0)>avant)toast("Match non enregistré : "+state.ignores.dernier);
 }
 function renderLive(bump){
   const box=$("liveBoard");
@@ -1011,7 +1135,7 @@ function renderLive(bump){
       <div class="lfeed">${live.feed.map(x=>`<div>${x}</div>`).join("")}</div>`;
     return;
   }
-  const msg={off:`Le score s'enregistre tout seul à la fin de chaque match, sans rien saisir. Il faut jouer sur PC avec cette page ouverte dans le navigateur, et avoir activé une seule fois l'API Stats dans les fichiers du jeu. Clique sur « Activer le direct ».`,
+  const msg={off:agent.ok?`Tes matchs sont déjà enregistrés par l'agent PC. Le direct est un bonus : il affiche le score et les buteurs en temps réel quand cette page est ouverte pendant le match.`:`Le score s'enregistre tout seul à la fin de chaque match, sans rien saisir. Il faut jouer sur PC avec cette page ouverte dans le navigateur (ou installer l'agent PC juste en dessous), et avoir activé une seule fois l'API Stats dans les fichiers du jeu. Clique sur « Activer le direct ».`,
     connecting:"Connexion à Rocket League sur ce PC…",
     retry:`Rocket League ne répond pas. Vérifie que le jeu est lancé et que <b>WebPort=49124</b> est bien réglé dans le fichier TAStatsAPI.ini (puis relance le jeu). Si le navigateur te demande d'autoriser l'accès au réseau local, accepte.${window.self!==window.top?" Si ça bloque encore, ouvre la page en <b>plein onglet</b> (bouton ↗ en haut à droite).":""}`,
     waiting:"Connecté au jeu ✔ Lance la partie privée : le tableau de score s'affichera ici en direct."}[live.status];
@@ -1088,7 +1212,7 @@ $("copyBtn").onclick=()=>{
   (navigator.clipboard?navigator.clipboard.writeText(txt):Promise.reject()).then(done).catch(()=>prompt("Copie :",txt));
 };
 $("exportBtn").onclick=()=>{
-  const blob=new Blob([JSON.stringify({players:state.players,matches:state.matches})],{type:"application/json"});
+  const blob=new Blob([JSON.stringify({players:state.players,matches:state.matches,filtres:state.filtres})],{type:"application/json"});
   const a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kickoff-joueurs.json";a.click();setTimeout(()=>URL.revokeObjectURL(a.href),1000);
 };
 $("importBtn").onclick=()=>{
@@ -1122,7 +1246,9 @@ $("useForm").checked=state.useForm;
 $("useForm").onchange=e=>{state.useForm=e.target.checked;save();};
 $("liveBtn").onclick=()=>{if(state.live)liveStop();else{state.live=true;save();liveConnect();}};
 $("gx").onclick=()=>$("gx").classList.remove("show");
-renderAll();
+renderAll();renderFiltres();renderAgent();
+syncAgent(false);setInterval(()=>{if(!document.hidden)syncAgent(false);},20000);
+document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncAgent(false);});
 setLive(state.live?"connecting":"off");
 if(state.live)liveConnect();
 </script>
