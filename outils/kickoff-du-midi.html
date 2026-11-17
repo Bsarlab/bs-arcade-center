@@ -180,7 +180,8 @@ a.btn{text-decoration:none;white-space:nowrap}
 
 /* Terrain vu du dessus */
 .pitchbox{margin-bottom:16px;padding:14px;border-radius:22px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(10px)}
-.pitchbox .pt{display:flex;justify-content:space-between;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin:0 6px 8px}
+.pitchbox #pitch{max-width:600px;margin:0 auto}
+.pitchbox .pt{max-width:600px;margin-left:auto!important;margin-right:auto!important;display:flex;justify-content:space-between;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin:0 6px 8px}
 .pitch .tcar{transform:translate(var(--x0),var(--y0));animation:drive 1.2s cubic-bezier(.25,.8,.25,1) forwards}
 .pitch.static .tcar{transform:translate(var(--x1),var(--y1))}
 @keyframes drive{to{transform:translate(var(--x1),var(--y1))}}
@@ -368,7 +369,13 @@ a.btn{text-decoration:none;white-space:nowrap}
   opacity:0;transform:translateY(14px)}
 .team.orange .m{flex-direction:row-reverse;border-left:none;border-right:3px solid var(--c);
   background:linear-gradient(270deg,color-mix(in srgb,var(--c) 18%,rgba(0,0,0,.35)),rgba(0,0,0,.3))}
-.result.show .m{animation:mIn .5s cubic-bezier(.2,.9,.2,1) forwards;animation-delay:calc(.45s + var(--i)*.12s)}
+.result.show .m{animation:mIn .5s cubic-bezier(.2,.9,.2,1) forwards;animation-delay:calc(.35s + var(--i)*.38s)}
+.result.show .m::after{content:'';position:absolute;inset:0;border-radius:14px;pointer-events:none;box-shadow:0 0 0 2px var(--c),0 0 26px var(--c);opacity:0;animation:pickFlash .9s ease-out forwards;animation-delay:calc(.35s + var(--i)*.38s)}
+@keyframes pickFlash{0%{opacity:1}100%{opacity:0}}
+.draft{display:flex;align-items:center;justify-content:center;gap:10px;min-height:44px;margin-bottom:12px;padding:10px 16px;border-radius:14px;background:var(--panel);border:1px solid var(--line);font-size:14px;color:var(--mute);text-align:center}
+.draft b{font-family:var(--display);font-weight:400;letter-spacing:.02em}
+.draft .pk{animation:up .3s both}
+.draft .num{font-family:var(--display);font-size:12px;letter-spacing:.14em;color:var(--mute);padding:3px 8px;border:1px solid var(--line2);border-radius:7px}
 @keyframes mIn{to{opacity:1;transform:none}}
 .m .info{flex:1;min-width:0}
 .m .nm{font-family:var(--display);font-size:18px;color:color-mix(in srgb,var(--c) 50%,#fff);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -390,7 +397,7 @@ a.btn{text-decoration:none;white-space:nowrap}
 .mh .t{font-size:11px;color:var(--mute);letter-spacing:.24em;text-transform:uppercase;text-align:center}
 .meter{position:relative;height:18px;margin-top:12px;border-radius:6px;overflow:hidden;display:flex;background:#03050f;
   transform:skewX(-14deg);outline:1px solid var(--line2)}
-.meter i{display:block;height:100%;width:50%;transition:width 1.1s cubic-bezier(.2,.8,.2,1) .7s}
+.meter i{display:block;height:100%;width:50%;transition:width 1.1s cubic-bezier(.2,.8,.2,1);transition-delay:var(--md,.7s)}
 .meter .mb{background:linear-gradient(90deg,#1259c9,var(--blue2))}
 .meter .mo{background:linear-gradient(90deg,var(--orange2),#d9530a)}
 .meter::after{content:"";position:absolute;left:50%;top:-2px;bottom:-2px;width:2px;background:#fff;box-shadow:0 0 8px #fff}
@@ -471,9 +478,10 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:30px;letter
     <div class="formats" id="formats"></div>
   </section>
 
-  <button class="boost" id="goBtn"><span class="fill"></span><span class="lbl">🚀 Lancer le kickoff <small>BOOST</small></span></button>
+  <button class="boost" id="goBtn"><span class="fill"></span><span class="lbl">🚀 C'est parti : lancer le match <small>BOOST</small></span></button>
 
   <section class="result" id="result">
+    <div class="draft" id="draft"></div>
     <div class="pitchbox"><div class="pt"><span>⬅ But bleu</span><span>Positions de kickoff</span><span>But orange ➡</span></div><div id="pitch"></div></div>
     <div class="arena">
       <div class="team blue"><div class="th"><h3>Bleus</h3><div class="tm">Force<b id="sB"></b></div></div><div id="teamB"></div></div>
@@ -645,7 +653,7 @@ function renderPlayers(){
   box.querySelectorAll(".pc").forEach(el=>{
     el.onclick=()=>{const id=+el.dataset.id;
       state.present=state.present.includes(id)?state.present.filter(x=>x!==id):[...state.present,id];
-      state.format=null;save();renderPlayers();renderFormats();};
+      state.format=null;save();renderPlayers();renderFormats();autoDraft();};
     if(!reduceMotion){
       el.onpointermove=e=>{const b=el.getBoundingClientRect(),x=(e.clientX-b.left)/b.width,y=(e.clientY-b.top)/b.height;
         el.style.setProperty("--ry",((x-.5)*16)+"deg");el.style.setProperty("--rx",((.5-y)*16)+"deg");
@@ -678,7 +686,7 @@ function renderFormats(){
     const dots=`${"<i class='x'></i>".repeat(a)}<span style="width:6px"></span>${"<i class='y'></i>".repeat(b)}${bench?"<span style='width:6px'></span>"+"<i class='z'></i>".repeat(bench):""}`;
     return `<button class="fmt ${on?"on":""}" data-f="${a},${b}"><div class="sc"><span class="a">${a}</span><span class="v">C</span><span class="b">${b}</span></div>
       <div class="lb">${lbl}</div><div class="dots">${dots}</div></button>`;}).join("");
-  box.querySelectorAll(".fmt").forEach(el=>el.onclick=()=>{state.format=el.dataset.f.split(",").map(Number);save();renderFormats();});
+  box.querySelectorAll(".fmt").forEach(el=>el.onclick=()=>{state.format=el.dataset.f.split(",").map(Number);save();renderFormats();autoDraft();});
   $("goBtn").disabled=false;
 }
 
@@ -693,7 +701,7 @@ function combos(arr,k){const out=[];const rec=(s,cur)=>{if(cur.length===k){out.p
 const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;};
 
 let lastKey=null,lastBench=null,lastResult=null;
-function computeTeams(newMatch){
+function computeTeams(newMatch,countBench=true){
   FORM=formMap();
   let pool=present();const [a,b]=state.format,nb=pool.length-a-b;let benched=[];
   if(nb>0){
@@ -701,7 +709,7 @@ function computeTeams(newMatch){
     if(keep)benched=pool.filter(p=>lastBench.includes(p.id));
     else{
       benched=shuffle(pool).sort((x,y)=>(state.bench[x.id]||0)-(state.bench[y.id]||0)).slice(0,nb);
-      benched.forEach(p=>state.bench[p.id]=(state.bench[p.id]||0)+1);save();
+      if(countBench){benched.forEach(p=>state.bench[p.id]=(state.bench[p.id]||0)+1);save();}
     }
     lastBench=benched.map(p=>p.id);pool=pool.filter(p=>!lastBench.includes(p.id));
   }else lastBench=null;
@@ -724,7 +732,7 @@ function computeTeams(newMatch){
 }
 
 /* ================= Résultat ================= */
-function memberHTML(p,i){
+function memberHTML(p,i,ord){if(ord&&ord.has(p.id))i=ord.get(p.id);
   const r=rankOf(p.rank);
   return `<div class="m" style="--c:${colorOf(p)};--i:${i}">${avatar(p,"md")}
     <div class="info"><div class="nm">${esc(p.name)}</div><div>${rankTag(p.rank,22)}</div></div>
@@ -734,15 +742,20 @@ function renderResult(r){
   lastResult=r;r.saved=false;scoreDraft={b:0,o:0};
   $("pitch").innerHTML=pitchSVG(r.blue,r.orange,false);renderScoreBox();
   const sort=t=>t.slice().sort((x,y)=>y.rank-x.rank);
-  $("teamB").innerHTML=sort(r.blue).map(memberHTML).join("");
-  $("teamO").innerHTML=sort(r.orange).map(memberHTML).join("");
+  // Tirage un par un : du plus fort au moins fort, chacun rejoint son équipe
+  const picks=r.blue.map(p=>({p,side:"b"})).concat(r.orange.map(p=>({p,side:"o"}))).sort((a,b)=>effMMR(b.p)-effMMR(a.p)||Math.random()-.5);
+  const ord=new Map(picks.map((x,i)=>[x.p.id,i]));
+  $("teamB").innerHTML=sort(r.blue).map(p=>memberHTML(p,0,ord)).join("");
+  $("teamO").innerHTML=sort(r.orange).map(p=>memberHTML(p,0,ord)).join("");
+  draftTicker(picks);
+  const fin=.35+picks.length*.38;$("result").style.setProperty("--md",(fin+.2).toFixed(2)+"s");r.fin=fin;
   $("sB").textContent=Math.round(r.sB);$("sO").textContent=Math.round(r.sO);
   const pb=Math.round(winProb(r.sB,r.sO)*100),po=100-pb;
   const res=$("result");res.classList.remove("show");void res.offsetWidth;
   $("barB").style.width="50%";$("barO").style.width="50%";
   res.classList.add("show");
   requestAnimationFrame(()=>{$("barB").style.width=pb+"%";$("barO").style.width=po+"%";});
-  countUp($("pB"),pb);countUp($("pO"),po);
+  countUp($("pB"),pb,r.fin);countUp($("pO"),po,r.fin);
   const gap=Math.abs(pb-po);let tag,col,txt;
   if(gap<=8){tag="MATCH SERRÉ";col="var(--ok)";txt="Ça va se jouer au mental 🔥";}
   else if(gap<=20){tag="LÉGER AVANTAGE";col="var(--orange2)";txt="Le meilleur équilibre possible avec ce groupe";}
@@ -750,19 +763,49 @@ function renderResult(r){
   $("verdict").innerHTML=`<span class="tagv" style="background:${col}">${tag}</span><span>${txt}</span>`;
   $("bench").innerHTML=r.benched.length?`🪑 Sur le banc : ${r.benched.map(p=>avatar(p,"sm")+" <b style='color:"+colorOf(p)+"'>"+esc(p.name)+"</b>").join(" ")} <span>· priorité au prochain match</span>`:"";
 }
-function countUp(el,to){
+let draftT=[];
+function draftTicker(picks){
+  draftT.forEach(clearTimeout);draftT=[];
+  const box=$("draft");
+  if(reduceMotion){box.innerHTML=`🎙️ <b>Équipes formées</b> · ${picks.length} joueurs répartis selon leur niveau`;return;}
+  box.innerHTML=`🎙️ Tirage en cours…`;
+  picks.forEach((x,i)=>draftT.push(setTimeout(()=>{
+    const col=x.side==="b"?"var(--blue2)":"var(--orange2)";
+    box.innerHTML=`<span class="num">CHOIX ${i+1}/${picks.length}</span><span class="pk"><b style="color:${colorOf(x.p)}">${esc(x.p.name)}</b> <span style="color:var(--mute)">(${rankOf(x.p.rank).name})</span> → <b style="color:${col}">${x.side==="b"?"Bleus":"Oranges"}</b></span>`;
+  },(350+i*380))));
+  draftT.push(setTimeout(()=>{box.innerHTML=`🎙️ <b>Équipes prêtes !</b> <span>Coche ou décoche un joueur : les équipes se refont toutes seules.</span>`;},350+picks.length*380+700));
+}
+/* Équipes automatiques dès qu'on coche les joueurs */
+let autoT=null;
+function autoDraft(){
+  clearTimeout(autoT);
+  autoT=setTimeout(()=>{
+    const n=present().length;
+    if(n<2||!state.format){$("result").classList.remove("show");lastResult=null;draftT.forEach(clearTimeout);return;}
+    renderResult(computeTeams(true,false));
+  },380);
+}
+function countUp(el,to,delay){
   if(reduceMotion){el.textContent=to+"%";return;}
-  const t0=performance.now()+700,d=1100;
+  const t0=performance.now()+((delay==null?.7:delay+.2)*1000),d=1100;
   const f=t=>{const k=Math.min(1,Math.max(0,(t-t0)/d)),e=1-Math.pow(1-k,3);el.textContent=Math.round(50+(to-50)*e)+"%";if(k<1)requestAnimationFrame(f);};
   requestAnimationFrame(f);
 }
 function launch(newMatch){
-  const r=computeTeams(newMatch);
-  if(!newMatch||reduceMotion){renderResult(r);if(newMatch)scrollToRes();burst(r);return;}
+  clearTimeout(autoT);
+  // « C'est parti » garde les équipes déjà tirées ; « Autres équipes » refait un tirage
+  const ids=new Set(present().map(p=>p.id));
+  const keep=newMatch&&lastResult&&!lastResult.saved&&lastResult.blue.concat(lastResult.orange,lastResult.benched).every(p=>ids.has(p.id))
+    &&lastResult.blue.length+lastResult.orange.length+lastResult.benched.length===ids.size&&lastResult.blue.length===state.format[0]&&lastResult.orange.length===state.format[1];
+  const r=keep?lastResult:computeTeams(newMatch);
+  if(keep&&r.benched.length){r.benched.forEach(p=>state.bench[p.id]=(state.bench[p.id]||0)+1);save();}
+  const reveal=()=>{if(keep){scrollToRes();burst(r);}else{renderResult(r);scrollToRes();setTimeout(()=>burst(r),500);}};
+  if(!newMatch){renderResult(r);burst(r);return;}
+  if(reduceMotion){reveal();return;}
   const cd=$("cd"),num=$("cdNum"),ring=$("cdRing");let i=3;cd.classList.add("show");
   const show=txt=>{num.textContent=txt;[num,ring].forEach(e=>{e.classList.remove("anim");void e.offsetWidth;e.classList.add("anim");});};
   const tick=()=>{
-    if(i===0){show("GO!");setTimeout(()=>{cd.classList.remove("show");renderResult(r);scrollToRes();setTimeout(()=>burst(r),500);},520);return;}
+    if(i===0){show("GO!");setTimeout(()=>{cd.classList.remove("show");reveal();},520);return;}
     show(i--);setTimeout(tick,560);
   };tick();
 }
@@ -1206,8 +1249,8 @@ function addPlayer(){
 $("newRank").innerHTML=rankOptions(12);
 $("addBtn").onclick=addPlayer;
 $("newName").onkeydown=e=>{if(e.key==="Enter")addPlayer();};
-$("allBtn").onclick=()=>{state.present=state.players.map(p=>p.id);state.format=null;save();renderAll();};
-$("noneBtn").onclick=()=>{state.present=[];state.format=null;save();renderAll();};
+$("allBtn").onclick=()=>{state.present=state.players.map(p=>p.id);state.format=null;save();renderAll();autoDraft();};
+$("noneBtn").onclick=()=>{state.present=[];state.format=null;save();renderAll();autoDraft();};
 $("goBtn").onclick=()=>launch(true);
 $("reshuffle").onclick=()=>launch(false);
 $("copyBtn").onclick=()=>{
@@ -1251,7 +1294,7 @@ $("useForm").checked=state.useForm;
 $("useForm").onchange=e=>{state.useForm=e.target.checked;save();};
 $("liveBtn").onclick=()=>{if(state.live)liveStop();else{state.live=true;save();liveConnect();}};
 $("gx").onclick=()=>$("gx").classList.remove("show");
-renderAll();renderFiltres();renderAgent();
+renderAll();renderFiltres();renderAgent();autoDraft();
 syncAgent(false);setInterval(()=>{if(!document.hidden)syncAgent(false);},20000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncAgent(false);});
 setLive(state.live?"connecting":"off");
