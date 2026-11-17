@@ -1302,7 +1302,7 @@ function ouvrirJeu(id) {
   if (ancien) window.BS_PLATEFORME?.apresJeu?.(ancien.id);
   $("chargement").hidden = false;
   const f = document.createElement("iframe");
-  f.title = j.titre; f.allow = "fullscreen; autoplay; gamepad";
+  f.title = j.titre; f.allow = "fullscreen; autoplay; gamepad; clipboard-write; local-network-access; local-network; loopback-network";
   f.addEventListener("load", () => {
     $("chargement").hidden = true; f.focus();
     // Profil du joueur connecté (comptes.js) transmis au jeu
