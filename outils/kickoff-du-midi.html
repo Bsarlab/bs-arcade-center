@@ -329,6 +329,9 @@ a.btn{text-decoration:none;white-space:nowrap}
 .pc .tt.b{background:rgba(42,140,255,.85);color:#fff}.pc .tt.o{background:rgba(255,122,26,.9);color:#fff}.pc .tt.x{background:rgba(255,255,255,.12);color:var(--mute)}
 @media (max-width:640px){.mini{grid-template-columns:1fr}.mini .side.o{text-align:left}.mini .side.o .st{flex-direction:row}.mini .side.o .chips{justify-content:flex-start}.mini .mid{flex-direction:row}}
 @media (max-width:640px){.grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.sh .aside{flex-wrap:wrap;margin-left:0}.pc{padding:14px 8px 10px}.pc .nm{font-size:13px}}
+.shareRow{grid-column:1/-1;display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.btn.share{border:none;color:#fff;background:linear-gradient(110deg,#5865f2,#7b5cff 55%,#ff7a1a);box-shadow:0 8px 24px -10px rgba(88,101,242,.9)}
+.btn.share:hover{filter:brightness(1.12)}
 /* Mode simple : équipes en direct */
 .boost[hidden],.pitchbox,.draft{display:none!important}
 .result .m{opacity:1;transform:none}
@@ -529,7 +532,8 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:30px;letter
     </div>
     <div class="actions">
       <button class="btn" id="reshuffle">🔀 Proposer d'autres équipes aussi équilibrées</button>
-      <button class="btn" id="copyBtn">📋 Copier pour le chat</button>
+      <button class="btn share" id="shareBtn2">📸 Copier le visuel pour Discord</button>
+      <button class="btn" id="copyBtn">📋 Copier en texte</button>
     </div>
     <div class="scorebox" id="scoreBox"></div>
   </section>
@@ -815,7 +819,10 @@ function renderMini(r,prev){
   box.innerHTML=`<div class="side b"><div class="st">Bleus <small>${pb}%</small></div><div class="chips">${r.blue.map(p=>chip(p,"b")).join("")}</div></div>
     <div class="mid"><span class="vs">VS</span><span class="pp">${r.blue.length} c ${r.orange.length}</span></div>
     <div class="side o"><div class="st">Oranges <small>${100-pb}%</small></div><div class="chips">${r.orange.map(p=>chip(p,"o")).join("")}</div></div>
-    ${r.benched.length?`<div class="bench2">🪑 Sur le banc : ${r.benched.map(p=>`<b style="color:${colorOf(p)}">${esc(p.name)}</b>`).join(", ")}</div>`:""}`;
+    ${r.benched.length?`<div class="bench2">🪑 Sur le banc : ${r.benched.map(p=>`<b style="color:${colorOf(p)}">${esc(p.name)}</b>`).join(", ")}</div>`:""}
+    <div class="shareRow"><button class="btn share" data-share>📸 Copier le visuel pour Discord</button><button class="btn" data-sharetxt>📋 Copier en texte</button></div>`;
+  box.querySelector("[data-share]").onclick=e=>copyVisual(e.currentTarget);
+  box.querySelector("[data-sharetxt]").onclick=()=>$("copyBtn").click();
   const side=new Map();r.blue.forEach(p=>side.set(p.id,"b"));r.orange.forEach(p=>side.set(p.id,"o"));r.benched.forEach(p=>side.set(p.id,"x"));
   document.querySelectorAll(".pc").forEach(el=>{
     const sd=side.get(+el.dataset.id);let t=el.querySelector(".tt");
@@ -1259,6 +1266,93 @@ function renderLive(bump){
   box.innerHTML=`<div class="lempty">${live.status==="off"?heroSVG(true):""}<div>${msg}</div></div>`;
 }
 
+
+/* ================= Visuel des compos (image à coller dans Discord) ================= */
+function loadImg(src){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
+function rr(ctx,x,y,w,h,r){ctx.beginPath();ctx.moveTo(x+r,y);ctx.arcTo(x+w,y,x+w,y+h,r);ctx.arcTo(x+w,y+h,x,y+h,r);ctx.arcTo(x,y+h,x,y,r);ctx.arcTo(x,y,x+w,y,r);ctx.closePath();}
+function fitText(ctx,txt,max){if(ctx.measureText(txt).width<=max)return txt;while(txt.length>1&&ctx.measureText(txt+"…").width>max)txt=txt.slice(0,-1);return txt+"…";}
+async function buildVisual(r){
+  try{await document.fonts.load("italic 60px 'Russo One'");await document.fonts.load("700 20px 'Chakra Petch'");}catch(e){}
+  const D="'Russo One','Arial Black',sans-serif",B="'Chakra Petch','Segoe UI',sans-serif";
+  const rows=Math.max(r.blue.length,r.orange.length),W=1200,H=330+rows*92+(r.benched.length?44:0);
+  const cv=document.createElement("canvas"),k=2;cv.width=W*k;cv.height=H*k;const c=cv.getContext("2d");c.scale(k,k);
+  // fond
+  let g=c.createLinearGradient(0,0,0,H);g.addColorStop(0,"#05081a");g.addColorStop(1,"#0b1131");c.fillStyle=g;c.fillRect(0,0,W,H);
+  [[0,"rgba(42,140,255,.40)"],[W,"rgba(255,122,26,.36)"]].forEach(([x,col])=>{const rg=c.createRadialGradient(x,0,0,x,0,560);rg.addColorStop(0,col);rg.addColorStop(1,"rgba(0,0,0,0)");c.fillStyle=rg;c.fillRect(0,0,W,H);});
+  c.strokeStyle="rgba(108,200,255,.06)";c.lineWidth=1;for(let x=0;x<W;x+=60){c.beginPath();c.moveTo(x,0);c.lineTo(x,H);c.stroke();}
+  // titre
+  c.textAlign="center";c.font=`italic 58px ${D}`;
+  g=c.createLinearGradient(W/2-260,0,W/2+260,0);g.addColorStop(0,"#6cc8ff");g.addColorStop(.5,"#ffffff");g.addColorStop(1,"#ffb35c");
+  c.fillStyle=g;c.shadowColor="rgba(120,140,255,.6)";c.shadowBlur=24;c.fillText("KICKOFF DU MIDI",W/2,78);c.shadowBlur=0;
+  const d=new Date();c.font=`600 19px ${B}`;c.fillStyle="#8b96c9";
+  c.fillText(`${d.toLocaleDateString("fr-FR",{weekday:"long",day:"numeric",month:"long"})}  ·  ${r.blue.length} c ${r.orange.length}`,W/2,112);
+  const pb=Math.round(winProb(r.sB,r.sO)*100),po=100-pb;
+  // panneaux
+  const top=140,pw=500,ph=86+rows*92,imgs={};
+  const all=r.blue.concat(r.orange,r.benched);
+  await Promise.all(all.map(async p=>{
+    imgs["e"+p.rank]=imgs["e"+p.rank]||await loadImg("data:image/svg+xml;charset=utf-8,"+encodeURIComponent(emblem(p.rank,64).replace("<svg ",'<svg xmlns="http://www.w3.org/2000/svg" ')));
+    if(p.photo&&String(p.photo).startsWith("data:image/"))imgs["p"+p.id]=await loadImg(p.photo);
+  }));
+  const panel=(x,team,side)=>{
+    const blue=side==="b",main=blue?"#6cc8ff":"#ffb35c",edge=blue?"rgba(108,200,255,.75)":"rgba(255,160,90,.75)";
+    let pg=c.createLinearGradient(x,top,x+pw,top+ph);pg.addColorStop(0,blue?"rgba(42,140,255,.32)":"rgba(255,122,26,.10)");pg.addColorStop(1,blue?"rgba(10,15,44,.85)":"rgba(255,122,26,.32)");
+    rr(c,x,top,pw,ph,26);c.fillStyle=pg;c.fill();c.lineWidth=2;c.strokeStyle=edge;c.shadowColor=edge;c.shadowBlur=26;c.stroke();c.shadowBlur=0;
+    c.textAlign=blue?"left":"right";c.font=`italic 40px ${D}`;c.fillStyle=main;c.fillText(blue?"BLEUS":"ORANGES",blue?x+28:x+pw-28,top+56);
+    c.textAlign=blue?"right":"left";c.font=`44px ${D}`;c.fillStyle="#fff";c.fillText((blue?pb:po)+"%",blue?x+pw-28:x+28,top+58);
+    team.slice().sort((a,b)=>b.rank-a.rank).forEach((p,i)=>{
+      const y=top+86+i*92,col=colorOf(p),rk=rankOf(p.rank);
+      rr(c,x+18,y,pw-36,78,18);c.fillStyle="rgba(3,5,15,.55)";c.fill();
+      c.fillStyle=col;rr(c,blue?x+18:x+pw-22,y,4,78,2);c.fill();
+      const ax=blue?x+62:x+pw-62,ay=y+39;
+      c.save();c.beginPath();c.arc(ax,ay,28,0,Math.PI*2);c.closePath();
+      if(imgs["p"+p.id]){c.clip();c.drawImage(imgs["p"+p.id],ax-28,ay-28,56,56);}
+      else{const ag=c.createRadialGradient(ax-8,ay-10,2,ax,ay,30);ag.addColorStop(0,"#fff");ag.addColorStop(.35,col);ag.addColorStop(1,"#0a0f2c");c.fillStyle=ag;c.fill();
+        c.fillStyle="#05081a";c.font=`20px ${D}`;c.textAlign="center";c.fillText(initials(p.name),ax,ay+7);}
+      c.restore();c.beginPath();c.arc(ax,ay,29,0,Math.PI*2);c.lineWidth=3;c.strokeStyle=col;c.shadowColor=col;c.shadowBlur=14;c.stroke();c.shadowBlur=0;
+      const tx=blue?x+104:x+pw-104;c.textAlign=blue?"left":"right";
+      c.font=`27px ${D}`;c.fillStyle="#fff";c.fillText(fitText(c,p.name,250),tx,y+36);
+      const em=imgs["e"+p.rank];c.font=`700 17px ${B}`;const rw=c.measureText(rk.name).width;
+      if(blue){if(em)c.drawImage(em,tx-2,y+44,24,24);c.fillStyle=rk.c;c.fillText(rk.name,tx+26,y+62);}
+      else{if(em)c.drawImage(em,tx-24,y+44,24,24);c.fillStyle=rk.c;c.fillText(rk.name,tx-28,y+62);}
+      c.textAlign=blue?"right":"left";c.font=`22px ${D}`;c.fillStyle="rgba(238,242,255,.85)";c.fillText(String(rk.mmr),blue?x+pw-38:x+38,y+46);
+    });
+  };
+  panel(60,r.blue,"b");panel(W-60-pw,r.orange,"o");
+  // VS
+  const vy=top+ph/2;c.beginPath();c.arc(W/2,vy,46,0,Math.PI*2);c.fillStyle="#0d1336";c.fill();
+  c.shadowColor="rgba(42,140,255,.8)";c.shadowOffsetX=-6;c.shadowBlur=24;c.lineWidth=3;c.strokeStyle="rgba(255,255,255,.35)";c.stroke();
+  c.shadowColor="rgba(255,122,26,.8)";c.shadowOffsetX=6;c.stroke();c.shadowOffsetX=0;c.shadowBlur=0;
+  c.textAlign="center";c.font=`italic 34px ${D}`;c.fillStyle="#fff";c.fillText("VS",W/2,vy+12);
+  // jauge
+  const by=top+ph+40,bx=120,bw=W-240;
+  c.save();c.translate(0,0);rr(c,bx,by,bw,16,6);c.clip();
+  g=c.createLinearGradient(bx,0,bx+bw*pb/100,0);g.addColorStop(0,"#1259c9");g.addColorStop(1,"#6cc8ff");c.fillStyle=g;c.fillRect(bx,by,bw*pb/100,16);
+  g=c.createLinearGradient(bx+bw*pb/100,0,bx+bw,0);g.addColorStop(0,"#ffb35c");g.addColorStop(1,"#d9530a");c.fillStyle=g;c.fillRect(bx+bw*pb/100,by,bw*(1-pb/100),16);
+  c.restore();c.fillStyle="#fff";c.fillRect(W/2-1,by-3,2,22);
+  const gap=Math.abs(pb-po),verdict=gap<=8?"MATCH SERRÉ 🔥":gap<=20?"LÉGER AVANTAGE":"GROS ÉCART";
+  c.font=`600 17px ${B}`;c.fillStyle="#8b96c9";c.textAlign="center";c.fillText(`Chances de victoire estimées · ${verdict}`,W/2,by+44);
+  if(r.benched.length){c.font=`600 19px ${B}`;c.fillStyle="#cfd6f5";c.fillText("🪑 Sur le banc : "+r.benched.map(p=>p.name).join(", "),W/2,by+84);}
+  return cv;
+}
+async function copyVisual(btn){
+  if(!lastResult)return;
+  const label=btn?btn.textContent:"";if(btn)btn.textContent="⏳ Création du visuel…";
+  const blobP=buildVisual(lastResult).then(cv=>new Promise(res=>cv.toBlob(res,"image/png")));
+  const reset=()=>{if(btn)setTimeout(()=>btn.textContent=label,1800);};
+  try{
+    if(!navigator.clipboard||!window.ClipboardItem)throw new Error("no clipboard");
+    await Promise.race([navigator.clipboard.write([new ClipboardItem({"image/png":blobP})]),
+      new Promise((_,rej)=>setTimeout(()=>rej(new Error("timeout")),6000))]);
+    if(btn)btn.textContent="✅ Visuel copié !";toast("✅ Visuel copié ! Colle-le dans Discord avec Ctrl + V");
+  }catch(e){
+    const blob=await blobP,a=document.createElement("a");a.href=URL.createObjectURL(blob);a.download="kickoff-compos.png";a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),4000);
+    if(btn)btn.textContent="⬇️ Image téléchargée";toast("Image téléchargée : glisse-la dans Discord");
+  }
+  reset();
+}
+
 /* ================= Gestion des joueurs ================= */
 const rankOptions=sel=>RANKS.map(r=>`<option value="${r.id}" ${r.id===+sel?"selected":""}>${r.name}</option>`).join("");
 function renderRoster(){
@@ -1321,6 +1415,7 @@ $("newName").onkeydown=e=>{if(e.key==="Enter")addPlayer();};
 $("allBtn").onclick=()=>{state.present=state.players.map(p=>p.id);state.format=null;save();renderAll();autoDraft();};
 $("noneBtn").onclick=()=>{state.present=[];state.format=null;save();renderAll();autoDraft();};
 $("goBtn").onclick=()=>launch(true);
+$("shareBtn2").onclick=e=>copyVisual(e.currentTarget);
 $("reshuffle").onclick=()=>{if(present().length>=2)renderResult(computeTeams(true,false));};
 $("copyBtn").onclick=()=>{
   if(!lastResult)return;const t=x=>x.map(p=>p.name).join(", ");
