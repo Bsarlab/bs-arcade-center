@@ -412,6 +412,7 @@ details.step .sd{margin-top:14px}
 .sheet td{padding:7px 6px;text-align:center;border-top:1px solid rgba(255,255,255,.05)}
 .sheet td:first-child{text-align:left;font-family:var(--display)}
 .mvpb{font-family:var(--body);font-size:10px;font-weight:700;color:#05081a;background:#ffd60a;border-radius:5px;padding:1px 5px;vertical-align:middle}
+.hnote{font-size:13px;color:var(--mute);padding:4px 0 2px}
 .mfoot{display:flex;justify-content:flex-end;margin-top:12px}
 .btn.more{display:flex;margin:6px auto 0}
 @media (max-width:700px){
@@ -1300,7 +1301,9 @@ function renderHistory(){
   const list=state.matches.filter(m=>!pid||m.blue.includes(pid)||m.orange.includes(pid));
   if(!state.matches.length){box.innerHTML=`<div class="lempty"><div>Aucun match pour l'instant : dès qu'un match est enregistré (agent PC, direct ou score saisi), il apparaît ici avec tous ses détails.</div></div>`;return;}
   const nameOf=id=>{const p=state.players.find(x=>x.id===id);return p?p.name:"?";};
-  const team=(m,side)=>{const ids=side==="b"?m.blue:m.orange;return ids&&ids.length?ids.map(nameOf):((m.names||{})[side]||[]);};
+  const team=(m,side)=>{const raw=(m.names||{})[side];
+    if(raw&&raw.length)return raw.map(n=>{const r=rosterByName(n);return r?r.name:n;});
+    const ids=side==="b"?m.blue:m.orange;return (ids||[]).map(nameOf);};
   const totalButs=state.matches.reduce((a,m)=>a+m.sb+m.so,0);
   const big=state.matches.slice().sort((a,b)=>Math.abs(b.sb-b.so)-Math.abs(a.sb-a.so))[0];
   const head=`<div class="hsum"><div><b>${state.matches.length}</b><span>matchs joués</span></div><div><b>${totalButs}</b><span>buts marqués</span></div>
@@ -1310,13 +1313,14 @@ function renderHistory(){
     const tl=(m.buts||[]).map(x=>goalLine({sec:x.s,ot:x.ot,name:x.n,team:x.e,assist:x.p}));
     const tlB=(m.buts||[]).filter(x=>x.e!==1).map(x=>goalLine({sec:x.s,ot:x.ot,name:x.n,team:x.e,assist:x.p})).join("");
     const tlO=(m.buts||[]).filter(x=>x.e===1).map(x=>goalLine({sec:x.s,ot:x.ot,name:x.n,team:x.e,assist:x.p})).join("");
-    const sheet=side=>{const rows=(m.feuille||[]).filter(x=>(side==="b")===(x.e!==1)).sort((a,b)=>b.sc-a.sc);
+    const feuille=m.feuille||(m.stats&&Object.keys(m.stats).length?Object.entries(m.stats).map(([id,x])=>({n:nameOf(+id),e:m.orange.includes(+id)?1:0,sc:x.score||0,b:x.buts||0,p:x.passes||0,a:x.arrets||0,t:x.tirs||0,d:x.demos||0})):null);
+    const sheet=side=>{const rows=(feuille||[]).filter(x=>(side==="b")===(x.e!==1)).sort((a,b)=>b.sc-a.sc);
       if(!rows.length)return "";
       return `<table class="sheet ${side}"><thead><tr><th>${side==="b"?"Bleus":"Oranges"}</th><th title="Points de score">Pts</th><th title="Buts">⚽</th><th title="Passes décisives">🎯</th><th title="Arrêts">🧤</th><th title="Tirs">Tirs</th><th title="Démolitions">💥</th></tr></thead><tbody>
         ${rows.map(x=>{const r=rosterByName(x.n);return `<tr><td><span style="color:${r?colorOf(r):"var(--text)"}">${esc(x.n)}</span>${x.n===mvpName?' <span class="mvpb">MVP</span>':""}</td><td>${x.sc}</td><td>${x.b||"·"}</td><td>${x.p||"·"}</td><td>${x.a||"·"}</td><td>${x.t||"·"}</td><td>${x.d||"·"}</td></tr>`;}).join("")}</tbody></table>`;};
-    const body=m.feuille||m.buts?`${tl.length?`<div class="tlh">Buts du match</div><div class="tlc"><div class="tl b">${tlB}</div><div class="tl o">${tlO}</div></div>`:(m.feuille?`<div class="tlh">Chronologie des buts non disponible pour ce match</div>`:"")}
+    const body=feuille||m.buts?`${tl.length?`<div class="tlh">Buts du match</div><div class="tlc"><div class="tl b">${tlB}</div><div class="tl o">${tlO}</div></div>`:`<div class="hnote">⏱️ La minute de chaque but n'est pas disponible pour ce match (enregistré avant la mise à jour). Les prochains l'auront.</div>`}
         <div class="sheets">${sheet("b")}${sheet("o")}</div>`
-      :`<div class="tlh">Score saisi à la main : pas de buts ni de stats détaillées pour ce match.</div>`;
+      :`<div class="hnote">${m.src==="auto"?"Pas de détails enregistrés pour ce match.":"✍️ Score saisi à la main : pas de stats détaillées pour ce match."}</div>`;
     return `<div class="mc ${open?"open":""}" data-id="${m.id}">
       <button class="mch" aria-expanded="${open}">
         <span class="md"><b>${d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</b><small>${d.toLocaleDateString("fr-FR",{weekday:"short"})} ${d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</small></span>
