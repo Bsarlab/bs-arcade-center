@@ -61,6 +61,11 @@ $script:Partie = $null
 $script:Joueurs = @()
 $script:Guid = ''
 $script:DerniereFin = [DateTime]::MinValue
+$script:Buts = New-Object System.Collections.ArrayList
+$script:Duree = 0
+$script:Ralenti = $false
+$script:DernierBut = [DateTime]::MinValue
+function NouveauMatch([string]$g) { $script:Guid = $g; $script:Buts.Clear(); $script:Duree = 0 }
 
 function Nombre($v) { if ($null -eq $v) { return 0 } try { return [int]$v } catch { return 0 } }
 
@@ -88,11 +93,12 @@ function Enregistrer($fin) {
   if ($null -ne $g.PlaylistId) { $playlist = Nombre $g.PlaylistId }
   $m = [pscustomobject][ordered]@{
     guid = $guid; t = [DateTimeOffset]::Now.ToUnixTimeMilliseconds(); playlist = $playlist
-    arene = [string]$g.Arena; sb = $sb; so = $so; prolongation = [bool]$g.bOvertime; joueurs = $liste
+    arene = [string]$g.Arena; sb = $sb; so = $so; prolongation = [bool]$g.bOvertime; joueurs = $liste; buts = @($script:Buts.ToArray())
   }
   $Historique.Insert(0, $m)
   while ($Historique.Count -gt $MaxMatchs) { $Historique.RemoveAt($Historique.Count - 1) }
   $script:DerniereFin = [DateTime]::Now
+  $script:Buts.Clear()
   Sauver
   Log ("Match enregistré : $sb-$so (mode $playlist, " + $liste.Count + ' joueurs)')
 }
@@ -105,15 +111,32 @@ function Traiter([string]$texte) {
   switch ([string]$msg.Event) {
     'UpdateState' {
       if ($d.Game) {
-        if ($d.Game.bReplay) { return }
+        if ($d.Game.bReplay) { $script:Ralenti = $true; return }
+        $script:Ralenti = $false
         $script:Partie = $d.Game
+        if (-not $d.Game.bOvertime) { $ts = Nombre $d.Game.TimeSeconds; if ($ts -gt $script:Duree) { $script:Duree = $ts } }
       }
       if ($d.Players) { $script:Joueurs = @($d.Players) }
-      if ($d.MatchGuid) { $script:Guid = [string]$d.MatchGuid }
+      if ($d.MatchGuid) {
+        if ($script:Guid -and [string]$d.MatchGuid -ne $script:Guid) { NouveauMatch ([string]$d.MatchGuid) } else { $script:Guid = [string]$d.MatchGuid }
+      }
       $script:Jeu = 'en-match'
     }
-    'MatchCreated'     { if ($d.MatchGuid) { $script:Guid = [string]$d.MatchGuid }; $script:Jeu = 'en-match' }
-    'MatchInitialized' { if ($d.MatchGuid) { $script:Guid = [string]$d.MatchGuid }; $script:Jeu = 'en-match' }
+    'MatchCreated'     { if ($d.MatchGuid -and [string]$d.MatchGuid -ne $script:Guid) { NouveauMatch ([string]$d.MatchGuid) }; $script:Jeu = 'en-match' }
+    'MatchInitialized' { if ($d.MatchGuid -and [string]$d.MatchGuid -ne $script:Guid) { NouveauMatch ([string]$d.MatchGuid) }; $script:Jeu = 'en-match' }
+    'GoalScored' {
+      $nom = ''; if ($d.Scorer) { $nom = ([string]$d.Scorer.Name).Trim() }
+      if ($script:Ralenti -or -not $nom) { return }
+      $equipe = Nombre $d.Scorer.TeamNum
+      $g = $script:Partie; $prol = $false; $sec = 0
+      if ($g) { $prol = [bool]$g.bOvertime; $ts = Nombre $g.TimeSeconds
+        if ($prol) { $sec = $ts } else { $du = $script:Duree; if ($du -le 0) { $du = 300 }; $sec = [Math]::Max(0, $du - $ts) } }
+      if ($script:Buts.Count -gt 0) { $dernier = $script:Buts[$script:Buts.Count - 1]
+        if ($dernier.nom -eq $nom -and $dernier.equipe -eq $equipe -and ([DateTime]::Now - $script:DernierBut).TotalSeconds -lt 10) { return } }
+      $passe = ''; if ($d.Assister) { $passe = ([string]$d.Assister.Name).Trim() }; if ($passe -eq $nom) { $passe = '' }
+      [void]$script:Buts.Add([ordered]@{ s = $sec; prol = $prol; nom = $nom; equipe = $equipe; passe = $passe })
+      $script:DernierBut = [DateTime]::Now
+    }
     'MatchEnded'       { Enregistrer $d }
     'MatchDestroyed'   { $script:Partie = $null; $script:Joueurs = @(); $script:Guid = ''; $script:Jeu = 'connecte' }
   }
@@ -139,7 +162,7 @@ function Repondre {
     if ($methode -eq 'OPTIONS') { $statut = '204 No Content' }
     elseif ($chemin.StartsWith('/matchs')) { $corps = HistoriqueJson }
     elseif ($chemin.StartsWith('/etat') -or $chemin -eq '/') {
-      $corps = ConvertTo-Json -Compress -InputObject ([ordered]@{ agent = 'kickoff-du-midi'; version = 1; jeu = $script:Jeu; matchs = $Historique.Count; dossier = $Dossier })
+      $corps = ConvertTo-Json -Compress -InputObject ([ordered]@{ agent = 'kickoff-du-midi'; version = 2; jeu = $script:Jeu; matchs = $Historique.Count; dossier = $Dossier })
     }
     else { $statut = '404 Not Found'; $corps = '{}' }
     $octets = $Utf8.GetBytes($corps)

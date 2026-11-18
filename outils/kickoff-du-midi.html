@@ -9,7 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@400;500;600;700&family=Russo+One&display=swap" rel="stylesheet">
 <style>
 :root{
-  --bg:#05081a; --bg2:#0a0f2c; --panel:rgba(16,23,58,.72); --line:rgba(120,140,255,.16); --line2:rgba(120,140,255,.32);
+  --bg:#05081a; --bg2:#0a0f2c; --panel:rgba(14,20,52,.9); --line:rgba(120,140,255,.16); --line2:rgba(120,140,255,.32);
   --blue:#2a8cff; --blue2:#6cc8ff; --orange:#ff7a1a; --orange2:#ffb35c;
   --text:#eef2ff; --mute:#8b96c9; --ok:#3cf08e; --bad:#ff5470;
   --display:'Russo One',system-ui,sans-serif; --body:'Chakra Petch',system-ui,sans-serif;
@@ -56,7 +56,7 @@ body{font-family:var(--body);color:var(--text);background:var(--bg);min-height:1
 .hero .clock b{color:var(--text);font-family:var(--display);font-weight:400}
 
 /* ======= Étapes ======= */
-.step{background:var(--panel);backdrop-filter:blur(14px);-webkit-backdrop-filter:blur(14px);border:1px solid var(--line);
+.step{background:var(--panel);border:1px solid var(--line);
   border-radius:22px;padding:24px;margin-bottom:20px;position:relative}
 .step::before{content:"";position:absolute;inset:-1px;border-radius:22px;padding:1px;pointer-events:none;
   background:linear-gradient(120deg,rgba(42,140,255,.5),transparent 30%,transparent 70%,rgba(255,122,26,.5));
@@ -124,7 +124,7 @@ a.btn{text-decoration:none;white-space:nowrap}
 .pcw .pc{transform-style:flat}
 .pcw .pc .av,.pcw .pc .nm,.pcw .pc .rk,.pcw .pc .check{transform:none}
 .pc .av,.pc .nm,.pc>div{position:relative;z-index:2}
-.pc .rk{background:rgba(5,8,26,.78);padding:3px 9px 3px 5px;border-radius:8px;backdrop-filter:blur(3px)}
+.pc .rk{background:rgba(5,8,26,.82);padding:3px 9px 3px 5px;border-radius:8px}
 .pc .mmr{background:rgba(5,8,26,.7)}
 .pc .nm,.pc .rk{text-shadow:0 1px 3px rgba(0,0,0,.9),0 0 10px rgba(0,0,0,.6)}
 .pc .rk svg{filter:drop-shadow(0 0 3px rgba(0,0,0,.9)) drop-shadow(0 0 6px currentColor)}
@@ -179,7 +179,7 @@ a.btn{text-decoration:none;white-space:nowrap}
 .art.static .impact circle{opacity:.5}
 
 /* Terrain vu du dessus */
-.pitchbox{margin-bottom:16px;padding:14px;border-radius:22px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(10px)}
+.pitchbox{margin-bottom:16px;padding:14px;border-radius:22px;background:var(--panel);border:1px solid var(--line)}
 .pitchbox #pitch{max-width:600px;margin:0 auto}
 .pitchbox .pt{max-width:600px;margin-left:auto!important;margin-right:auto!important;display:flex;justify-content:space-between;font-size:11px;letter-spacing:.24em;text-transform:uppercase;color:var(--mute);margin:0 6px 8px}
 .pitch .tcar{transform:translate(var(--x0),var(--y0));animation:drive 1.2s cubic-bezier(.25,.8,.25,1) forwards}
@@ -215,7 +215,7 @@ a.btn{text-decoration:none;white-space:nowrap}
 @keyframes up{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:none}}
 
 /* Saisie du score */
-.scorebox{margin-top:18px;padding:20px;border-radius:20px;text-align:center;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(12px)}
+.scorebox{margin-top:18px;padding:20px;border-radius:20px;text-align:center;background:var(--panel);border:1px solid var(--line)}
 .scorebox .sbt{font-size:11px;letter-spacing:.26em;text-transform:uppercase;color:var(--mute);margin-bottom:12px}
 .sbrow{display:flex;align-items:center;justify-content:center;gap:18px;flex-wrap:wrap}
 .sbs{display:flex;align-items:center;gap:10px}
@@ -343,6 +343,82 @@ a.btn{text-decoration:none;white-space:nowrap}
 .team .vide{font-size:13px;color:var(--mute);padding:12px;border:1px dashed var(--line2);border-radius:12px;text-align:center}
 .scoretoggle{display:block;margin:16px auto 0;background:none;border:none;color:var(--mute);font-family:var(--body);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px}
 .scoretoggle:hover{color:var(--text)}
+
+/* ======= Clarté : explication sous chaque section ======= */
+.sd{margin:-8px 0 18px;font-size:14px;line-height:1.6;color:var(--mute);max-width:760px}
+details.step .sd{margin-top:14px}
+/* ======= Animations d'apparition et micro-interactions ======= */
+.step,.result{transition:opacity .6s cubic-bezier(.2,.8,.2,1),transform .6s cubic-bezier(.2,.8,.2,1)}
+.js-reveal .step:not(.vis){opacity:0;transform:translateY(26px)}
+.btn{transition:transform .15s,background .2s,border-color .2s,box-shadow .2s,filter .2s}
+.btn:active{transform:scale(.96)}
+.pill b{display:inline-block;transition:transform .3s}
+.pill.pop b{animation:bump .5s cubic-bezier(.2,1.6,.4,1)}
+.tm b{transition:color .3s}
+#histFilter{padding:8px 12px;font-size:13px}
+/* ======= Direct : tableau, flash de but, chronologie ======= */
+.lboard{position:relative;overflow:hidden}
+.lboard .pls{display:flex;flex-direction:column;gap:4px}
+.lboard .pl{transition:color .3s}
+.lboard .sc span{display:inline-block}
+.goalflash{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;pointer-events:none;opacity:0;
+  background:radial-gradient(circle,color-mix(in srgb,var(--fc,#fff) 60%,#05081a),#05081a 72%)}
+.goalflash.on{animation:gflash 2.8s ease forwards}
+.goalflash span{font-family:var(--display);font-style:italic;font-size:44px;line-height:1;color:#fff;text-shadow:0 0 30px var(--fc)}
+.goalflash b{font-family:var(--display);font-weight:400;font-size:24px;color:#fff}
+.goalflash small{font-size:13px;color:#e6ebff}
+@keyframes gflash{0%{opacity:0;transform:scale(1.3)}8%{opacity:1;transform:none}80%{opacity:1}100%{opacity:0}}
+.timeline{margin-top:12px;padding:14px 16px;border-radius:16px;background:rgba(0,0,0,.25);border:1px solid var(--line)}
+.tlh{font-size:11px;letter-spacing:.22em;text-transform:uppercase;color:var(--mute);margin-bottom:10px}
+.tlc{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.tl{display:flex;flex-direction:column;gap:6px}
+.tl.o{align-items:flex-end}
+.tlempty{font-size:13px;color:var(--mute)}
+.gl{display:flex;align-items:center;gap:10px;padding:7px 12px;border-radius:12px;background:rgba(255,255,255,.04);animation:glIn .5s cubic-bezier(.2,1.2,.4,1) both;max-width:100%}
+.gl.b{border-left:3px solid var(--blue)}.gl.o{flex-direction:row-reverse;text-align:right;border-right:3px solid var(--orange)}
+.gl .gm{font-family:var(--display);font-size:15px;color:var(--text);min-width:44px}
+.gl .gn{display:flex;flex-direction:column;line-height:1.25;min-width:0}
+.gl .gn b{font-family:var(--display);font-weight:400;font-size:15px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gl .gn small{font-size:12px;color:var(--mute)}
+@keyframes glIn{from{opacity:0;transform:translateX(var(--gx,-20px)) scale(.95)}to{opacity:1;transform:none}}
+.gl.o{--gx:20px}
+/* ======= Historique complet ======= */
+.hsum{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-bottom:16px}
+.hsum div{padding:12px 14px;border-radius:14px;background:rgba(0,0,0,.25);border:1px solid var(--line)}
+.hsum b{display:block;font-family:var(--display);font-weight:400;font-size:24px;background:linear-gradient(90deg,var(--blue2),var(--orange2));-webkit-background-clip:text;background-clip:text;color:transparent}
+.hsum span{font-size:12px;color:var(--mute)}
+.mc{border-radius:16px;background:rgba(0,0,0,.25);border:1px solid var(--line);margin-bottom:10px;overflow:hidden;transition:border-color .25s,background .25s}
+.mc:hover{border-color:var(--line2)}
+.mc.open{background:rgba(255,255,255,.035);border-color:var(--line2)}
+.mch{width:100%;display:grid;grid-template-columns:76px 1fr auto 1fr 24px 18px;align-items:center;gap:12px;padding:12px 14px;background:none;border:none;
+  color:var(--text);font-family:var(--body);font-size:14px;cursor:pointer;text-align:left}
+.mch .md b{display:block;font-family:var(--display);font-weight:400;font-size:15px}.mch .md small{font-size:11px;color:var(--mute)}
+.mch .mt{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.mch .mt.b{text-align:right;color:var(--blue2)}.mch .mt.o{color:var(--orange2)}
+.mch .mt.win{font-weight:700}.mch .mt.b.win::after{content:" 🏆"}.mch .mt.o.win::before{content:"🏆 "}
+.mch .ms{text-align:center;font-family:var(--display);font-size:24px;line-height:1;white-space:nowrap}
+.mch .ms .b{color:var(--blue2)}.mch .ms .o{color:var(--orange2)}.mch .ms i{font-style:normal;color:var(--mute);margin:0 6px;font-size:18px}
+.mch .ms small{display:block;font-family:var(--body);font-size:11px;color:#ffd60a;margin-top:4px}
+.mch .mx{color:var(--mute);transition:transform .3s}.mc.open .mx{transform:rotate(180deg)}
+.mb{display:grid;grid-template-rows:0fr;transition:grid-template-rows .35s cubic-bezier(.2,.8,.2,1)}
+.mc.open .mb{grid-template-rows:1fr}
+.mbi{overflow:hidden;padding:0 14px}
+.mc.open .mbi{padding-bottom:14px}
+.sheets{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:14px}
+.sheet{width:100%;border-collapse:collapse;font-size:13px;border-radius:12px;overflow:hidden;background:rgba(0,0,0,.2)}
+.sheet th{font-size:11px;letter-spacing:.06em;color:var(--mute);font-weight:600;padding:8px 6px;text-align:center}
+.sheet th:first-child{text-align:left;font-family:var(--display);font-size:13px;letter-spacing:.08em}
+.sheet.b th:first-child{color:var(--blue2)}.sheet.o th:first-child{color:var(--orange2)}
+.sheet td{padding:7px 6px;text-align:center;border-top:1px solid rgba(255,255,255,.05)}
+.sheet td:first-child{text-align:left;font-family:var(--display)}
+.mvpb{font-family:var(--body);font-size:10px;font-weight:700;color:#05081a;background:#ffd60a;border-radius:5px;padding:1px 5px;vertical-align:middle}
+.mfoot{display:flex;justify-content:flex-end;margin-top:12px}
+.btn.more{display:flex;margin:6px auto 0}
+@media (max-width:700px){
+  .mch{grid-template-columns:1fr auto 1fr 16px;gap:8px}.mch .md,.mch .mi{display:none}
+  .sheets,.tlc{grid-template-columns:1fr}.tl.o{align-items:flex-start}.gl.o{flex-direction:row;text-align:left;border-right:none;border-left:3px solid var(--orange)}
+}
+@media (prefers-reduced-motion:reduce){.js-reveal .step:not(.vis){opacity:1;transform:none}}
 /* ======= Formats ======= */
 .formats{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:12px}
 .fmt{position:relative;cursor:pointer;border:none;color:var(--text);font-family:var(--body);text-align:left;padding:16px 18px;border-radius:16px;
@@ -425,7 +501,7 @@ a.btn{text-decoration:none;white-space:nowrap}
 .result.show .vs span{animation:vsIn .6s cubic-bezier(.3,1.6,.4,1) .35s forwards}
 @keyframes vsIn{from{opacity:0;transform:scale(2.5) rotate(-20deg)}to{opacity:1;transform:none}}
 
-.meterbox{margin-top:22px;padding:20px 22px;border-radius:20px;background:var(--panel);border:1px solid var(--line);backdrop-filter:blur(12px)}
+.meterbox{margin-top:22px;padding:20px 22px;border-radius:20px;background:var(--panel);border:1px solid var(--line)}
 .mh{display:flex;align-items:baseline;justify-content:space-between}
 .mh .p{font-family:var(--display);font-size:38px;line-height:1}
 .mh .p.b{color:var(--blue2)}.mh .p.o{color:var(--orange2)}
@@ -505,12 +581,14 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:30px;letter
     <div class="sh"><span class="num">01</span><h2>Qui est sur le terrain ?</h2>
       <div class="aside"><div class="seg" id="colorSeg"><button data-m="rank">🎨 Couleur du rank</button><button data-m="player">Couleur perso</button></div><span class="pill" id="count"></span><button class="btn" id="allBtn">Tous</button><button class="btn" id="noneBtn">Aucun</button></div>
     </div>
+    <p class="sd">Clique sur les collègues présents ce midi. Chaque joueur coché rejoint aussitôt une équipe, et les équipes se rééquilibrent toutes seules selon les ranks. L'étiquette sous chaque carte te dit où il joue.</p>
     <div class="grid" id="players"></div>
     <div class="mini" id="miniTeams"></div>
   </section>
 
   <section class="step">
     <div class="sh"><span class="num">02</span><h2>Format du match</h2></div>
+    <p class="sd">Le nombre de joueurs par équipe. Il se règle tout seul selon les présents ; change-le d'un clic si besoin. Avec trop de monde, les joueurs en trop passent sur le banc à tour de rôle.</p>
     <div class="formats" id="formats"></div>
   </section>
 
@@ -542,6 +620,7 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:30px;letter
     <div class="sh"><span class="num">03</span><h2>Score en direct</h2>
       <div class="aside"><span class="lstat" id="lstat"><i></i><span>Désactivé</span></span><button class="btn" id="liveBtn">⚡ Activer le direct</button><a class="btn" id="openTab" target="_blank" rel="noopener" hidden title="Le direct est plus fiable quand la page est ouverte seule">↗ Plein onglet</a></div>
     </div>
+    <p class="sd">Pendant le match : le score, le chrono et chaque but avec la minute, le buteur et le passeur, comme à la télé. Fonctionne sur le PC où tourne Rocket League. À la fin du match, le résultat et les stats partent tout seuls dans le classement.</p>
     <div id="liveBoard"></div>
     <div id="agentBox"></div>
     <div class="filtres" id="filtresBox"></div>
@@ -551,11 +630,20 @@ footer{text-align:center;color:var(--mute);font-size:12px;margin-top:30px;letter
     <div class="sh"><span class="num">04</span><h2>Classement du midi</h2>
       <div class="aside"><label class="formtgl"><input type="checkbox" id="useForm"> Tenir compte de la forme dans l'équilibrage</label></div>
     </div>
+    <p class="sd">Qui gagne le plus, qui marque, qui fait les passes et les arrêts. Les records en haut, puis le classement complet (victoires, % de victoire, points moyens, MVP, série et forme sur les 5 derniers matchs).</p>
     <div id="standings"></div>
+  </section>
+
+  <section class="step" id="histBox">
+    <div class="sh"><span class="num">05</span><h2>Historique des matchs</h2>
+      <div class="aside"><select id="histFilter" title="Voir les matchs d'un joueur"></select></div></div>
+    <p class="sd">Tous vos matchs, du plus récent au plus ancien. Clique sur un match pour voir ses buts minute par minute et la feuille de match de chaque joueur.</p>
+    <div id="history"></div>
   </section>
 
   <details class="step" id="rosterBox">
     <summary><span class="sh" style="margin:0"><span class="num">⚙</span><h2>Joueurs, ranks & photos</h2></span><span class="ar">▾</span></summary>
+    <p class="sd">Ajoute un collègue, règle son rank (le rank 2v2 est le plus juste), sa photo et son pseudo exact dans Rocket League : c'est ce pseudo qui permet de lui attribuer ses buts et ses victoires.</p>
     <div class="addrow">
       <input type="text" id="newName" placeholder="Pseudo du nouveau joueur" maxlength="24">
       <select id="newRank"></select>
@@ -700,7 +788,8 @@ function renderPlayers(){
   });
   if(lastResult)renderMini(lastResult,new Map(lastResult.blue.map(p=>[p.id,"b"]).concat(lastResult.orange.map(p=>[p.id,"o"]))));
   const n=present().length;
-  $("count").innerHTML=`<b>${n}</b> / ${state.players.length} présents`;
+  const cnt=$("count"),old=cnt.dataset.n;cnt.innerHTML=`<b>${n}</b> / ${state.players.length} présents`;cnt.dataset.n=n;
+  if(old!==undefined&&old!==String(n)){cnt.classList.remove("pop");void cnt.offsetWidth;cnt.classList.add("pop");}
 }
 
 /* ================= Étape 2 : formats ================= */
@@ -1054,7 +1143,7 @@ function renderScoreBox(){
 function recordMatch(m,explode=true){
   if(m.guid&&state.matches.some(x=>x.guid===m.guid))return;
   const rec={id:Date.now()+Math.floor(Math.random()*100000),t:m.t||Date.now(),blue:m.blue,orange:m.orange,sb:m.sb,so:m.so,src:m.src,goals:m.goals||{},
-    stats:m.stats||null,mvp:m.mvp==null?null:m.mvp,names:m.names||null,guid:m.guid||""};
+    stats:m.stats||null,mvp:m.mvp==null?null:m.mvp,names:m.names||null,guid:m.guid||"",buts:m.buts||null,feuille:m.feuille||null,playlist:m.playlist==null?null:m.playlist};
   if(lastResult&&lastResult.benched&&lastResult.benched.length&&!lastResult.benchCounted){lastResult.benchCounted=true;lastResult.benched.forEach(p=>state.bench[p.id]=(state.bench[p.id]||0)+1);}
   state.matches.unshift(rec);state.matches.sort((a,b)=>b.t-a.t);state.matches=state.matches.slice(0,400);save();renderStandings();
   if(explode)goalExplosion(rec);
@@ -1089,7 +1178,9 @@ function importGame(g,explode){
     if(p){(side==="b"?blue:orange).push(p.id);goals[p.id]=pl.goals;
       stats[p.id]={score:pl.score,buts:pl.goals,tirs:pl.shots,passes:pl.assists,arrets:pl.saves,demos:pl.demos};}
   });
-  recordMatch({blue,orange,sb:g.sb,so:g.so,src:"auto",goals,stats,mvp,names,guid:g.guid,t:g.t},explode);
+  const feuille=g.players.map(pl=>({n:pl.name,e:pl.team,sc:pl.score,b:pl.goals,p:pl.assists,a:pl.saves,t:pl.shots,d:pl.demos}));
+  const buts=(g.goals||[]).map(x=>({s:x.sec,ot:!!x.ot,n:x.name,e:x.team,p:x.assist||""}));
+  recordMatch({blue,orange,sb:g.sb,so:g.so,src:"auto",goals,stats,mvp,names,guid:g.guid,t:g.t,buts,feuille,playlist:g.playlist},explode);
   return true;
 }
 const num=v=>Number.isFinite(+v)?+v:0;
@@ -1109,7 +1200,7 @@ function toast(txt){const t=$("toast");t.textContent=txt;t.classList.add("show")
 
 /* ---------- Agent PC : récupère les matchs joués page fermée ---------- */
 const AGENT="http://localhost:49125";
-const AGENT_CMD=`[Net.ServicePointManager]::SecurityProtocol='Tls12'; $d="$env:APPDATA\\KickoffDuMidi"; New-Item -ItemType Directory -Force $d | Out-Null; Invoke-WebRequest 'https://bsarlab.github.io/bs-arcade-center/outils/kickoff-agent.ps1' -OutFile "$d\\kickoff-agent.ps1" -UseBasicParsing; $v="$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KickoffDuMidi.vbs"; Set-Content -Path $v -Encoding ASCII -Value ('CreateObject("WScript.Shell").Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""' + "$d\\kickoff-agent.ps1" + '""", 0, False'); Start-Process wscript.exe -ArgumentList ('"' + $v + '"'); Write-Host 'Kickoff du midi : agent installe !' -ForegroundColor Green`;
+const AGENT_CMD=`Get-CimInstance Win32_Process | Where-Object { \$_.Name -eq 'powershell.exe' -and \$_.CommandLine -like '*kickoff-agent.ps1*' } | ForEach-Object { Stop-Process -Id \$_.ProcessId -Force }; Start-Sleep 1; [Net.ServicePointManager]::SecurityProtocol='Tls12'; $d="$env:APPDATA\\KickoffDuMidi"; New-Item -ItemType Directory -Force $d | Out-Null; Invoke-WebRequest 'https://bsarlab.github.io/bs-arcade-center/outils/kickoff-agent.ps1' -OutFile "$d\\kickoff-agent.ps1" -UseBasicParsing; $v="$env:APPDATA\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\KickoffDuMidi.vbs"; Set-Content -Path $v -Encoding ASCII -Value ('CreateObject("WScript.Shell").Run "powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File ""' + "$d\\kickoff-agent.ps1" + '""", 0, False'); Start-Process wscript.exe -ArgumentList ('"' + $v + '"'); Write-Host 'Kickoff du midi : agent installe !' -ForegroundColor Green`;
 let agent={ok:false,checked:false,jeu:"",enCours:false};
 async function agentGet(path){
   const ctl=new AbortController(),t=setTimeout(()=>ctl.abort(),2500);
@@ -1119,12 +1210,13 @@ async function agentGet(path){
 async function syncAgent(verbose){
   if(agent.enCours)return;agent.enCours=true;
   try{
-    const etat=await agentGet("/etat");agent.ok=true;agent.jeu=etat.jeu||"";
+    const etat=await agentGet("/etat");agent.ok=true;agent.jeu=etat.jeu||"";agent.version=num(etat.version)||1;
     const list=[].concat(await agentGet("/matchs")||[]);
     let n=0;
     list.slice().reverse().forEach(m=>{
       if(!m)return;
       const g={guid:String(m.guid||""),t:num(m.t)||Date.now(),playlist:m.playlist==null?null:num(m.playlist),sb:num(m.sb),so:num(m.so),
+        goals:[].concat(m.buts||[]).filter(Boolean).map(x=>({sec:num(x.s),ot:!!x.prol,name:String(x.nom||""),team:num(x.equipe),assist:String(x.passe||"")})).filter(x=>x.name),
         players:[].concat(m.joueurs||[]).filter(Boolean).map(j=>({name:String(j.nom||""),team:num(j.equipe),score:num(j.score),goals:num(j.buts),shots:num(j.tirs),assists:num(j.passes),saves:num(j.arrets),demos:num(j.demos)}))};
       if(importGame(g,false))n++;
     });
@@ -1138,8 +1230,10 @@ function renderAgent(){
   if(live.status!=="live")renderLive();
   if(agent.ok){
     const jeu={deconnecte:"Rocket League fermé",connecte:"connecté au jeu","en-match":"match en cours"}[agent.jeu]||agent.jeu;
-    box.innerHTML=`<div class="agentcard ok"><span class="ic">🟢</span><div class="grow"><b>Agent PC actif</b> (${esc(jeu)}). Tes matchs sont enregistrés même quand cette page est fermée : ils arrivent ici dès que tu l'ouvres.</div><button class="btn" id="syncBtn">↻ Récupérer maintenant</button></div>`;
+    box.innerHTML=`<div class="agentcard ok"><span class="ic">🟢</span><div class="grow"><b>Agent PC actif</b> (${esc(jeu)}). Tes matchs sont enregistrés même quand cette page est fermée : ils arrivent ici dès que tu l'ouvres.</div><button class="btn" id="syncBtn">↻ Récupérer maintenant</button>
+      ${agent.version<2?`<div style="flex-basis:100%;font-size:13px;color:#ffd27a">⬆️ <b>Mise à jour de l'agent disponible</b> : elle ajoute les buts minute par minute (buteur et passeur) dans l'historique. Ouvre PowerShell, colle la commande, puis Entrée.</div><button class="btn share" id="copyCmd">📋 Copier la commande de mise à jour</button>`:""}</div>`;
     $("syncBtn").onclick=()=>syncAgent(true);
+    if($("copyCmd"))$("copyCmd").onclick=()=>{(navigator.clipboard?navigator.clipboard.writeText(AGENT_CMD):Promise.reject()).then(()=>toast("✅ Commande copiée : colle-la dans PowerShell")).catch(()=>prompt("Copie cette commande :",AGENT_CMD));};
   }else{
     box.innerHTML=`<div class="agentcard"><span class="ic">💤</span><div class="grow"><b>Pas envie de garder cette page ouverte ?</b> Installe l'agent Kickoff sur ton PC de jeu : il enregistre les matchs en arrière-plan, et ils arrivent ici à la prochaine ouverture de la page.</div>
       <a class="btn" href="kickoff-agent.zip" download>⬇️ Télécharger l'agent (Windows)</a>
@@ -1192,18 +1286,63 @@ function renderStandings(){
       <span class="tb ${bw?"win":""}">${teamTxt(m,"b")}</span><span class="sc"><span class="b">${m.sb}</span> - <span class="o">${m.so}</span>${m.mvp!=null?`<span class="mvp">⭐ ${typeof m.mvp==="number"?nameOf(m.mvp):esc(m.mvp)}</span>`:""}</span>
       <span class="to ${bw?"":"win"}">${teamTxt(m,"o")}</span><span class="src" title="${m.src==="auto"?"Enregistré automatiquement":"Saisi à la main"}">${m.src==="auto"?"⚡":"✍️"}</span>
       <button class="x" data-del="${m.id}" title="Supprimer ce match">✕</button></div>`;}).join("");
-  box.innerHTML=table+`<div class="subh">Derniers matchs</div><div class="hist">${hist}</div>`;
+  void hist;box.innerHTML=table;renderHistory();
+}
+
+/* ================= Historique complet ================= */
+let histShow=15,histOpen=new Set();
+function renderHistory(){
+  const box=$("history"),sel=$("histFilter");if(!box)return;
+  const cur=sel.value||"";
+  sel.innerHTML=`<option value="">Tous les matchs</option>`+state.players.map(p=>`<option value="${p.id}" ${String(p.id)===cur?"selected":""}>Matchs de ${esc(p.name)}</option>`).join("");
+  sel.onchange=()=>{histShow=15;renderHistory();};
+  const pid=sel.value?+sel.value:null;
+  const list=state.matches.filter(m=>!pid||m.blue.includes(pid)||m.orange.includes(pid));
+  if(!state.matches.length){box.innerHTML=`<div class="lempty"><div>Aucun match pour l'instant : dès qu'un match est enregistré (agent PC, direct ou score saisi), il apparaît ici avec tous ses détails.</div></div>`;return;}
+  const nameOf=id=>{const p=state.players.find(x=>x.id===id);return p?p.name:"?";};
+  const team=(m,side)=>{const ids=side==="b"?m.blue:m.orange;return ids&&ids.length?ids.map(nameOf):((m.names||{})[side]||[]);};
+  const totalButs=state.matches.reduce((a,m)=>a+m.sb+m.so,0);
+  const big=state.matches.slice().sort((a,b)=>Math.abs(b.sb-b.so)-Math.abs(a.sb-a.so))[0];
+  const head=`<div class="hsum"><div><b>${state.matches.length}</b><span>matchs joués</span></div><div><b>${totalButs}</b><span>buts marqués</span></div>
+    <div><b>${(totalButs/state.matches.length).toFixed(1)}</b><span>buts par match</span></div><div><b>${big.sb}-${big.so}</b><span>plus gros écart</span></div></div>`;
+  const card=m=>{
+    const d=new Date(m.t),bw=m.sb>m.so,mvpName=m.mvp==null?"":(typeof m.mvp==="number"?nameOf(m.mvp):m.mvp),open=histOpen.has(m.id);
+    const tl=(m.buts||[]).map(x=>goalLine({sec:x.s,ot:x.ot,name:x.n,team:x.e,assist:x.p}));
+    const tlB=(m.buts||[]).filter(x=>x.e!==1).map(x=>goalLine({sec:x.s,ot:x.ot,name:x.n,team:x.e,assist:x.p})).join("");
+    const tlO=(m.buts||[]).filter(x=>x.e===1).map(x=>goalLine({sec:x.s,ot:x.ot,name:x.n,team:x.e,assist:x.p})).join("");
+    const sheet=side=>{const rows=(m.feuille||[]).filter(x=>(side==="b")===(x.e!==1)).sort((a,b)=>b.sc-a.sc);
+      if(!rows.length)return "";
+      return `<table class="sheet ${side}"><thead><tr><th>${side==="b"?"Bleus":"Oranges"}</th><th title="Points de score">Pts</th><th title="Buts">⚽</th><th title="Passes décisives">🎯</th><th title="Arrêts">🧤</th><th title="Tirs">Tirs</th><th title="Démolitions">💥</th></tr></thead><tbody>
+        ${rows.map(x=>{const r=rosterByName(x.n);return `<tr><td><span style="color:${r?colorOf(r):"var(--text)"}">${esc(x.n)}</span>${x.n===mvpName?' <span class="mvpb">MVP</span>':""}</td><td>${x.sc}</td><td>${x.b||"·"}</td><td>${x.p||"·"}</td><td>${x.a||"·"}</td><td>${x.t||"·"}</td><td>${x.d||"·"}</td></tr>`;}).join("")}</tbody></table>`;};
+    const body=m.feuille||m.buts?`${tl.length?`<div class="tlh">Buts du match</div><div class="tlc"><div class="tl b">${tlB}</div><div class="tl o">${tlO}</div></div>`:(m.feuille?`<div class="tlh">Chronologie des buts non disponible pour ce match</div>`:"")}
+        <div class="sheets">${sheet("b")}${sheet("o")}</div>`
+      :`<div class="tlh">Score saisi à la main : pas de buts ni de stats détaillées pour ce match.</div>`;
+    return `<div class="mc ${open?"open":""}" data-id="${m.id}">
+      <button class="mch" aria-expanded="${open}">
+        <span class="md"><b>${d.toLocaleDateString("fr-FR",{day:"numeric",month:"short"})}</b><small>${d.toLocaleDateString("fr-FR",{weekday:"short"})} ${d.toLocaleTimeString("fr-FR",{hour:"2-digit",minute:"2-digit"})}</small></span>
+        <span class="mt b ${bw?"win":""}">${team(m,"b").map(esc).join(", ")||"?"}</span>
+        <span class="ms"><span class="b">${m.sb}</span><i>-</i><span class="o">${m.so}</span>${mvpName?`<small>⭐ ${esc(mvpName)}</small>`:""}</span>
+        <span class="mt o ${bw?"":"win"}">${team(m,"o").map(esc).join(", ")||"?"}</span>
+        <span class="mi" title="${m.src==="auto"?"Enregistré automatiquement":"Saisi à la main"}">${m.src==="auto"?"⚡":"✍️"}</span><span class="mx">▾</span>
+      </button>
+      <div class="mb"><div class="mbi">${body}<div class="mfoot"><button class="btn danger" data-del="${m.id}">🗑️ Supprimer ce match</button></div></div></div>
+    </div>`;};
+  box.innerHTML=head+(list.length?list.slice(0,histShow).map(card).join(""):`<div class="lempty"><div>Aucun match pour ce joueur.</div></div>`)
+    +(list.length>histShow?`<button class="btn more" id="histMore">Voir ${Math.min(15,list.length-histShow)} matchs de plus (${list.length-histShow} restants)</button>`:"");
+  box.querySelectorAll(".mch").forEach(b=>b.onclick=()=>{const c=b.closest(".mc"),id=+c.dataset.id,o=!c.classList.contains("open");
+    c.classList.toggle("open",o);b.setAttribute("aria-expanded",o);o?histOpen.add(id):histOpen.delete(id);});
+  const more=$("histMore");if(more)more.onclick=()=>{histShow+=15;renderHistory();};
   box.querySelectorAll("[data-del]").forEach(b=>b.onclick=()=>{
-    if(!b.dataset.arm){b.dataset.arm=1;b.textContent="Sûr ?";setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent="✕";}},2200);return;}
-    state.matches=state.matches.filter(m=>m.id!==+b.dataset.del);save();renderStandings();});
+    if(!b.dataset.arm){b.dataset.arm=1;b.textContent="Sûr ? Clique encore";setTimeout(()=>{if(b.isConnected){delete b.dataset.arm;b.textContent="🗑️ Supprimer ce match";}},2500);return;}
+    state.matches=state.matches.filter(m=>m.id!==+b.dataset.del);save();renderStandings();toast("Match supprimé");});
 }
 
 /* ================= Score en direct (API Stats de Rocket League, PC) ================= */
 const LIVE_URL="ws://127.0.0.1:49124";
-let ws=null,live={status:"off",game:null,players:[],guid:"",feed:[],lastEnd:0,retryT:null};
+let ws=null,live={status:"off",game:null,players:[],guid:"",goals:[],dur:0,replay:false,lastEnd:0,retryT:null,built:false};
 const LSTAT={off:"Désactivé",connecting:"Connexion…",retry:"Jeu introuvable, nouvel essai…",waiting:"Connecté · en attente du match",live:"En direct"};
-function setLive(st){live.status=st;const el=$("lstat");el.className="lstat "+st;el.querySelector("span").textContent=LSTAT[st];
-  $("liveBtn").textContent=state.live?"⏹ Couper le direct":"⚡ Activer le direct";renderLive();}
+function setLive(st){const changed=live.status!==st;live.status=st;const el=$("lstat");el.className="lstat "+st;el.querySelector("span").textContent=LSTAT[st];
+  $("liveBtn").textContent=state.live?"⏹ Couper le direct":"⚡ Activer le direct";if(changed||st!=="live")live.built=false;renderLive();}
 function liveConnect(){
   clearTimeout(live.retryT);if(ws||!state.live)return;
   setLive(live.status==="retry"?"retry":"connecting");
@@ -1217,55 +1356,95 @@ function liveRetry(){setLive("retry");live.retryT=setTimeout(liveConnect,5000);}
 function liveStop(){state.live=false;save();clearTimeout(live.retryT);if(ws){const w=ws;ws=null;w.close();}setLive("off");}
 const norm=s=>String(s||"").toLowerCase().replace(/\s+/g,"").trim();
 const rosterByName=n=>{const k=norm(n);return state.players.find(p=>norm(p.tag)===k||norm(p.name)===k);};
+const scoreOf=g=>[0,1].map(n=>((g&&g.Teams||[]).find(t=>t.TeamNum===n)||{}).Score||0);
+/* minute façon foot : 2'14 (temps écoulé), +0'35 en prolongation */
+function fmtMin(sec,ot){sec=Math.max(0,Math.round(sec||0));return `${ot?"+":""}${Math.floor(sec/60)}'${String(sec%60).padStart(2,"0")}`;}
+function newLiveMatch(guid){live.guid=guid||"";live.goals=[];live.dur=0;live.built=false;}
 function onLiveMsg(raw){
   let msg;try{msg=JSON.parse(raw);}catch(e){return;}
   let d=msg.Data;if(typeof d==="string"){try{d=JSON.parse(d);}catch(e){}}
   d=d||{};
   switch(msg.Event){
-    case "UpdateState":
-      if(d.Game&&d.Game.bReplay)return;
-      const prev=live.game?scoreOf(live.game):null;
-      live.game=d.Game||live.game;live.players=d.Players||live.players;live.guid=d.MatchGuid||live.guid;
-      if(live.status!=="live")setLive("live");else renderLive(prev&&scoreOf(live.game).join()!==prev.join());
-      break;
-    case "MatchCreated":case "MatchInitialized":live.feed=[];live.guid=d.MatchGuid||live.guid;setLive("live");break;
-    case "GoalScored":{const sc=d.Scorer||{},as=d.Assister;
-      live.feed.unshift(`⚽ <b style="color:${sc.TeamNum===1?"var(--orange2)":"var(--blue2)"}">${esc(sc.Name||"?")}</b> marque${as&&as.Name?` (passe de ${esc(as.Name)})`:""}`);
-      live.feed=live.feed.slice(0,5);renderLive(true);break;}
+    case "UpdateState":{
+      const g=d.Game||{};
+      live.replay=!!g.bReplay;
+      if(live.replay)return;                                    // ralenti du but : on ne touche à rien
+      if(d.MatchGuid&&d.MatchGuid!==live.guid&&live.guid)newLiveMatch(d.MatchGuid);
+      else if(d.MatchGuid)live.guid=d.MatchGuid;
+      const prev=scoreOf(live.game);
+      if(d.Game)live.game=d.Game;if(d.Players)live.players=d.Players;
+      if(live.game&&!live.game.bOvertime)live.dur=Math.max(live.dur,num(live.game.TimeSeconds));
+      if(live.status!=="live")setLive("live");else updateBoard(scoreOf(live.game).join()!==prev.join());
+      break;}
+    case "MatchCreated":case "MatchInitialized":
+      if(d.MatchGuid&&d.MatchGuid!==live.guid)newLiveMatch(d.MatchGuid);   // seulement si c'est vraiment un nouveau match
+      if(live.status!=="live")setLive("live");break;
+    case "GoalScored":{
+      const sc=d.Scorer||{},name=String(sc.Name||"").trim();
+      if(live.replay||!name)break;                               // le « ? a marqué » venait d'ici
+      const team=num(sc.TeamNum),g=live.game||{},ot=!!g.bOvertime;
+      const sec=ot?num(g.TimeSeconds):Math.max(0,(live.dur||300)-num(g.TimeSeconds));
+      const last=live.goals[live.goals.length-1];
+      if(last&&last.name===name&&last.team===team&&Date.now()-last.at<10000)break;   // doublon
+      const as=d.Assister&&String(d.Assister.Name||"").trim();
+      live.goals.push({sec,ot,name,team,assist:as&&as!==name?as:"",at:Date.now()});
+      updateBoard(true,live.goals[live.goals.length-1]);break;}
     case "MatchEnded":finishLive(d);break;
     case "MatchDestroyed":live.game=null;live.players=[];setLive("waiting");break;
   }
 }
-const scoreOf=g=>[0,1].map(n=>((g.Teams||[]).find(t=>t.TeamNum===n)||{}).Score||0);
 function finishLive(d){
   const g=live.game;if(!g||Date.now()-live.lastEnd<15000)return;live.lastEnd=Date.now();
   const [sb,so]=scoreOf(g);if(sb===so)return;
   const avant=state.ignores.n||0;
   const ok=importGame({guid:String(d.MatchGuid||live.guid||""),t:Date.now(),playlist:g.PlaylistId==null?null:num(g.PlaylistId),sb,so,
+    goals:live.goals.map(x=>({sec:x.sec,ot:x.ot,name:x.name,team:x.team,assist:x.assist})),
     players:live.players.map(p=>({name:String(p.Name||""),team:num(p.TeamNum),score:num(p.Score),goals:num(p.Goals),shots:num(p.Shots),assists:num(p.Assists),saves:num(p.Saves),demos:num(p.Demos)}))},true);
   if(ok&&lastResult&&!lastResult.saved){lastResult.saved=true;renderScoreBox();}
   if(!ok&&(state.ignores.n||0)>avant)toast("Match non enregistré : "+state.ignores.dernier);
 }
-function renderLive(bump){
+function goalLine(x){
+  const r=rosterByName(x.name),col=r?colorOf(r):(x.team===1?"var(--orange2)":"var(--blue2)");
+  return `<div class="gl ${x.team===1?"o":"b"}"><span class="gm">${fmtMin(x.sec,x.ot)}</span><span class="gi">⚽</span>
+    <span class="gn"><b style="color:${col}">${esc(x.name)}</b>${x.assist?`<small>passe : ${esc(x.assist)}</small>`:""}</span></div>`;
+}
+function buildBoard(){
+  $("liveBoard").innerHTML=`<div class="lboard">
+      <div class="side b"><div class="tn">BLEUS</div><div class="pls" id="lpB"></div></div>
+      <div class="mid"><div class="sc" id="lsc"><span class="b" id="lsB">0</span><span class="d">:</span><span class="o" id="lsO">0</span></div><div class="clk" id="lclk">5:00</div></div>
+      <div class="side o"><div class="tn">ORANGES</div><div class="pls" id="lpO"></div></div>
+      <div class="goalflash" id="lflash"></div></div>
+    <div class="timeline"><div class="tlh">Buts du match</div><div class="tlc"><div class="tl b" id="ltB"></div><div class="tl o" id="ltO"></div></div><div class="tlempty" id="ltE">Pas encore de but. Ça va venir…</div></div>`;
+  live.built=true;
+}
+function updateBoard(bump,goal){
+  if(live.status!=="live"||!live.game){renderLive();return;}
+  if(!live.built)buildBoard();
+  const g=live.game,[sb,so]=scoreOf(g),t=Math.max(0,Math.round(num(g.TimeSeconds)));
+  if($("lsB").textContent!==String(sb)){$("lsB").textContent=sb;bumpEl($("lsB"));}
+  if($("lsO").textContent!==String(so)){$("lsO").textContent=so;bumpEl($("lsO"));}
+  const clk=$("lclk");clk.className="clk"+(g.bOvertime?" ot":"");clk.textContent=(g.bOvertime?"PROLONGATION +":"")+Math.floor(t/60)+":"+String(t%60).padStart(2,"0");
+  const pl=n=>live.players.filter(p=>num(p.TeamNum)===n).map(p=>{const r=rosterByName(p.Name);
+    return `<div class="pl" style="${r?`color:${colorOf(r)}`:""}">${esc(p.Name)}${num(p.Goals)?`<b>⚽ ${num(p.Goals)}</b>`:""}</div>`;}).join("");
+  const hB=pl(0),hO=pl(1);if($("lpB").innerHTML!==hB)$("lpB").innerHTML=hB;if($("lpO").innerHTML!==hO)$("lpO").innerHTML=hO;
+  const tb=live.goals.filter(x=>x.team!==1).map(goalLine).join(""),to=live.goals.filter(x=>x.team===1).map(goalLine).join("");
+  if($("ltB").dataset.n!==String(live.goals.length)){$("ltB").innerHTML=tb;$("ltO").innerHTML=to;$("ltB").dataset.n=live.goals.length;
+    $("ltE").style.display=live.goals.length?"none":"";}
+  if(goal){const fl=$("lflash"),col=goal.team===1?"var(--orange)":"var(--blue)";
+    fl.style.setProperty("--fc",col);fl.innerHTML=`<span>BUT !</span><b>${esc(goal.name)}</b><small>${fmtMin(goal.sec,goal.ot)}${goal.assist?` · passe de ${esc(goal.assist)}`:""}</small>`;
+    fl.classList.remove("on");void fl.offsetWidth;fl.classList.add("on");}
+}
+function bumpEl(el){el.classList.remove("bump");void el.offsetWidth;el.classList.add("bump");}
+function renderLive(){
   const box=$("liveBoard");
-  if(live.status==="live"&&live.game){
-    const g=live.game,[sb,so]=scoreOf(g),t=Math.max(0,Math.round(g.TimeSeconds||0));
-    const side=n=>live.players.filter(p=>p.TeamNum===n).map(p=>{const r=rosterByName(p.Name);
-      return `<div class="pl" style="${r?`color:${colorOf(r)}`:""}">${esc(p.Name)}${p.Goals?`<b>⚽${p.Goals}</b>`:""}</div>`;}).join("");
-    box.innerHTML=`<div class="lboard"><div class="side b"><div class="tn">BLEUS</div>${side(0)}</div>
-      <div class="mid"><div class="sc ${bump?"bump":""}"><span class="b">${sb}</span><span class="d">:</span><span class="o">${so}</span></div>
-      <div class="clk ${g.bOvertime?"ot":""}">${g.bOvertime?"PROLONGATION +":""}${Math.floor(t/60)}:${String(t%60).padStart(2,"0")}</div></div>
-      <div class="side o"><div class="tn">ORANGES</div>${side(1)}</div></div>
-      <div class="lfeed">${live.feed.map(x=>`<div>${x}</div>`).join("")}</div>`;
-    return;
-  }
-  const msg={off:agent.ok?`Tes matchs sont déjà enregistrés par l'agent PC. Le direct est un bonus : il affiche le score et les buteurs en temps réel quand cette page est ouverte pendant le match.`:`Le score s'enregistre tout seul à la fin de chaque match, sans rien saisir. Il faut jouer sur PC avec cette page ouverte dans le navigateur (ou installer l'agent PC juste en dessous), et avoir activé une seule fois l'API Stats dans les fichiers du jeu. Clique sur « Activer le direct ».`,
+  if(live.status==="live"&&live.game){updateBoard(false);return;}
+  live.built=false;
+  const msg={off:agent.ok?`Tes matchs sont déjà enregistrés par l'agent PC. Le direct est un bonus : il affiche le score, le chrono et les buteurs en temps réel quand cette page est ouverte pendant le match.`:`Le score s'enregistre tout seul à la fin de chaque match, sans rien saisir. Il faut jouer sur PC avec cette page ouverte dans le navigateur (ou installer l'agent PC juste en dessous), et avoir activé une seule fois l'API Stats dans les fichiers du jeu. Clique sur « Activer le direct ».`,
     connecting:"Connexion à Rocket League sur ce PC…",
     retry:`Rocket League ne répond pas. Vérifie que le jeu est lancé et que <b>WebPort=49124</b> est bien réglé dans le fichier TAStatsAPI.ini (puis relance le jeu). Si le navigateur te demande d'autoriser l'accès au réseau local, accepte.${window.self!==window.top?" Si ça bloque encore, ouvre la page en <b>plein onglet</b> (bouton ↗ en haut à droite).":""}`,
     waiting:"Connecté au jeu ✔ Lance la partie privée : le tableau de score s'affichera ici en direct."}[live.status];
   box.innerHTML=`<div class="lempty">${live.status==="off"?heroSVG(true):""}<div>${msg}</div></div>`;
 }
-
 
 /* ================= Visuel des compos (image à coller dans Discord) ================= */
 function loadImg(src){return new Promise(res=>{const i=new Image();i.onload=()=>res(i);i.onerror=()=>res(null);i.src=src;});}
@@ -1451,7 +1630,7 @@ function clock(){
 }
 clock();setInterval(clock,20000);
 function renderSeg(){document.querySelectorAll('#colorSeg button').forEach(b=>{b.classList.toggle('on',b.dataset.m===state.colorMode);b.onclick=()=>{state.colorMode=b.dataset.m;save();renderAll();if(lastResult)renderResult(lastResult);};});}
-function renderAll(){renderSeg();renderPlayers();renderFormats();renderRoster();renderStandings();}
+function renderAll(){renderSeg();renderPlayers();renderFormats();renderRoster();renderStandings();renderHistory();}
 $("heroArt").innerHTML=heroSVG(reduceMotion);
 if(window.self!==window.top){const a=$("openTab");a.hidden=false;a.href=location.href.split("?")[0];}
 $("useForm").checked=state.useForm;
@@ -1459,6 +1638,11 @@ $("useForm").onchange=e=>{state.useForm=e.target.checked;save();};
 $("liveBtn").onclick=()=>{if(state.live)liveStop();else{state.live=true;save();liveConnect();}};
 $("gx").onclick=()=>$("gx").classList.remove("show");
 renderAll();renderFiltres();renderAgent();autoDraft();
+if(!reduceMotion&&"IntersectionObserver" in window){
+  document.documentElement.classList.add("js-reveal");
+  const io=new IntersectionObserver(es=>es.forEach(e=>{if(e.isIntersecting){e.target.classList.add("vis");io.unobserve(e.target);}}),{threshold:.08,rootMargin:"0px 0px -40px 0px"});
+  document.querySelectorAll(".step").forEach(el=>io.observe(el));
+}
 syncAgent(false);setInterval(()=>{if(!document.hidden)syncAgent(false);},20000);
 document.addEventListener("visibilitychange",()=>{if(!document.hidden)syncAgent(false);});
 setLive(state.live?"connecting":"off");
