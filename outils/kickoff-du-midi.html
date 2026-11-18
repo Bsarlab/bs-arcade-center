@@ -1632,7 +1632,7 @@ clock();setInterval(clock,20000);
 function renderSeg(){document.querySelectorAll('#colorSeg button').forEach(b=>{b.classList.toggle('on',b.dataset.m===state.colorMode);b.onclick=()=>{state.colorMode=b.dataset.m;save();renderAll();if(lastResult)renderResult(lastResult);};});}
 function renderAll(){renderSeg();renderPlayers();renderFormats();renderRoster();renderStandings();renderHistory();}
 $("heroArt").innerHTML=heroSVG(reduceMotion);
-if(window.self!==window.top){const a=$("openTab");a.hidden=false;a.href=location.href.split("?")[0];}
+if(window.self!==window.top){const a=$("openTab");a.hidden=false;a.href=location.href.split("?")[0]+"?v="+Date.now();}
 $("useForm").checked=state.useForm;
 $("useForm").onchange=e=>{state.useForm=e.target.checked;save();};
 $("liveBtn").onclick=()=>{if(state.live)liveStop();else{state.live=true;save();liveConnect();}};

@@ -1340,7 +1340,7 @@ function ouvrirKickoff() {
   f.title = "Kickoff du midi";
   f.allow = "fullscreen; clipboard-write; local-network-access; local-network; loopback-network";
   f.addEventListener("load", () => { $("chargement").hidden = true; f.focus(); });
-  f.src = lien("outils/kickoff-du-midi.html");
+  f.src = lien("outils/kickoff-du-midi.html") + "?v=" + Date.now(); // toujours la dernière version
   $("scene").appendChild(f);
 }
 $("btnKickoff")?.addEventListener("click", ouvrirKickoff);
